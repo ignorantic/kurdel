@@ -1,0 +1,24 @@
+{
+  "name": "ijon",
+  "version": "1.0.0",
+  "description": "framework",
+  "main": "lib/index.js",
+  "type": "module",
+  "files": [
+    "lib",
+    "types"
+  ],
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "keywords": [
+    "framework"
+  ],
+  "author": "Andrii Sorokin",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.9.0"
+  }
+}

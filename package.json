@@ -1,0 +1,27 @@
+{
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "nodemon",
+    "build": "npm run build -w ijon -w app"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "packages/ijon/src/**/*.ts",
+      "packages/app/src/**/*.ts"
+    ],
+    "exec": "npm run build && npm run dev -w app",
+    "ext": "ts,json",
+    "ignore": [
+      "node_modules",
+      "dist"
+    ],
+    "delay": "1000"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
