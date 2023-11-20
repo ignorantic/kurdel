@@ -12,7 +12,8 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "dependencies": {
-    "ijon": "^1.0.0"
+    "ijon": "^1.0.0",
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "@types/node": "^20.9.0"

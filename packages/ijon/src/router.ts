@@ -1,4 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
+import { parse } from 'url';
 import { Controller } from './controller.js';
 
 export type Method = 'GET' | 'POST';
@@ -26,7 +27,8 @@ export class Router {
   }
 
   resolve(method: Method, url: string) {
-    const route = this.routes.find(route => route.method === method && route.path === url);
+    const { pathname } = parse(url, true);
+    const route = this.routes.find(route => route.method === method && route.path === pathname);
     return route ? route.handler : null;
   }
 

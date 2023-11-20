@@ -1,3 +1,4 @@
+import { parse } from 'url';
 export class Router {
     routes;
     constructor() {
@@ -14,7 +15,8 @@ export class Router {
         this.addRoute('POST', path, controller, actionName);
     }
     resolve(method, url) {
-        const route = this.routes.find(route => route.method === method && route.path === url);
+        const { pathname } = parse(url, true);
+        const route = this.routes.find(route => route.method === method && route.path === pathname);
         return route ? route.handler : null;
     }
     controllerAction(controller, actionName) {
