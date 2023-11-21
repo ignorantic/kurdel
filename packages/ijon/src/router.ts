@@ -1,10 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
 import { Controller } from './controller.js';
-
-export type Method = 'GET' | 'POST';
-
-export type Route = { method: Method, path: string, handler: Function };
+import { Method, Route } from './types.js';
 
 export class Router {
   private routes: Route[];
@@ -13,17 +10,15 @@ export class Router {
     this.routes = [];
   }
 
-  addRoute(method: Method, path: string, controller: Controller, actionName: string) {
-    const handler = this.controllerAction(controller, actionName)
+  useController<T>(controller: Controller<T>) {
+    controller.routes.forEach((item) => {
+      this.addRoute<T>(item.method, item.path, controller, item.action as string)
+    })
+  }
+
+  private addRoute<T>(method: Method, path: string, controller: Controller<T>, action: string) {
+    const handler = this.controllerAction<T>(controller, action)
     this.routes.push({ method, path, handler });
-  }
-
-  get(path: string, controller: Controller, actionName: string) {
-    this.addRoute('GET', path, controller, actionName);
-  }
-
-  post(path: string, controller: Controller, actionName: string) {
-    this.addRoute('POST', path, controller, actionName);
   }
 
   resolve(method: Method, url: string) {
@@ -32,9 +27,9 @@ export class Router {
     return route ? route.handler : null;
   }
 
-  controllerAction(controller: Controller, actionName: string) {
+  controllerAction<T>(controller: Controller<T>, action: string) {
     return (req: IncomingMessage, res: ServerResponse) => {
-      controller.execute(req, res, actionName);
+      controller.execute(req, res, action);
     };
   }
 }

@@ -1,17 +1,11 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { Controller } from './controller.js';
-export type Method = 'GET' | 'POST';
-export type Route = {
-    method: Method;
-    path: string;
-    handler: Function;
-};
+import { Method } from './types.js';
 export declare class Router {
     private routes;
     constructor();
-    addRoute(method: Method, path: string, controller: Controller, actionName: string): void;
-    get(path: string, controller: Controller, actionName: string): void;
-    post(path: string, controller: Controller, actionName: string): void;
+    useController<T>(controller: Controller<T>): void;
+    private addRoute;
     resolve(method: Method, url: string): Function | null;
-    controllerAction(controller: Controller, actionName: string): (req: IncomingMessage, res: ServerResponse) => void;
+    controllerAction<T>(controller: Controller<T>, action: string): (req: IncomingMessage, res: ServerResponse) => void;
 }

@@ -22,9 +22,6 @@ export class Controller {
             this._response.end(`The method '${actionName}' was not found in '${this.constructor.name}' class.`);
         }
     }
-    get query() {
-        return this._query ?? {};
-    }
     send(statusCode, data) {
         if (this._request && this._response) {
             this._response.writeHead(statusCode, { 'Content-Type': 'application/json' });
@@ -33,5 +30,8 @@ export class Controller {
     }
     sendError(statusCode, message) {
         this.send(statusCode, { error: message });
+    }
+    get query() {
+        return this._query ?? {};
     }
 }

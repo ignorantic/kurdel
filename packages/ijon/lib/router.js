@@ -4,24 +4,23 @@ export class Router {
     constructor() {
         this.routes = [];
     }
-    addRoute(method, path, controller, actionName) {
-        const handler = this.controllerAction(controller, actionName);
+    useController(controller) {
+        controller.routes.forEach((item) => {
+            this.addRoute(item.method, item.path, controller, item.action);
+        });
+    }
+    addRoute(method, path, controller, action) {
+        const handler = this.controllerAction(controller, action);
         this.routes.push({ method, path, handler });
-    }
-    get(path, controller, actionName) {
-        this.addRoute('GET', path, controller, actionName);
-    }
-    post(path, controller, actionName) {
-        this.addRoute('POST', path, controller, actionName);
     }
     resolve(method, url) {
         const { pathname } = parse(url, true);
         const route = this.routes.find(route => route.method === method && route.path === pathname);
         return route ? route.handler : null;
     }
-    controllerAction(controller, actionName) {
+    controllerAction(controller, action) {
         return (req, res) => {
-            controller.execute(req, res, actionName);
+            controller.execute(req, res, action);
         };
     }
 }

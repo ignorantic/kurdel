@@ -1,12 +1,14 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { ParsedUrlQuery } from 'querystring';
 import { parse } from 'url';
+import { RouteConfig } from './types.js';
 
-export class Controller {
+export abstract class Controller<T> {
   private _request?: IncomingMessage;
   private _response?: ServerResponse;
   private _query?: ParsedUrlQuery;
-  
+  abstract readonly routes: RouteConfig<T>;
+
   async execute(request: IncomingMessage, response: ServerResponse, actionName: string) {
     this._request = request;
     this._response = response;
@@ -27,10 +29,6 @@ export class Controller {
     }
   }
 
-  protected get query(): ParsedUrlQuery {
-    return this._query ?? {};
-  }
-
   send(statusCode: number, data: Record<string, unknown>) {
     if (this._request && this._response) {
       this._response.writeHead(statusCode, { 'Content-Type': 'application/json' });
@@ -40,5 +38,9 @@ export class Controller {
 
   sendError(statusCode: number, message: string) {
     this.send(statusCode, { error: message });
+  }
+
+  get query(): ParsedUrlQuery {
+    return this._query ?? {};
   }
 }

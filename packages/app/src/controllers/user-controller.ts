@@ -1,8 +1,26 @@
-import { Controller } from 'ijon';
+import { Controller, RouteConfig } from 'ijon';
 import { UserService } from '../services/user-service.js';
 
-export class UserController extends Controller {
+export class UserController extends Controller<UserController> {
   private service: UserService;
+
+  routes: RouteConfig<UserController> = [
+    {
+      method: 'POST',
+      path: '/user',
+      action: 'create',
+    },
+    {
+      method: 'GET',
+      path: '/user',
+      action: 'getOne',
+    },
+    {
+      method: 'GET',
+      path: '/users',
+      action: 'getAll',
+    }
+  ];
 
   constructor(service: UserService) {
     super();

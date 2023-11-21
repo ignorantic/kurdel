@@ -13,11 +13,8 @@ const userService = new UserService(db);
 const homeController = new HomeController();
 const userController = new UserController(userService);
 
-router.get('/', homeController, 'index');
-router.get('/about', homeController, 'about');
-router.get('/create', userController, 'create');
-router.get('/user', userController, 'getOne');
-router.get('/users', userController, 'getAll');
+router.useController(homeController);
+router.useController(userController);
 
 export { router };
 

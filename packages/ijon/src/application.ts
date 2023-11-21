@@ -1,5 +1,6 @@
 import http from 'http';
-import { Router, Method } from './router.js';
+import { Method } from './types.js';
+import { Router } from './router.js';
 
 export class Application {
   private router: Router;

@@ -1,6 +1,23 @@
 import { Controller } from 'ijon';
 export class UserController extends Controller {
     service;
+    routes = [
+        {
+            method: 'POST',
+            path: '/user',
+            action: 'create',
+        },
+        {
+            method: 'GET',
+            path: '/user',
+            action: 'getOne',
+        },
+        {
+            method: 'GET',
+            path: '/users',
+            action: 'getAll',
+        }
+    ];
     constructor(service) {
         super();
         this.service = service;
