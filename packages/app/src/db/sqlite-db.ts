@@ -1,4 +1,5 @@
 import { IDatabase } from 'ijon';
+import { DatabaseQuery } from 'ijon/types/db/interfaces.js';
 import sqlite3 from 'sqlite3';
 
 export class SQLiteDB implements IDatabase {
@@ -14,7 +15,7 @@ export class SQLiteDB implements IDatabase {
     });
   }
 
-  public get(sql: string, params: any[] = []): Promise<any> {
+  public get({ sql, params }: DatabaseQuery): Promise<any> {
     return new Promise((resolve, reject) => {
       this.db.get(sql, params, (err, result) => {
         if (err) {
@@ -28,7 +29,7 @@ export class SQLiteDB implements IDatabase {
     });
   }
 
-  public all(sql: string, params: any[] = []): Promise<any> {
+  public all({ sql, params }: DatabaseQuery): Promise<any> {
     return new Promise((resolve, reject) => {
       this.db.all(sql, params, (err, result) => {
         if (err) {
@@ -42,7 +43,7 @@ export class SQLiteDB implements IDatabase {
     });
   }
 
-  public run(sql: string, params: any[] = []): Promise<void> {
+  public run({ sql, params }: DatabaseQuery): Promise<void> {
     return new Promise((resolve, reject) => {
       this.db.run(sql, params, function (err) {
         if (err) {

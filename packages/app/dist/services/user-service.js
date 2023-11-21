@@ -3,13 +3,13 @@ export class UserService extends Service {
     constructor(db) {
         super(db, 'users');
     }
-    async createUser(names) {
-        return this.create(names);
+    async createUser(name) {
+        return this.create({ id: null, name });
     }
     async getUser(id) {
-        return this.find(id);
+        return this.find('id', [id]);
     }
     async getUsers() {
-        return this.all();
+        return this.findAll();
     }
 }

@@ -5,15 +5,15 @@ export class UserService extends Service {
     super(db, 'users');
   }
 
-  public async createUser(names: string[]) {
-    return this.create(names);
+  public async createUser(name: string) {
+    return this.create({ id: null, name });
   }
 
   public async getUser(id: number) {
-    return this.find(id);
+    return this.find('id', [id]);
   }
 
   public async getUsers() {
-    return this.all();
+    return this.findAll();
   }
 }

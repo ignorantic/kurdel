@@ -1,24 +1,26 @@
-import { IDatabase } from './db/interfaces.js';
+import { IDatabase, IQueryBuilder } from './db/interfaces.js';
+import { QueryBuilder } from './db/query-builder.js';
 
 export abstract class Service {
   private db: IDatabase;
+  private builder: IQueryBuilder;
   private table: string;
 
   constructor(db: IDatabase, table: string) {
     this.db = db;
+    this.builder = new QueryBuilder();
     this.table = table;
   }
 
-  public async create(names: string[]) {
-    await this.db.run(`INSERT INTO ${this.table} (name) VALUES (?)`, names);
-    return this.db.get(`SELECT * FROM ${this.table} WHERE name = ?`, names);
+  public async create(data: Record<string, any>) {
+    return this.db.run(this.builder.insert(this.table, data).build());
   }
 
-  public async find(id: number) {
-    return this.db.get(`SELECT * FROM ${this.table} WHERE id = ?`, [id]);
+  public async find(field: string, values: any[]) {
+    return this.db.get(this.builder.select('*').from(this.table).where(`${field} = ?`, values).build());
   }
 
-  public async all() {
-    return this.db.all(`SELECT * FROM ${this.table}`, []);
+  public async findAll() {
+    return this.db.all(this.builder.select('*').from(this.table).build());
   }
 }

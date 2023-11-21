@@ -18,8 +18,8 @@ export class UserController extends Controller {
     } 
 
     try {
-      const record = await this.service.createUser([name]);
-      this.send(200, record);
+      await this.service.createUser(name);
+      this.send(200, { message: 'OK' });
     } catch (err) {
       this.sendError(500, JSON.stringify(err));
     }

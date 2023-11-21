@@ -1,18 +1,20 @@
+import { QueryBuilder } from './db/query-builder.js';
 export class Service {
     db;
+    builder;
     table;
     constructor(db, table) {
         this.db = db;
+        this.builder = new QueryBuilder();
         this.table = table;
     }
-    async create(names) {
-        await this.db.run(`INSERT INTO ${this.table} (name) VALUES (?)`, names);
-        return this.db.get(`SELECT * FROM ${this.table} WHERE name = ?`, names);
+    async create(data) {
+        return this.db.run(this.builder.insert(this.table, data).build());
     }
-    async find(id) {
-        return this.db.get(`SELECT * FROM ${this.table} WHERE id = ?`, [id]);
+    async find(field, values) {
+        return this.db.get(this.builder.select('*').from(this.table).where(`${field} = ?`, values).build());
     }
-    async all() {
-        return this.db.all(`SELECT * FROM ${this.table}`, []);
+    async findAll() {
+        return this.db.all(this.builder.select('*').from(this.table).build());
     }
 }
