@@ -6,19 +6,23 @@ type Props = {
 };
 
 export default function Table({ data }: Props) {
-  const [selected, setSelected] = useState<number>(0);
+  const [selected, setSelected] = useState<number | null>(null);
 
   useInput((_, key) => {
     if (key.upArrow) {
-      if (selected > 0) {
-        setSelected(value => value - 1);
+      if (selected === null || selected > 0) {
+        setSelected(value => value === null ? 0 : value - 1);
       }
     }
 
     if (key.downArrow) {
-      if (data && selected < data.length - 1) {
-        setSelected(value => value + 1);
+      if (selected === null || data && selected < data.length - 1) {
+        setSelected(value => value === null ? 0 : value + 1);
       }
+    }
+
+    if (key.escape) {
+      setSelected(null);
     }
   });
 

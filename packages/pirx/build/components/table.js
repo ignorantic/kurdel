@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { Box, Text, Transform, useInput } from 'ink';
 export default function Table({ data }) {
-    const [selected, setSelected] = useState(0);
+    const [selected, setSelected] = useState(null);
     useInput((_, key) => {
         if (key.upArrow) {
-            if (selected > 0) {
-                setSelected(value => value - 1);
+            if (selected === null || selected > 0) {
+                setSelected(value => value === null ? 0 : value - 1);
             }
         }
         if (key.downArrow) {
-            if (data && selected < data.length - 1) {
-                setSelected(value => value + 1);
+            if (selected === null || data && selected < data.length - 1) {
+                setSelected(value => value === null ? 0 : value + 1);
             }
+        }
+        if (key.escape) {
+            setSelected(null);
         }
     });
     const columns = Object.keys(data[0]);
