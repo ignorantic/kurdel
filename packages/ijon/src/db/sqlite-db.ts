@@ -1,6 +1,5 @@
-import { IDatabase } from 'ijon';
-import { DatabaseQuery } from 'ijon/types/db/interfaces.js';
 import sqlite3 from 'sqlite3';
+import { DatabaseQuery, IDatabase } from './interfaces.js';
 
 export class SQLiteDB implements IDatabase {
   private db: sqlite3.Database;

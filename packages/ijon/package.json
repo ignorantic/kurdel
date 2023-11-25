@@ -20,5 +20,8 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.9.0"
+  },
+  "peerDependencies": {
+    "sqlite3": "^5.1.6"
   }
 }
