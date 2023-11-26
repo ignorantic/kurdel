@@ -30,7 +30,7 @@ export class SQLiteDriver extends DatabaseDriver {
             return resolve(null);
         });
     }
-    getDB() {
+    get connection() {
         return this.db;
     }
 }

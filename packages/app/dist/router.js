@@ -1,4 +1,4 @@
-import { Router, DatabaseFactory } from 'ijon';
+import { Router, DatabaseFactory, IoCContainer } from 'ijon';
 import { PingController } from './controllers/ping-controller.js';
 import { UserController } from './controllers/user-controller.js';
 import { UserService } from './services/user-service.js';
@@ -15,10 +15,15 @@ const db = driver.getDB();
 if (!db) {
     throw new Error('Database not connected');
 }
-const userService = new UserService(db);
-const pingController = new PingController();
-const userController = new UserController(userService);
+const container = new IoCContainer();
 const router = new Router();
+container.registerInstance('db', db);
+container.registerInstance('router', router);
+container.register('UserService', UserService, ['db']);
+container.register('UserController', UserController, ['UserService']);
+container.register('PingController', PingController, []);
+const userController = container.resolve('UserController');
+const pingController = container.resolve('PingController');
 router.useController(pingController);
 router.useController(userController);
-export { router };
+export default container;

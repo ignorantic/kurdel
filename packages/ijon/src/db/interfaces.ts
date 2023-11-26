@@ -1,3 +1,12 @@
+export interface DatabaseConfig {
+  type: string;
+  host?: string;
+  filename?: string;
+  port?: number;
+  user?: string;
+  password?: string;
+}
+
 export type DatabaseQuery = {
   sql: string,
   params: any[],

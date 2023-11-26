@@ -1,10 +1,4 @@
-export interface DatabaseConfig {
-  type: string;
-  host: string;
-  port: number;
-  user: string;
-  password: string;
-}
+import { DatabaseConfig } from './interfaces.js';
 
 export abstract class DatabaseDriver<T extends DatabaseConfig> {
   protected config: T;

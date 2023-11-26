@@ -6,8 +6,9 @@ import { Method, Route } from './types.js';
 export class Router {
   private routes: Route[];
 
-  constructor() {
+  constructor(...controllers: Controller<unknown>[]) {
     this.routes = [];
+    controllers.forEach(controller => this.useController(controller));
   }
 
   useController<T>(controller: Controller<T>) {

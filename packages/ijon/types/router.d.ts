@@ -4,7 +4,7 @@ import { Controller } from './controller.js';
 import { Method } from './types.js';
 export declare class Router {
     private routes;
-    constructor();
+    constructor(...controllers: Controller<unknown>[]);
     useController<T>(controller: Controller<T>): void;
     private addRoute;
     resolve(method: Method, url: string): Function | null;

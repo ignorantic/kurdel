@@ -1,8 +1,9 @@
 import { parse } from 'url';
 export class Router {
     routes;
-    constructor() {
+    constructor(...controllers) {
         this.routes = [];
+        controllers.forEach(controller => this.useController(controller));
     }
     useController(controller) {
         controller.routes.forEach((item) => {

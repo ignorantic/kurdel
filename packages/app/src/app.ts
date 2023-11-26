@@ -1,9 +1,19 @@
 import { Application } from 'ijon';
-import { router } from './router.js';
+import ioc from './ioc.js';
 
-const app = new Application(router);
+const config = {
+  port: 3000,
+  database: {
+    type: 'sqlite',
+    filename: './test.db',
+    user: '',
+    password: '',
+    host: '',
+    port: 8888,
+  }
+};
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000\n');
-});
+const app = new Application(config, ioc);
+
+app.start();
 

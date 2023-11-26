@@ -1,4 +1,5 @@
-import { DatabaseDriver, DatabaseConfig } from './database-driver.js';
+import { DatabaseDriver } from './database-driver.js';
+import { DatabaseConfig } from './interfaces.js';
 import { SQLiteDB } from './sqlite-db.js';
 
 export interface SQLiteConfig extends DatabaseConfig {
@@ -37,7 +38,7 @@ export class SQLiteDriver extends DatabaseDriver<SQLiteConfig> {
     });
   }
 
-  getDB() {
+  get connection() {
     return this.db;
   }
 }
