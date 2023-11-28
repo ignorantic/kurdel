@@ -1,8 +1,8 @@
 import { Controller, RouteConfig } from 'ijon';
-import { UserService } from '../services/user-service.js';
+import { UserModel } from 'models/user-model.js';
 
 export class UserController extends Controller<UserController> {
-  private service: UserService;
+  private service: UserModel;
 
   routes: RouteConfig<UserController> = [
     {
@@ -22,7 +22,7 @@ export class UserController extends Controller<UserController> {
     }
   ];
 
-  constructor(service: UserService) {
+  constructor(service: UserModel) {
     super();
     this.service = service;
   }

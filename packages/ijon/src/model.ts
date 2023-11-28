@@ -1,15 +1,14 @@
 import { IDatabase, IQueryBuilder } from './db/interfaces.js';
 import { QueryBuilder } from './db/query-builder.js';
 
-export abstract class Service {
+export abstract class Model {
   private db: IDatabase;
   private builder: IQueryBuilder;
-  private table: string;
+  protected abstract table: string;
 
-  constructor(db: IDatabase, table: string) {
+  constructor(db: IDatabase) {
     this.db = db;
     this.builder = new QueryBuilder();
-    this.table = table;
   }
 
   public async create(data: Record<string, any>) {

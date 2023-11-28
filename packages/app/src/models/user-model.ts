@@ -1,9 +1,7 @@
-import { IDatabase, Service } from 'ijon';
+import { Model } from 'ijon';
 
-export class UserService extends Service {
-  constructor(db: IDatabase) {
-    super(db, 'users');
-  }
+export class UserModel extends Model {
+  table = 'users';
 
   public async createUser(name: string) {
     return this.create({ id: null, name });

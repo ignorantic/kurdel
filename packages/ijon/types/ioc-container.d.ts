@@ -1,8 +1,13 @@
+export type Newable<T> = new (...args: any[]) => T;
+export type Identifier<T = unknown> = string | symbol | Newable<T>;
 export declare class IoCContainer {
     private readonly dependencies;
-    register<T>(name: string, constructor: {
+    register<T>(name: Identifier<T>, constructor: {
         new (...args: any[]): T;
-    }, dependencies: string[]): void;
-    registerInstance<T>(name: string, instance: T): void;
-    resolve<T>(name: string): T;
+    }, dependencies: Identifier[]): void;
+    registerInstance<T>(name: Identifier<T>, instance: T): void;
+    put<T>(constructor: {
+        new (...args: any[]): T;
+    }, dependencies: Identifier[]): void;
+    get<T>(name: Identifier<T>): T;
 }
