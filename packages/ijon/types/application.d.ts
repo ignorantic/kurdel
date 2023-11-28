@@ -1,19 +1,18 @@
 import { Identifier, Newable } from './ioc-container.js';
-import { CombinedDatabaseConfig } from './db/database-factory.js';
 import { Model } from './model.js';
-import { Controller } from 'controller.js';
 export interface AppConfig {
-    port: number;
-    database: CombinedDatabaseConfig;
     models: Newable<Model>[];
-    controllers: [Newable<Controller>, Identifier[]][];
+    controllers: [Newable<{}>, Identifier[]][];
 }
 export declare class Application {
     private config;
     private ioc;
+    private jsonLoader;
     constructor(config: AppConfig);
-    start(): Promise<void>;
-    connect(): Promise<void>;
-    register(): void;
+    static create(config: AppConfig): Promise<Application>;
+    private init;
+    private connectDB;
+    private registerModels;
+    private registerControllers;
     listen(port: number, callback: () => void): void;
 }

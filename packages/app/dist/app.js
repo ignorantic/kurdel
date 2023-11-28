@@ -2,21 +2,13 @@ import { Application } from 'ijon';
 import { PingController } from './controllers/ping-controller.js';
 import { UserController } from './controllers/user-controller.js';
 import { UserModel } from './models/user-model.js';
-const config = {
-    port: 3000,
-    database: {
-        type: 'sqlite',
-        filename: './test.db',
-        user: '',
-        password: '',
-        host: '',
-        port: 8888,
-    },
+const app = await Application.create({
     models: [UserModel],
     controllers: [
         [PingController, []],
         [UserController, [UserModel]],
     ]
-};
-const app = new Application(config);
-app.start();
+});
+app.listen(3000, () => {
+    console.log(`Server is running on http://localhost:3000\n`);
+});

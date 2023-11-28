@@ -2,46 +2,59 @@ import http from 'http';
 import { Method } from './types.js';
 import { Router } from './router.js';
 import { Identifier, IoCContainer, Newable } from './ioc-container.js';
-import { DatabaseSymbol } from './db/interfaces.js';
+import { DatabaseSymbol, IDatabase } from './db/interfaces.js';
 import { CombinedDatabaseConfig, DatabaseFactory } from './db/database-factory.js';
 import { Model } from './model.js';
-import { Controller } from 'controller.js';
+import { JSONLoader } from './json-loader.js';
 
 export interface AppConfig {
-  port: number;
-  database: CombinedDatabaseConfig;
   models: Newable<Model>[];
-  controllers: [Newable<Controller>, Identifier[]][];
+  controllers: [Newable<{}>, Identifier[]][];
 } 
 
 export class Application {
   private config: AppConfig;
   private ioc: IoCContainer;
+  private jsonLoader: JSONLoader;
 
   constructor(config: AppConfig) {
     this.config = config;
     this.ioc = new IoCContainer();
+    this.jsonLoader = new JSONLoader();
   }
 
-  async start() {
-    await this.connect();
-    this.register();
-    this.listen(this.config.port, () => {
-      console.log(`Server is running on http://localhost:${this.config.port}\n`);
-    });
+  static async create(config: AppConfig): Promise<Application> {
+    const app = new Application(config);
+    await app.init();
+    return app;
   }
 
-  async connect() {
-    const driver = DatabaseFactory.createDriver(this.config.database);
+  private async init() {
+    const dbConfig = this.jsonLoader.load('./db.config.json');
+    const dbConnection = await this.connectDB(dbConfig);
+    this.ioc.registerInstance(DatabaseSymbol, dbConnection);
+    this.registerModels();
+    this.registerControllers();
+  }
+
+  private async connectDB(dbConfig: CombinedDatabaseConfig): Promise<IDatabase> {
+    const driver = DatabaseFactory.createDriver(dbConfig);
     await driver.connect();
-    this.ioc.registerInstance(DatabaseSymbol, driver.connection);
+    if (!driver.connection) {
+      throw new Error('Database connection failed');
+    } 
+    return driver.connection;
   }
 
-  register() {
-    const { controllers, models } = this.config;
+  private registerModels() {
+    const { models } = this.config;
     models.forEach((model) => {
       this.ioc.put(model, [DatabaseSymbol])
     })
+  }
+
+  private registerControllers() {
+    const { controllers } = this.config;
     controllers.forEach((controller) => {
       this.ioc.put(controller[0], controller[1]);
     });
@@ -52,7 +65,7 @@ export class Application {
     const server = http.createServer((req, res) => {
       const { method, url } = req;
       
-      const router = this.ioc.get<Router>(Router);
+      const router = this.ioc.get(Router);
       const handler = router.resolve(method as Method, url as string);
 
       if (handler) {

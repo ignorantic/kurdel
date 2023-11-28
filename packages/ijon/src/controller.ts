@@ -3,7 +3,7 @@ import { ParsedUrlQuery } from 'querystring';
 import { parse } from 'url';
 import { RouteConfig } from './types.js';
 
-export abstract class Controller<T = unknown> {
+export abstract class Controller<T = {}> {
   private _request?: IncomingMessage;
   private _response?: ServerResponse;
   private _query?: ParsedUrlQuery;
