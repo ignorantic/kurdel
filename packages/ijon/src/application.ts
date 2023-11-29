@@ -2,10 +2,9 @@ import http from 'http';
 import { Method } from './types.js';
 import { Router } from './router.js';
 import { Identifier, IoCContainer, Newable } from './ioc-container.js';
-import { DatabaseSymbol, IDatabase } from './db/interfaces.js';
-import { CombinedDatabaseConfig, DatabaseFactory } from './db/database-factory.js';
+import { DatabaseSymbol } from './db/interfaces.js';
+import { DBConnector } from './db/db-connector.js';
 import { Model } from './model.js';
-import { JSONLoader } from './json-loader.js';
 
 export interface AppConfig {
   models: Newable<Model>[];
@@ -15,12 +14,12 @@ export interface AppConfig {
 export class Application {
   private config: AppConfig;
   private ioc: IoCContainer;
-  private jsonLoader: JSONLoader;
+  private dbConnector: DBConnector;
 
   constructor(config: AppConfig) {
     this.config = config;
     this.ioc = new IoCContainer();
-    this.jsonLoader = new JSONLoader();
+    this.dbConnector = new DBConnector();
   }
 
   static async create(config: AppConfig): Promise<Application> {
@@ -30,20 +29,10 @@ export class Application {
   }
 
   private async init() {
-    const dbConfig = this.jsonLoader.load('./db.config.json');
-    const dbConnection = await this.connectDB(dbConfig);
+    const dbConnection = await this.dbConnector.run();
     this.ioc.registerInstance(DatabaseSymbol, dbConnection);
     this.registerModels();
     this.registerControllers();
-  }
-
-  private async connectDB(dbConfig: CombinedDatabaseConfig): Promise<IDatabase> {
-    const driver = DatabaseFactory.createDriver(dbConfig);
-    await driver.connect();
-    if (!driver.connection) {
-      throw new Error('Database connection failed');
-    } 
-    return driver.connection;
   }
 
   private registerModels() {

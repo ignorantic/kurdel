@@ -7,11 +7,10 @@ export interface AppConfig {
 export declare class Application {
     private config;
     private ioc;
-    private jsonLoader;
+    private dbConnector;
     constructor(config: AppConfig);
     static create(config: AppConfig): Promise<Application>;
     private init;
-    private connectDB;
     private registerModels;
     private registerControllers;
     listen(port: number, callback: () => void): void;

@@ -6,9 +6,6 @@ export class SQLiteDB {
             if (err) {
                 console.error('Could not connect to database', err);
             }
-            else {
-                console.log('Connected to SQLite database');
-            }
         });
     }
     get({ sql, params }) {

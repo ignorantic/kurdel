@@ -2,16 +2,15 @@ import http from 'http';
 import { Router } from './router.js';
 import { IoCContainer } from './ioc-container.js';
 import { DatabaseSymbol } from './db/interfaces.js';
-import { DatabaseFactory } from './db/database-factory.js';
-import { JSONLoader } from './json-loader.js';
+import { DBConnector } from './db/db-connector.js';
 export class Application {
     config;
     ioc;
-    jsonLoader;
+    dbConnector;
     constructor(config) {
         this.config = config;
         this.ioc = new IoCContainer();
-        this.jsonLoader = new JSONLoader();
+        this.dbConnector = new DBConnector();
     }
     static async create(config) {
         const app = new Application(config);
@@ -19,19 +18,10 @@ export class Application {
         return app;
     }
     async init() {
-        const dbConfig = this.jsonLoader.load('./db.config.json');
-        const dbConnection = await this.connectDB(dbConfig);
+        const dbConnection = await this.dbConnector.run();
         this.ioc.registerInstance(DatabaseSymbol, dbConnection);
         this.registerModels();
         this.registerControllers();
-    }
-    async connectDB(dbConfig) {
-        const driver = DatabaseFactory.createDriver(dbConfig);
-        await driver.connect();
-        if (!driver.connection) {
-            throw new Error('Database connection failed');
-        }
-        return driver.connection;
     }
     registerModels() {
         const { models } = this.config;
