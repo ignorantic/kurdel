@@ -27,4 +27,3 @@ export interface IQueryBuilder {
   build(): DatabaseQuery;
 }
 
-export const DatabaseSymbol = Symbol('Database');

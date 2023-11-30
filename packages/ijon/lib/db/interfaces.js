@@ -1,1 +1,1 @@
-export const DatabaseSymbol = Symbol('Database');
+export {};

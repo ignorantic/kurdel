@@ -1,15 +1,15 @@
 import http from 'http';
 import { Method } from './types.js';
+import { DBConnector } from './db/db-connector.js';
 import { Router } from './router.js';
 import { Identifier, IoCContainer, Newable } from './ioc-container.js';
-import { DatabaseSymbol } from './db/interfaces.js';
-import { DBConnector } from './db/db-connector.js';
 import { Model } from './model.js';
+import { DATABASE_SYMBOL } from './consts.js';
 
 export interface AppConfig {
   models: Newable<Model>[];
   controllers: [Newable<{}>, Identifier[]][];
-} 
+}
 
 export class Application {
   private config: AppConfig;
@@ -30,7 +30,7 @@ export class Application {
 
   private async init() {
     const dbConnection = await this.dbConnector.run();
-    this.ioc.registerInstance(DatabaseSymbol, dbConnection);
+    this.ioc.registerInstance(DATABASE_SYMBOL, dbConnection);
     this.registerModels();
     this.registerControllers();
   }
@@ -38,14 +38,14 @@ export class Application {
   private registerModels() {
     const { models } = this.config;
     models.forEach((model) => {
-      this.ioc.put(model, [DatabaseSymbol])
+      this.ioc.put(model, [DATABASE_SYMBOL])
     })
   }
 
   private registerControllers() {
     const { controllers } = this.config;
     controllers.forEach((controller) => {
-      this.ioc.put(controller[0], controller[1]);
+      this.ioc.put(...controller);
     });
     this.ioc.put(Router, controllers.map(controller => controller[0]));
   }
@@ -53,7 +53,7 @@ export class Application {
   listen(port: number, callback: () => void) {
     const server = http.createServer((req, res) => {
       const { method, url } = req;
-      
+
       const router = this.ioc.get(Router);
       const handler = router.resolve(method as Method, url as string);
 

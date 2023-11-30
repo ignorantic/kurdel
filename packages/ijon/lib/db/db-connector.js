@@ -1,4 +1,5 @@
 import { JSONLoader } from '../json-loader.js';
+import { DB_CONFIG_FILENAME } from '../consts.js';
 import { DatabaseFactory } from './database-factory.js';
 export class DBConnector {
     jsonLoader;
@@ -6,8 +7,8 @@ export class DBConnector {
         this.jsonLoader = new JSONLoader();
     }
     async run() {
-        const dbConfig = this.jsonLoader.load('./db.config.json');
-        return await this.establish(dbConfig);
+        const dbConfig = this.jsonLoader.load(DB_CONFIG_FILENAME);
+        return this.establish(dbConfig);
     }
     async establish(dbConfig) {
         const driver = DatabaseFactory.createDriver(dbConfig);

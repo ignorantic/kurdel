@@ -23,4 +23,3 @@ export interface IQueryBuilder {
     where(condition: string, params?: any[]): IQueryBuilder;
     build(): DatabaseQuery;
 }
-export declare const DatabaseSymbol: unique symbol;

@@ -1,4 +1,5 @@
 import { JSONLoader } from '../json-loader.js';
+import { DB_CONFIG_FILENAME } from '../consts.js';
 import { CombinedDatabaseConfig, DatabaseFactory } from './database-factory.js';
 import { IDatabase } from './interfaces.js';
 
@@ -9,9 +10,9 @@ export class DBConnector {
     this.jsonLoader = new JSONLoader();
   }
 
-  public async run() {
-    const dbConfig = this.jsonLoader.load('./db.config.json');
-    return await this.establish(dbConfig);
+  public async run(): Promise<IDatabase> {
+    const dbConfig = this.jsonLoader.load(DB_CONFIG_FILENAME);
+    return this.establish(dbConfig);
   }
 
   private async establish(dbConfig: CombinedDatabaseConfig): Promise<IDatabase> {
