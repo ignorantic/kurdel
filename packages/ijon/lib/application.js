@@ -12,7 +12,7 @@ export class Application {
         this.ioc = new IoCContainer();
         this.dbConnector = new DBConnector();
     }
-    static async create(config) {
+    static async create(config = {}) {
         const app = new Application(config);
         await app.init();
         return app;
@@ -20,21 +20,21 @@ export class Application {
     async init() {
         const dbConnection = await this.dbConnector.run();
         this.ioc.registerInstance(DATABASE_SYMBOL, dbConnection);
-        this.registerModels();
-        this.registerControllers();
+        const { models, controllers } = this.config;
+        if (models) {
+            models.forEach((model) => {
+                this.ioc.put(model, [DATABASE_SYMBOL]);
+            });
+        }
+        if (controllers) {
+            controllers.forEach((controller) => {
+                this.ioc.put(...controller);
+            });
+            this.ioc.put(Router, controllers.map(controller => controller[0]));
+        }
     }
-    registerModels() {
-        const { models } = this.config;
-        models.forEach((model) => {
-            this.ioc.put(model, [DATABASE_SYMBOL]);
-        });
-    }
-    registerControllers() {
-        const { controllers } = this.config;
-        controllers.forEach((controller) => {
-            this.ioc.put(...controller);
-        });
-        this.ioc.put(Router, controllers.map(controller => controller[0]));
+    getDBConnection() {
+        return this.ioc.get(DATABASE_SYMBOL);
     }
     listen(port, callback) {
         const server = http.createServer((req, res) => {

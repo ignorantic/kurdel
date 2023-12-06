@@ -5,10 +5,11 @@ import { Router } from './router.js';
 import { Identifier, IoCContainer, Newable } from './ioc-container.js';
 import { Model } from './model.js';
 import { DATABASE_SYMBOL } from './consts.js';
+import { IDatabase } from 'index.js';
 
 export interface AppConfig {
-  models: Newable<Model>[];
-  controllers: [Newable<{}>, Identifier[]][];
+  models?: Newable<Model>[];
+  controllers?: [Newable<{}>, Identifier[]][];
 }
 
 export class Application {
@@ -22,7 +23,7 @@ export class Application {
     this.dbConnector = new DBConnector();
   }
 
-  static async create(config: AppConfig): Promise<Application> {
+  static async create(config: AppConfig = {}): Promise<Application> {
     const app = new Application(config);
     await app.init();
     return app;
@@ -31,23 +32,22 @@ export class Application {
   private async init() {
     const dbConnection = await this.dbConnector.run();
     this.ioc.registerInstance(DATABASE_SYMBOL, dbConnection);
-    this.registerModels();
-    this.registerControllers();
+    const { models, controllers } = this.config;
+    if (models) {
+      models.forEach((model) => {
+        this.ioc.put(model, [DATABASE_SYMBOL])
+      })
+    }
+    if (controllers) {
+      controllers.forEach((controller) => {
+        this.ioc.put(...controller);
+      });
+      this.ioc.put(Router, controllers.map(controller => controller[0]));
+    }
   }
 
-  private registerModels() {
-    const { models } = this.config;
-    models.forEach((model) => {
-      this.ioc.put(model, [DATABASE_SYMBOL])
-    })
-  }
-
-  private registerControllers() {
-    const { controllers } = this.config;
-    controllers.forEach((controller) => {
-      this.ioc.put(...controller);
-    });
-    this.ioc.put(Router, controllers.map(controller => controller[0]));
+  getDBConnection(): IDatabase {
+    return this.ioc.get(DATABASE_SYMBOL);
   }
 
   listen(port: number, callback: () => void) {
