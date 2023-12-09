@@ -1,4 +1,5 @@
-import { Identifier, Newable } from './ioc-container.js';
+import { Newable } from './types.js';
+import { Identifier } from './ioc-container.js';
 import { Model } from './model.js';
 import { IDatabase } from 'index.js';
 export interface AppConfig {

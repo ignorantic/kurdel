@@ -1,4 +1,4 @@
-import { IDatabase } from 'index.js';
+import { IDatabase } from '../db/interfaces.js';
 import { Blueprint } from './blueprint.js';
 
 type Configure = (table: Blueprint) => void;

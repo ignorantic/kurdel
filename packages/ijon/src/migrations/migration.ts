@@ -1,5 +1,5 @@
-import { Schema } from '../schema/schema.js';
-import { IDatabase } from './interfaces.js';
+import { IDatabase } from '../db/interfaces.js';
+import { Schema } from './schema.js';
 
 export abstract class Migration {
   protected schema: Schema;

@@ -1,8 +1,8 @@
 import http from 'http';
-import { Method } from './types.js';
+import { Method, Newable } from './types.js';
 import { DBConnector } from './db/db-connector.js';
 import { Router } from './router.js';
-import { Identifier, IoCContainer, Newable } from './ioc-container.js';
+import { Identifier, IoCContainer } from './ioc-container.js';
 import { Model } from './model.js';
 import { DATABASE_SYMBOL } from './consts.js';
 import { IDatabase } from 'index.js';

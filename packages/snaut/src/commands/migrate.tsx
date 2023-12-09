@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Text, useApp } from 'ink';
 import zod from 'zod';
 import { argument } from 'pastel';
-import { MigrationsLoader } from '../classes/migrations-loader.js';
+import { MigrationsLoader } from 'ijon';
 
 export const args = zod.tuple([
   zod.enum(['run', 'rollback', 'refresh']).describe(
