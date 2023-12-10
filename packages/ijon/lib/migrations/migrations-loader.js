@@ -1,14 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import EventEmitter from 'events';
 import { MIGRATIONS_DIR } from '../consts.js';
 import { DBConnector } from '../db/db-connector.js';
 import { QueryBuilder } from '../db/query-builder.js';
 import { Schema } from './schema.js';
 const migrationsDirectory = path.join(process.cwd(), MIGRATIONS_DIR);
-export class MigrationsLoader {
+export class MigrationsLoader extends EventEmitter {
     connection;
     builder;
     constructor(connection) {
+        super();
         this.connection = connection;
         this.builder = new QueryBuilder();
     }
@@ -17,30 +19,24 @@ export class MigrationsLoader {
         return new MigrationsLoader(connection);
     }
     async up() {
-        const appliedMigrations = await this.selectAppliedMigrations();
-        const importedMigrations = await this.load();
-        const migrations = importedMigrations
-            .filter(MigrationClass => !appliedMigrations.includes(MigrationClass.name))
-            .map(MigrationClass => new MigrationClass(this.connection));
+        const migrations = await this.findMigrationsToRun();
         const lastBatchNumber = await this.getLastBatchNumber();
         const batchNumber = lastBatchNumber + 1;
-        migrations.forEach(async (migration) => {
+        await Promise.all(migrations.map(async (migration) => {
             await migration.up();
             const insertQuery = this.builder.insert('migrations', {
                 name: migration.constructor.name,
                 batch: batchNumber,
             }).build();
             await this.connection.run(insertQuery);
-        });
+            this.emit('up:success', migration.constructor.name);
+            return Promise.resolve();
+        }));
+        this.emit('done');
     }
     async down() {
-        const lastBatchNumber = await this.getLastBatchNumber();
-        const appliedMigrations = await this.selectAppliedMigrations(lastBatchNumber);
-        const importedMigrations = await this.load();
-        const migrations = importedMigrations
-            .filter(MigrationClass => appliedMigrations.includes(MigrationClass.name))
-            .map(MigrationClass => new MigrationClass(this.connection));
-        migrations.forEach(async (migration) => {
+        const migrations = await this.findMigrationsToRollback();
+        await Promise.all(migrations.map(async (migration) => {
             migration.down();
             const deleteQuery = this.builder
                 .delete()
@@ -48,7 +44,29 @@ export class MigrationsLoader {
                 .where('name = ?', [migration.constructor.name])
                 .build();
             await this.connection.run(deleteQuery);
-        });
+            this.emit('down:success', migration.constructor.name);
+            return Promise.resolve();
+        }));
+        this.emit('done');
+    }
+    async findMigrationsToRun() {
+        const [appliedMigrations, importedMigrations] = await Promise.all([
+            this.selectAppliedMigrations(),
+            this.load(),
+        ]);
+        return importedMigrations
+            .filter(MigrationClass => !appliedMigrations.includes(MigrationClass.name))
+            .map(MigrationClass => new MigrationClass(this.connection));
+    }
+    async findMigrationsToRollback() {
+        const lastBatchNumber = await this.getLastBatchNumber();
+        const [appliedMigrations, importedMigrations] = await Promise.all([
+            this.selectAppliedMigrations(lastBatchNumber),
+            this.load(),
+        ]);
+        return importedMigrations
+            .filter(MigrationClass => appliedMigrations.includes(MigrationClass.name))
+            .map(MigrationClass => new MigrationClass(this.connection));
     }
     async getLastBatchNumber() {
         const maxBatchQuery = this.builder
