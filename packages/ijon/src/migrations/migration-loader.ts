@@ -17,7 +17,7 @@ type MigrationRecord = {
 
 const migrationsDirectory = path.join(process.cwd(), MIGRATIONS_DIR);
 
-export class MigrationsLoader extends EventEmitter {
+export class MigrationLoader extends EventEmitter {
   private connection: IDatabase;
   private builder: QueryBuilder;
 
@@ -27,13 +27,17 @@ export class MigrationsLoader extends EventEmitter {
     this.builder = new QueryBuilder();
   }
 
-  static async create(): Promise<MigrationsLoader> {
+  static async create(): Promise<MigrationLoader> {
     const connection = await (new DBConnector()).run();
-    return new MigrationsLoader(connection);
+    return new MigrationLoader(connection);
   }
 
   async up() {
     const migrations = await this.findMigrationsToRun();
+    if (migrations.length === 0) {
+      this.emit('up:nothing');
+      return;
+    }
     const lastBatchNumber = await this.getLastBatchNumber();
     const batchNumber = lastBatchNumber + 1;
 
@@ -47,7 +51,6 @@ export class MigrationsLoader extends EventEmitter {
       this.emit('up:success', migration.constructor.name);
       return Promise.resolve()
     }));
-    this.emit('done');
   }
 
   async down() {
@@ -64,10 +67,13 @@ export class MigrationsLoader extends EventEmitter {
       this.emit('down:success', migration.constructor.name);
       return Promise.resolve()
     }));
-    this.emit('done');
   }
 
-  async findMigrationsToRun() {
+  async close() {
+    this.connection.close();
+  }
+
+  private async findMigrationsToRun() {
     const [appliedMigrations, importedMigrations] = await Promise.all([
       this.selectAppliedMigrations(),
       this.load(),
@@ -77,7 +83,7 @@ export class MigrationsLoader extends EventEmitter {
       .map(MigrationClass => new MigrationClass(this.connection));
   }
 
-  async findMigrationsToRollback() {
+  private async findMigrationsToRollback() {
     const lastBatchNumber = await this.getLastBatchNumber();
     const [appliedMigrations, importedMigrations] = await Promise.all([
       this.selectAppliedMigrations(lastBatchNumber),
@@ -88,7 +94,7 @@ export class MigrationsLoader extends EventEmitter {
       .map(MigrationClass => new MigrationClass(this.connection));
   }
 
-  async getLastBatchNumber(): Promise<number> {
+  private async getLastBatchNumber(): Promise<number> {
     const maxBatchQuery = this.builder
       .select('batch', { fn: 'MAX', as: 'maxBatch' })
       .from('migrations')
@@ -97,7 +103,7 @@ export class MigrationsLoader extends EventEmitter {
     return maxBatch ?? 0;
   }
 
-  async existMigrationsTable(): Promise<Boolean> {
+  private async existMigrationsTable(): Promise<Boolean> {
     const selectCountQuery = this.builder
       .select('batch', { fn: 'COUNT' })
       .from('migrations')
@@ -110,7 +116,7 @@ export class MigrationsLoader extends EventEmitter {
     }
   }
 
-  async createMigrationsTable(): Promise<void> {
+  private async createMigrationsTable(): Promise<void> {
     const schema = new Schema(this.connection);
     await schema.create('migrations', (table) => {
       table.integer('id');
@@ -120,7 +126,7 @@ export class MigrationsLoader extends EventEmitter {
     });
   }
 
-  async selectAppliedMigrations(batch?: number): Promise<string[]> {
+  private async selectAppliedMigrations(batch?: number): Promise<string[]> {
     if (await this.existMigrationsTable()) {
       const selectMigrationsQuery = batch
         ? this.builder.select('*').from('migrations').where('batch = ?', [batch]).build()
@@ -141,4 +147,6 @@ export class MigrationsLoader extends EventEmitter {
       })
     );
   }
+
+
 }

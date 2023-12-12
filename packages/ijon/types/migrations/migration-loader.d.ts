@@ -1,11 +1,11 @@
 /// <reference types="node" resolution-mode="require"/>
 import EventEmitter from 'events';
 import { IDatabase } from '../db/interfaces.js';
-export declare class MigrationsLoader extends EventEmitter {
+export declare class MigrationLoader extends EventEmitter {
     private connection;
     private builder;
     constructor(connection: IDatabase);
-    static create(): Promise<MigrationsLoader>;
+    static create(): Promise<MigrationLoader>;
     up(): Promise<void>;
     down(): Promise<void>;
     close(): Promise<void>;

@@ -4,7 +4,7 @@ export * from './db/interfaces.js';
 export * from './db/database-factory.js';
 export * from './db/db-connector.js';
 export * from './migrations/migration.js';
-export * from './migrations/migrations-loader.js';
+export * from './migrations/migration-loader.js';
 export * from './migrations/column.js';
 export * from './migrations/schema.js';
 export * from './migrations/blueprint.js';

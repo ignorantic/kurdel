@@ -4,5 +4,5 @@ export declare const args: zod.ZodTuple<[zod.ZodEnum<["run", "rollback", "refres
 type Props = {
     args: zod.infer<typeof args>;
 };
-export default function TableCommand({ args }: Props): React.JSX.Element;
+export default function MigrateCommand({ args: [command] }: Props): React.JSX.Element;
 export {};

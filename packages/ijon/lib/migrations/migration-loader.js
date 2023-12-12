@@ -6,7 +6,7 @@ import { DBConnector } from '../db/db-connector.js';
 import { QueryBuilder } from '../db/query-builder.js';
 import { Schema } from './schema.js';
 const migrationsDirectory = path.join(process.cwd(), MIGRATIONS_DIR);
-export class MigrationsLoader extends EventEmitter {
+export class MigrationLoader extends EventEmitter {
     connection;
     builder;
     constructor(connection) {
@@ -16,7 +16,7 @@ export class MigrationsLoader extends EventEmitter {
     }
     static async create() {
         const connection = await (new DBConnector()).run();
-        return new MigrationsLoader(connection);
+        return new MigrationLoader(connection);
     }
     async up() {
         const migrations = await this.findMigrationsToRun();
