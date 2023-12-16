@@ -18,41 +18,76 @@ export class MigrationLoader extends EventEmitter {
         const connection = await (new DBConnector()).run();
         return new MigrationLoader(connection);
     }
-    async up() {
+    async run() {
         const migrations = await this.findMigrationsToRun();
         if (migrations.length === 0) {
             this.emit('up:nothing');
-            return;
         }
-        const lastBatchNumber = await this.getLastBatchNumber();
-        const batchNumber = lastBatchNumber + 1;
-        await Promise.all(migrations.map(async (migration) => {
-            await migration.up();
-            const insertQuery = this.builder.insert('migrations', {
-                name: migration.constructor.name,
-                batch: batchNumber,
-            }).build();
-            await this.connection.run(insertQuery);
-            this.emit('up:success', migration.constructor.name);
-            return Promise.resolve();
-        }));
+        await this.startGenerator(this.getRunGenerator(migrations));
     }
-    async down() {
+    async rollback() {
         const migrations = await this.findMigrationsToRollback();
-        await Promise.all(migrations.map(async (migration) => {
-            migration.down();
-            const deleteQuery = this.builder
-                .delete()
-                .from('migrations')
-                .where('name = ?', [migration.constructor.name])
-                .build();
-            await this.connection.run(deleteQuery);
-            this.emit('down:success', migration.constructor.name);
-            return Promise.resolve();
-        }));
+        if (migrations.length === 0) {
+            this.emit('down:nothing');
+        }
+        await this.startGenerator(this.getRollbackGenerator(migrations));
+    }
+    async refresh() {
+        const migrations = await this.findMigrationsToRollback();
+        if (migrations.length === 0) {
+            this.emit('down:nothing');
+        }
+        await this.startGenerator(this.getRollbackGenerator(migrations));
+        await this.startGenerator(this.getRunGenerator(migrations));
     }
     async close() {
         this.connection.close();
+    }
+    async *getRunGenerator(migrations) {
+        const lastBatchNumber = await this.getLastBatchNumber();
+        const batchNumber = lastBatchNumber + 1;
+        for (const migration of migrations) {
+            try {
+                await migration.up();
+                const insertQuery = this.builder.insert('migrations', {
+                    name: migration.constructor.name,
+                    batch: batchNumber,
+                }).build();
+                await this.connection.run(insertQuery);
+                this.emit('up:success', migration.constructor.name);
+                yield true;
+            }
+            catch (error) {
+                this.emit('up:failure', migration.constructor.name, error);
+                return false;
+            }
+        }
+    }
+    async *getRollbackGenerator(migrations) {
+        for (const migration of migrations) {
+            try {
+                await migration.down();
+                const deleteQuery = this.builder
+                    .delete()
+                    .from('migrations')
+                    .where('name = ?', [migration.constructor.name])
+                    .build();
+                await this.connection.run(deleteQuery);
+                this.emit('down:success', migration.constructor.name);
+                yield true;
+            }
+            catch (error) {
+                this.emit('down:failure', migration.constructor.name, error);
+                return false;
+            }
+        }
+    }
+    async startGenerator(generetor) {
+        const next = await generetor.next();
+        if (!next.done) {
+            next.value;
+            await this.startGenerator(generetor);
+        }
     }
     async findMigrationsToRun() {
         const [appliedMigrations, importedMigrations] = await Promise.all([

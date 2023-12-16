@@ -1,28 +1,43 @@
 import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
 import { MigrationLoader } from 'ijon';
+import useMigrationList, { ListItem } from './use-migration-list.js';
 
-export default function useMigrateRollback(loader: MigrationLoader): [boolean, string[]] {
+export default function useMigrateRollback(loader: MigrationLoader): [ListItem[], boolean, string?] {
   const { exit } = useApp();
   const [done, setDone] = useState(false);
-  const [list, setList] = useState<string[]>([]);
+  const [error, setError] = useState<TypeError>();
+  const [list, addMigration] = useMigrationList();
 
   useEffect(() => {
-    function pushMigration(migration: string) {
-      setList(values => [...values, migration])
+    function pushSuccessMigration(migration: string) {
+      addMigration(true, migration);
     }
-    loader.on('down:success', pushMigration);
+    loader.on('down:success', pushSuccessMigration);
     return () => {
-      loader.off('down:success', pushMigration);
+      loader.off('down:success', pushSuccessMigration);
     }
   }, []);
 
   useEffect(() => {
-    loader.down().then(() => {
+    function pushFailureMigration(migration: string) {
+      addMigration(false, migration);
+    }
+    loader.on('down:failure', pushFailureMigration);
+    return () => {
+      loader.off('down:failure', pushFailureMigration);
+    }
+  }, []);
+
+  useEffect(() => {
+    loader.rollback().then(() => {
       setDone(true);
+    }).catch((error) => {
+      setError(error); 
+    }).finally(() => {
       loader.close().then(() => exit());
     });
   }, []);
 
-  return [done, list];
+  return [list, done, error && error.message];
 }

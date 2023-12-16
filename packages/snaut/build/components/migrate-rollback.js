@@ -1,19 +1,13 @@
 import React, { Fragment } from 'react';
-import { Box, Text } from 'ink';
-import CheckListMarker from './check-list-marker.js';
 import useMigrateRollback from '../hooks/use-migrate-rollback.js';
+import MigrationList from './migration-list.js';
+import CheckmarkedLine from './checkmarked-line.js';
 export default function MigrateRollback({ loader }) {
-    const [done, migrationList] = useMigrateRollback(loader);
+    const [migrationList, done, error] = useMigrateRollback(loader);
     return (React.createElement(Fragment, null,
-        migrationList.length > 0 && (React.createElement(Text, null,
-            React.createElement(CheckListMarker, { done: done }),
-            ' ',
-            "Rolled back migrations: ",
-            migrationList.length)),
-        React.createElement(Box, { flexDirection: "column", paddingLeft: 2 }, migrationList.map(migrationName => (React.createElement(Text, { color: "grey", key: migrationName }, migrationName)))),
-        done && (React.createElement(Text, { bold: true },
-            React.createElement(CheckListMarker, { done: done }),
-            ' ',
-            "Completed successfully"))));
+        migrationList.length > 0 && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Rolled back migrations:" })),
+        React.createElement(MigrationList, { list: migrationList }),
+        done && !error && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Completed successfully" })),
+        error && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Failure with message:" }))));
 }
 //# sourceMappingURL=migrate-rollback.js.map

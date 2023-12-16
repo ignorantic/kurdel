@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
 import { MigrationLoader } from 'ijon';
+import useMigrationList, { ListItem } from './use-migration-list.js';
 
-export default function useMigrateRefresh(loader: MigrationLoader): [boolean, boolean, string[], string[]] {
+export default function useMigrateRefresh(loader: MigrationLoader): [ListItem[], ListItem[], boolean, string?] {
   const { exit } = useApp();
 
-  const [rollbackDone, setRollbackDone] = useState(false);
-  const [rollbackList, setRollbackList] = useState<string[]>([]);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<TypeError>();
 
-  const [runDone, setRunDone] = useState(false);
-  const [runList, setRunList] = useState<string[]>([]);
+  const [rollbackList, addRollbackMigration] = useMigrationList();
+  const [runList, addRunMigration] = useMigrationList();
 
   useEffect(() => {
     function pushMigration(migration: string) {
-      setRollbackList(values => [...values, migration])
+      addRollbackMigration(true, migration)
     }
     loader.on('down:success', pushMigration);
     return () => {
@@ -22,35 +23,24 @@ export default function useMigrateRefresh(loader: MigrationLoader): [boolean, bo
   }, []);
 
   useEffect(() => {
-    loader.down().then(() => {
-      setRollbackDone(true);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!rollbackDone) {
-      return;
-    }
-
     function pushMigration(migration: string) {
-      setRunList(values => [...values, migration])
+      addRunMigration(true, migration)
     }
     loader.on('up:success', pushMigration);
     return () => {
       loader.off('up:success', pushMigration);
     }
-  }, [rollbackDone]);
+  }, []);
 
   useEffect(() => {
-    if (!rollbackDone) {
-      return;
-    }
-
-    loader.up().then(() => {
-      setRunDone(true);
+    loader.refresh().then(() => {
+      setDone(true);
+    }).catch((error) => {
+      setError(error); 
+    }).finally(() => {
       loader.close().then(() => exit());
     });
-  }, [rollbackDone]);
+  }, []);
 
-  return [rollbackDone, runDone, rollbackList, runList];
+  return [rollbackList, runList, done, error && error.message];
 }

@@ -5,7 +5,7 @@ import { Box, Text } from 'ink';
 import MigrateRun from '../components/migrate-run.js';
 import MigrateRollback from '../components/migrate-rollback.js';
 import MigrateRefresh from '../components/migrate-refresh.js';
-import CheckListMarker from '../components/check-list-marker.js';
+import Checkmark from '../components/checkmark.js';
 import useMigrationLoader from '../hooks/use-migration-loader.js';
 
 export const args = zod.tuple([
@@ -26,10 +26,10 @@ export default function MigrateCommand({ args: [command] }: Props) {
 
   return (
     <Box flexDirection="column" paddingLeft={2}>
-      <Text>
-        <CheckListMarker done={!!loader} />
-        {' '}Connecting database
-      </Text>
+      <Box gap={1}>
+        <Checkmark done={!!loader} />
+        <Text>Connecting database</Text>
+      </Box>
       {!!loader && command === 'run' && <MigrateRun loader={loader}/>}
       {!!loader && command === 'rollback' && <MigrateRollback loader={loader}/>}
       {!!loader && command === 'refresh' && <MigrateRefresh loader={loader}/>}

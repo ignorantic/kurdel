@@ -6,9 +6,13 @@ export declare class MigrationLoader extends EventEmitter {
     private builder;
     constructor(connection: IDatabase);
     static create(): Promise<MigrationLoader>;
-    up(): Promise<void>;
-    down(): Promise<void>;
+    run(): Promise<void>;
+    rollback(): Promise<void>;
+    refresh(): Promise<void>;
     close(): Promise<void>;
+    private getRunGenerator;
+    private getRollbackGenerator;
+    private startGenerator;
     private findMigrationsToRun;
     private findMigrationsToRollback;
     private getLastBatchNumber;

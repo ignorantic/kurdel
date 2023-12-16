@@ -1,34 +1,25 @@
 import React, { Fragment } from 'react';
-import { Box, Text } from 'ink';
 import { MigrationLoader } from 'ijon';
-import CheckListMarker from './check-list-marker.js';
 import useMigrateRun from '../hooks/use-migrate-run.js';
+import MigrationList from './migration-list.js';
+import CheckmarkedLine from './checkmarked-line.js';
 
 type Props = { loader: MigrationLoader };
 
 export default function MigrateRun({ loader }: Props) {
-  const [done, migrationList] = useMigrateRun(loader);
+  const [migrationList, done, error] = useMigrateRun(loader);
 
   return (
     <Fragment>
       {migrationList.length > 0 && (
-        <Text>
-          <CheckListMarker done={done} />
-          {' '}Applying migrations: {migrationList.length}
-        </Text>
+        <CheckmarkedLine done={done} error={!!error} title="Applying migrations:" />
       )}
-      <Box flexDirection="column" paddingLeft={2}>
-        {migrationList.map(migrationName => (
-          <Text color="grey" key={migrationName}>
-            {migrationName}
-          </Text>)
-        )}
-      </Box>
-      {done && (
-        <Text bold>
-          <CheckListMarker done={done} />
-          {' '}Completed successfully
-        </Text>
+      <MigrationList list={migrationList} />
+      {done && !error && (
+        <CheckmarkedLine done={done} error={!!error} title="Completed successfully" />
+      )}
+      {error && (
+        <CheckmarkedLine done={done} error={!!error} title="Failure with message:" />
       )}
     </Fragment>
   );

@@ -1,19 +1,13 @@
 import React, { Fragment } from 'react';
-import { Box, Text } from 'ink';
-import CheckListMarker from './check-list-marker.js';
 import useMigrateRun from '../hooks/use-migrate-run.js';
+import MigrationList from './migration-list.js';
+import CheckmarkedLine from './checkmarked-line.js';
 export default function MigrateRun({ loader }) {
-    const [done, migrationList] = useMigrateRun(loader);
+    const [migrationList, done, error] = useMigrateRun(loader);
     return (React.createElement(Fragment, null,
-        migrationList.length > 0 && (React.createElement(Text, null,
-            React.createElement(CheckListMarker, { done: done }),
-            ' ',
-            "Applying migrations: ",
-            migrationList.length)),
-        React.createElement(Box, { flexDirection: "column", paddingLeft: 2 }, migrationList.map(migrationName => (React.createElement(Text, { color: "grey", key: migrationName }, migrationName)))),
-        done && (React.createElement(Text, { bold: true },
-            React.createElement(CheckListMarker, { done: done }),
-            ' ',
-            "Completed successfully"))));
+        migrationList.length > 0 && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Applying migrations:" })),
+        React.createElement(MigrationList, { list: migrationList }),
+        done && !error && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Completed successfully" })),
+        error && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Failure with message:" }))));
 }
 //# sourceMappingURL=migrate-run.js.map

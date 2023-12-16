@@ -1,54 +1,34 @@
 import React, { Fragment } from 'react';
-import { Box, Text } from 'ink';
 import { MigrationLoader } from 'ijon';
-import CheckListMarker from './check-list-marker.js';
 import useMigrateRefresh from '../hooks/use-migrate-refresh.js';
+import CheckmarkedLine from './checkmarked-line.js';
+import MigrationList from './migration-list.js';
 
 type Props = { loader: MigrationLoader };
 
 export default function MigrateRefresh({ loader }: Props) {
   const [
-    rollbackDone,
-    runDone,
     rollbackMigrationList,
     runMigrationList,
+    done,
+    error,
 ] = useMigrateRefresh(loader);
 
   return (
     <Fragment>
       {rollbackMigrationList.length > 0 && (
-        <Text>
-          <CheckListMarker done={rollbackDone} />
-          {' '}Rolled back migrations: {rollbackMigrationList.length}
-        </Text>
+        <CheckmarkedLine title="Rolled back migrations:" done={done} />
       )}
-      <Box flexDirection="column" paddingLeft={2}>
-        {rollbackMigrationList.map(migrationName => (
-          <Text color="grey" key={migrationName}>
-            {migrationName}
-          </Text>)
-        )}
-      </Box>
-      {rollbackDone && runMigrationList.length > 0 && (
-        <Text>
-          <CheckListMarker done={runDone} />
-          {' '}Applying migrations: {runMigrationList.length}
-        </Text>
+      <MigrationList list={rollbackMigrationList} />
+      {runMigrationList.length > 0 && (
+        <CheckmarkedLine title="Applying migrations:" done={done} />
       )}
-      {rollbackDone && (
-        <Box flexDirection="column" paddingLeft={2}>
-          {runMigrationList.map(migrationName => (
-            <Text color="grey" key={migrationName}>
-              {migrationName}
-            </Text>)
-          )}
-        </Box>
+      <MigrationList list={runMigrationList} />
+      {done && !error && (
+        <CheckmarkedLine title="Completed successfully" done={done} />
       )}
-      {runDone && (
-        <Text bold>
-          <CheckListMarker done={runDone} />
-          {' '}Completed successfully
-        </Text>
+      {error && (
+        <CheckmarkedLine done={done} error={!!error} title="Failure with message:" />
       )}
     </Fragment>
   );

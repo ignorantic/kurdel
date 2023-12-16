@@ -1,2 +1,3 @@
 import { MigrationLoader } from 'ijon';
-export default function useMigrateRun(loader: MigrationLoader): [boolean, string[]];
+import { ListItem } from './use-migration-list.js';
+export default function useMigrateRun(loader: MigrationLoader): [ListItem[], boolean, string?];
