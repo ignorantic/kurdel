@@ -33,12 +33,16 @@ export class MigrationLoader extends EventEmitter {
         await this.startGenerator(this.getRollbackGenerator(migrations));
     }
     async refresh() {
-        const migrations = await this.findMigrationsToRollback();
-        if (migrations.length === 0) {
+        const migrationsToRollback = await this.findMigrationsToRollback();
+        if (migrationsToRollback.length === 0) {
             this.emit('down:nothing');
         }
-        await this.startGenerator(this.getRollbackGenerator(migrations));
-        await this.startGenerator(this.getRunGenerator(migrations));
+        await this.startGenerator(this.getRollbackGenerator(migrationsToRollback));
+        const migrationsToRun = await this.findMigrationsToRun();
+        if (migrationsToRun.length === 0) {
+            this.emit('up:nothing');
+        }
+        await this.startGenerator(this.getRunGenerator(migrationsToRun));
     }
     async close() {
         this.connection.close();
