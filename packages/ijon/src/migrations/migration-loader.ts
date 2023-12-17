@@ -37,11 +37,14 @@ export class MigrationLoader extends EventEmitter {
       this.emit('up:nothing');
     }
 
-    await this.startGenerator(this.getRunGenerator(migrations));
+    const lastBatchNumber = await this.getLastBatchNumber();
+    const batchNumber = lastBatchNumber + 1;
+    await this.startGenerator(this.getRunGenerator(migrations, batchNumber));
   }
 
   async rollback() {
-    const migrations = await this.findMigrationsToRollback();
+    const lastBatchNumber = await this.getLastBatchNumber();
+    const migrations = await this.findMigrationsToRollback(lastBatchNumber);
     if (migrations.length === 0) {
       this.emit('down:nothing');
     }
@@ -67,16 +70,13 @@ export class MigrationLoader extends EventEmitter {
     this.connection.close();
   }
 
-  private async *getRunGenerator(migrations: Migration[]) {
-    const lastBatchNumber = await this.getLastBatchNumber();
-    const batchNumber = lastBatchNumber + 1;
-
+  private async *getRunGenerator(migrations: Migration[], batch: number = 1) {
     for (const migration of migrations) {
       try {
         await migration.up();
         const insertQuery = this.builder.insert('migrations', {
           name: migration.constructor.name,
-          batch: batchNumber,
+          batch,
         }).build();
         await this.connection.run(insertQuery)
         this.emit('up:success', migration.constructor.name);
@@ -125,12 +125,12 @@ export class MigrationLoader extends EventEmitter {
       .map(MigrationClass => new MigrationClass(this.connection));
   }
 
-  private async findMigrationsToRollback() {
-    const lastBatchNumber = await this.getLastBatchNumber();
+  private async findMigrationsToRollback(batch?: number) {
     const [appliedMigrations, importedMigrations] = await Promise.all([
-      this.selectAppliedMigrations(lastBatchNumber),
+      this.selectAppliedMigrations(batch),
       this.load(),
     ]);
+    importedMigrations.reverse();
     return importedMigrations
       .filter(MigrationClass => appliedMigrations.includes(MigrationClass.name))
       .map(MigrationClass => new MigrationClass(this.connection));

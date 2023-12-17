@@ -23,10 +23,13 @@ export class MigrationLoader extends EventEmitter {
         if (migrations.length === 0) {
             this.emit('up:nothing');
         }
-        await this.startGenerator(this.getRunGenerator(migrations));
+        const lastBatchNumber = await this.getLastBatchNumber();
+        const batchNumber = lastBatchNumber + 1;
+        await this.startGenerator(this.getRunGenerator(migrations, batchNumber));
     }
     async rollback() {
-        const migrations = await this.findMigrationsToRollback();
+        const lastBatchNumber = await this.getLastBatchNumber();
+        const migrations = await this.findMigrationsToRollback(lastBatchNumber);
         if (migrations.length === 0) {
             this.emit('down:nothing');
         }
@@ -47,15 +50,13 @@ export class MigrationLoader extends EventEmitter {
     async close() {
         this.connection.close();
     }
-    async *getRunGenerator(migrations) {
-        const lastBatchNumber = await this.getLastBatchNumber();
-        const batchNumber = lastBatchNumber + 1;
+    async *getRunGenerator(migrations, batch = 1) {
         for (const migration of migrations) {
             try {
                 await migration.up();
                 const insertQuery = this.builder.insert('migrations', {
                     name: migration.constructor.name,
-                    batch: batchNumber,
+                    batch,
                 }).build();
                 await this.connection.run(insertQuery);
                 this.emit('up:success', migration.constructor.name);
@@ -102,12 +103,12 @@ export class MigrationLoader extends EventEmitter {
             .filter(MigrationClass => !appliedMigrations.includes(MigrationClass.name))
             .map(MigrationClass => new MigrationClass(this.connection));
     }
-    async findMigrationsToRollback() {
-        const lastBatchNumber = await this.getLastBatchNumber();
+    async findMigrationsToRollback(batch) {
         const [appliedMigrations, importedMigrations] = await Promise.all([
-            this.selectAppliedMigrations(lastBatchNumber),
+            this.selectAppliedMigrations(batch),
             this.load(),
         ]);
+        importedMigrations.reverse();
         return importedMigrations
             .filter(MigrationClass => appliedMigrations.includes(MigrationClass.name))
             .map(MigrationClass => new MigrationClass(this.connection));
