@@ -1,8 +1,16 @@
 export class QueryBuilder {
     sql = '';
     params = [];
-    select(fields) {
-        this.sql = `SELECT ${Array.isArray(fields) ? fields.join(', ') : fields} `;
+    select(fields, options = {}) {
+        if (options.fn) {
+            this.sql = `SELECT ${options.fn}(${fields}) `;
+        }
+        else {
+            this.sql = `SELECT ${Array.isArray(fields) ? fields.join(', ') : fields} `;
+        }
+        if (options.as) {
+            this.sql = this.sql + `AS ${options.as} `;
+        }
         this.params = [];
         return this;
     }
@@ -13,6 +21,10 @@ export class QueryBuilder {
         const placeholders = keys.map(() => '?').join(', ');
         this.sql = `INSERT INTO ${table} (${columns}) VALUES (${placeholders}) `;
         this.params = values;
+        return this;
+    }
+    delete() {
+        this.sql = `DELETE `;
         return this;
     }
     from(table) {
@@ -27,6 +39,9 @@ export class QueryBuilder {
         return this;
     }
     build() {
-        return { sql: this.sql.trim(), params: this.params };
+        const result = { sql: this.sql.trim(), params: [...this.params] };
+        this.sql = '';
+        this.params = [];
+        return result;
     }
 }

@@ -1,18 +1,18 @@
-import { Identifier, Newable } from './ioc-container.js';
+import { Newable } from './types.js';
+import { Identifier } from './ioc-container.js';
 import { Model } from './model.js';
+import { IDatabase } from 'index.js';
 export interface AppConfig {
-    models: Newable<Model>[];
-    controllers: [Newable<{}>, Identifier[]][];
+    models?: Newable<Model>[];
+    controllers?: [Newable<{}>, Identifier[]][];
 }
 export declare class Application {
     private config;
     private ioc;
-    private jsonLoader;
+    private dbConnector;
     constructor(config: AppConfig);
-    static create(config: AppConfig): Promise<Application>;
+    static create(config?: AppConfig): Promise<Application>;
     private init;
-    private connectDB;
-    private registerModels;
-    private registerControllers;
+    getDBConnection(): IDatabase;
     listen(port: number, callback: () => void): void;
 }

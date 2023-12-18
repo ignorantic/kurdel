@@ -1,50 +1,40 @@
 import http from 'http';
+import { DBConnector } from './db/db-connector.js';
 import { Router } from './router.js';
 import { IoCContainer } from './ioc-container.js';
-import { DatabaseSymbol } from './db/interfaces.js';
-import { DatabaseFactory } from './db/database-factory.js';
-import { JSONLoader } from './json-loader.js';
+import { DATABASE_SYMBOL } from './consts.js';
 export class Application {
     config;
     ioc;
-    jsonLoader;
+    dbConnector;
     constructor(config) {
         this.config = config;
         this.ioc = new IoCContainer();
-        this.jsonLoader = new JSONLoader();
+        this.dbConnector = new DBConnector();
     }
-    static async create(config) {
+    static async create(config = {}) {
         const app = new Application(config);
         await app.init();
         return app;
     }
     async init() {
-        const dbConfig = this.jsonLoader.load('./db.config.json');
-        const dbConnection = await this.connectDB(dbConfig);
-        this.ioc.registerInstance(DatabaseSymbol, dbConnection);
-        this.registerModels();
-        this.registerControllers();
-    }
-    async connectDB(dbConfig) {
-        const driver = DatabaseFactory.createDriver(dbConfig);
-        await driver.connect();
-        if (!driver.connection) {
-            throw new Error('Database connection failed');
+        const dbConnection = await this.dbConnector.run();
+        this.ioc.registerInstance(DATABASE_SYMBOL, dbConnection);
+        const { models, controllers } = this.config;
+        if (models) {
+            models.forEach((model) => {
+                this.ioc.put(model, [DATABASE_SYMBOL]);
+            });
         }
-        return driver.connection;
+        if (controllers) {
+            controllers.forEach((controller) => {
+                this.ioc.put(...controller);
+            });
+            this.ioc.put(Router, controllers.map(controller => controller[0]));
+        }
     }
-    registerModels() {
-        const { models } = this.config;
-        models.forEach((model) => {
-            this.ioc.put(model, [DatabaseSymbol]);
-        });
-    }
-    registerControllers() {
-        const { controllers } = this.config;
-        controllers.forEach((controller) => {
-            this.ioc.put(controller[0], controller[1]);
-        });
-        this.ioc.put(Router, controllers.map(controller => controller[0]));
+    getDBConnection() {
+        return this.ioc.get(DATABASE_SYMBOL);
     }
     listen(port, callback) {
         const server = http.createServer((req, res) => {

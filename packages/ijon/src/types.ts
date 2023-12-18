@@ -8,3 +8,5 @@ export type RouteConfig<T> = {
   action: keyof T,
 }[]
 
+export type Newable<T> = new (...args: any[]) => T;
+

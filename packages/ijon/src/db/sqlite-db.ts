@@ -8,8 +8,6 @@ export class SQLiteDB implements IDatabase {
     this.db = new sqlite3.Database(path, (err) => {
       if (err) {
         console.error('Could not connect to database', err);
-      } else {
-        console.log('Connected to SQLite database');
       }
     });
   }
@@ -18,8 +16,6 @@ export class SQLiteDB implements IDatabase {
     return new Promise((resolve, reject) => {
       this.db.get(sql, params, (err, result) => {
         if (err) {
-          console.error('Error running sql: ' + sql);
-          console.error(err);
           reject(err);
         } else {
           resolve(result);
@@ -32,8 +28,6 @@ export class SQLiteDB implements IDatabase {
     return new Promise((resolve, reject) => {
       this.db.all(sql, params, (err, result) => {
         if (err) {
-          console.error('Error running sql: ' + sql);
-          console.error(err);
           reject(err);
         } else {
           resolve(result);
@@ -46,8 +40,6 @@ export class SQLiteDB implements IDatabase {
     return new Promise((resolve, reject) => {
       this.db.run(sql, params, function (err) {
         if (err) {
-          console.error('Error running sql: ' + sql);
-          console.error(err);
           reject(err);
         } else {
           resolve();
@@ -60,11 +52,8 @@ export class SQLiteDB implements IDatabase {
     return new Promise((resolve, reject) => {
       this.db.close((err) => {
         if (err) {
-          console.error('Error closing database');
-          console.error(err);
           reject(err);
         } else {
-          console.log('Closed the database connection');
           resolve();
         }
       });

@@ -1,4 +1,4 @@
-export type Newable<T> = new (...args: any[]) => T;
+import { Newable } from './types.js';
 export type Identifier<T = unknown> = string | symbol | Newable<T>;
 export declare class IoCContainer {
     private readonly dependencies;

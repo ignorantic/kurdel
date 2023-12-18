@@ -1,70 +1,59 @@
 import http from 'http';
-import { Method } from './types.js';
+import { Method, Newable } from './types.js';
+import { DBConnector } from './db/db-connector.js';
 import { Router } from './router.js';
-import { Identifier, IoCContainer, Newable } from './ioc-container.js';
-import { DatabaseSymbol, IDatabase } from './db/interfaces.js';
-import { CombinedDatabaseConfig, DatabaseFactory } from './db/database-factory.js';
+import { Identifier, IoCContainer } from './ioc-container.js';
 import { Model } from './model.js';
-import { JSONLoader } from './json-loader.js';
+import { DATABASE_SYMBOL } from './consts.js';
+import { IDatabase } from 'index.js';
 
 export interface AppConfig {
-  models: Newable<Model>[];
-  controllers: [Newable<{}>, Identifier[]][];
-} 
+  models?: Newable<Model>[];
+  controllers?: [Newable<{}>, Identifier[]][];
+}
 
 export class Application {
   private config: AppConfig;
   private ioc: IoCContainer;
-  private jsonLoader: JSONLoader;
+  private dbConnector: DBConnector;
 
   constructor(config: AppConfig) {
     this.config = config;
     this.ioc = new IoCContainer();
-    this.jsonLoader = new JSONLoader();
+    this.dbConnector = new DBConnector();
   }
 
-  static async create(config: AppConfig): Promise<Application> {
+  static async create(config: AppConfig = {}): Promise<Application> {
     const app = new Application(config);
     await app.init();
     return app;
   }
 
   private async init() {
-    const dbConfig = this.jsonLoader.load('./db.config.json');
-    const dbConnection = await this.connectDB(dbConfig);
-    this.ioc.registerInstance(DatabaseSymbol, dbConnection);
-    this.registerModels();
-    this.registerControllers();
+    const dbConnection = await this.dbConnector.run();
+    this.ioc.registerInstance(DATABASE_SYMBOL, dbConnection);
+    const { models, controllers } = this.config;
+    if (models) {
+      models.forEach((model) => {
+        this.ioc.put(model, [DATABASE_SYMBOL])
+      })
+    }
+    if (controllers) {
+      controllers.forEach((controller) => {
+        this.ioc.put(...controller);
+      });
+      this.ioc.put(Router, controllers.map(controller => controller[0]));
+    }
   }
 
-  private async connectDB(dbConfig: CombinedDatabaseConfig): Promise<IDatabase> {
-    const driver = DatabaseFactory.createDriver(dbConfig);
-    await driver.connect();
-    if (!driver.connection) {
-      throw new Error('Database connection failed');
-    } 
-    return driver.connection;
-  }
-
-  private registerModels() {
-    const { models } = this.config;
-    models.forEach((model) => {
-      this.ioc.put(model, [DatabaseSymbol])
-    })
-  }
-
-  private registerControllers() {
-    const { controllers } = this.config;
-    controllers.forEach((controller) => {
-      this.ioc.put(controller[0], controller[1]);
-    });
-    this.ioc.put(Router, controllers.map(controller => controller[0]));
+  getDBConnection(): IDatabase {
+    return this.ioc.get(DATABASE_SYMBOL);
   }
 
   listen(port: number, callback: () => void) {
     const server = http.createServer((req, res) => {
       const { method, url } = req;
-      
+
       const router = this.ioc.get(Router);
       const handler = router.resolve(method as Method, url as string);
 

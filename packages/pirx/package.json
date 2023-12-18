@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/ignorantic/kurdel#readme",
   "dependencies": {
-    "@types/react": "^18.2.38",
     "ink": "^4.4.1",
     "ink-spinner": "^5.0.0",
     "pastel": "^2.0.2",
@@ -29,6 +28,7 @@
   },
   "devDependencies": {
     "@sindresorhus/tsconfig": "^5.0.0",
+    "@types/react": "^18.2.38",
     "typescript": "^5.3.2"
   }
 }

@@ -1,11 +1,23 @@
 import { DatabaseQuery, IQueryBuilder } from './interfaces.js';
 
+type SelectOptions = {
+  fn?: 'MAX' | 'MIN' | 'COUNT';
+  as?: string;
+}
+
 export class QueryBuilder implements IQueryBuilder {
   private sql: string = '';
   private params: any[] = [];
 
-  select(fields: string | string[]): QueryBuilder {
-    this.sql = `SELECT ${Array.isArray(fields) ? fields.join(', ') : fields} `;
+  select(fields: string | string[], options: SelectOptions = {}): QueryBuilder {
+    if (options.fn) {
+      this.sql = `SELECT ${options.fn}(${fields}) `;
+    } else {
+      this.sql = `SELECT ${Array.isArray(fields) ? fields.join(', ') : fields} `;
+    }
+    if (options.as) {
+      this.sql = this.sql + `AS ${options.as} `;
+    }
     this.params = [];
     return this;
   }
@@ -18,6 +30,11 @@ export class QueryBuilder implements IQueryBuilder {
 
     this.sql = `INSERT INTO ${table} (${columns}) VALUES (${placeholders}) `;
     this.params = values;
+    return this;
+  }
+
+  delete(): QueryBuilder {
+    this.sql = `DELETE `;
     return this;
   }
 
@@ -35,6 +52,9 @@ export class QueryBuilder implements IQueryBuilder {
   }
 
   build(): DatabaseQuery {
-    return { sql: this.sql.trim(), params: this.params };
+    const result = { sql: this.sql.trim(), params: [...this.params] };
+    this.sql = '';
+    this.params = [];
+    return result;
   }
 }
