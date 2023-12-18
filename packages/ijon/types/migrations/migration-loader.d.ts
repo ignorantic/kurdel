@@ -10,9 +10,9 @@ export declare class MigrationLoader extends EventEmitter {
     rollback(): Promise<void>;
     refresh(): Promise<void>;
     close(): Promise<void>;
+    private startGenerator;
     private getRunGenerator;
     private getRollbackGenerator;
-    private startGenerator;
     private findMigrationsToRun;
     private findMigrationsToRollback;
     private getLastBatchNumber;

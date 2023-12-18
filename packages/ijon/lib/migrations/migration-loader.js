@@ -40,7 +40,10 @@ export class MigrationLoader extends EventEmitter {
         if (migrationsToRollback.length === 0) {
             this.emit('down:nothing');
         }
-        await this.startGenerator(this.getRollbackGenerator(migrationsToRollback));
+        const result = await this.startGenerator(this.getRollbackGenerator(migrationsToRollback));
+        if (result === false) {
+            return;
+        }
         const migrationsToRun = await this.findMigrationsToRun();
         if (migrationsToRun.length === 0) {
             this.emit('up:nothing');
@@ -49,6 +52,19 @@ export class MigrationLoader extends EventEmitter {
     }
     async close() {
         this.connection.close();
+    }
+    async startGenerator(generetor) {
+        const next = await generetor.next();
+        if (next.value === false) {
+            return false;
+        }
+        if (!next.done) {
+            next.value;
+            await this.startGenerator(generetor);
+        }
+        else {
+            return true;
+        }
     }
     async *getRunGenerator(migrations, batch = 1) {
         for (const migration of migrations) {
@@ -85,13 +101,6 @@ export class MigrationLoader extends EventEmitter {
                 this.emit('down:failure', migration.constructor.name, error);
                 return false;
             }
-        }
-    }
-    async startGenerator(generetor) {
-        const next = await generetor.next();
-        if (!next.done) {
-            next.value;
-            await this.startGenerator(generetor);
         }
     }
     async findMigrationsToRun() {
