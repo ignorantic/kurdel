@@ -8,21 +8,41 @@ export default function useMigrateRefresh(loader) {
     const [rollbackList, addRollbackMigration] = useMigrationList();
     const [runList, addRunMigration] = useMigrationList();
     useEffect(() => {
-        function pushMigration(migration) {
+        function pushMigrationDown(migration) {
             addRollbackMigration(true, migration);
         }
-        loader.on('down:success', pushMigration);
+        loader.on('down:success', pushMigrationDown);
         return () => {
-            loader.off('down:success', pushMigration);
+            loader.off('down:success', pushMigrationDown);
         };
     }, []);
     useEffect(() => {
-        function pushMigration(migration) {
+        function pushMigrationUp(migration) {
             addRunMigration(true, migration);
         }
-        loader.on('up:success', pushMigration);
+        loader.on('up:success', pushMigrationUp);
         return () => {
-            loader.off('up:success', pushMigration);
+            loader.off('up:success', pushMigrationUp);
+        };
+    }, []);
+    useEffect(() => {
+        function pushFailureMigrationDown(migration, error) {
+            addRollbackMigration(false, migration);
+            setError(error);
+        }
+        loader.on('down:failure', pushFailureMigrationDown);
+        return () => {
+            loader.off('down:failure', pushFailureMigrationDown);
+        };
+    }, []);
+    useEffect(() => {
+        function pushFailureMigrationUp(migration, error) {
+            addRunMigration(false, migration);
+            setError(error);
+        }
+        loader.on('up:failure', pushFailureMigrationUp);
+        return () => {
+            loader.off('up:failure', pushFailureMigrationUp);
         };
     }, []);
     useEffect(() => {

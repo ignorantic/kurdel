@@ -17,18 +17,34 @@ export default function MigrateRefresh({ loader }: Props) {
   return (
     <Fragment>
       {rollbackMigrationList.length > 0 && (
-        <CheckmarkedLine title="Rolled back migrations:" done={done} />
+        <CheckmarkedLine
+          done={done}
+          error={runMigrationList.length === 0 && !!error}
+          title="Rolled back migrations:"
+        />
       )}
       <MigrationList list={rollbackMigrationList} />
       {runMigrationList.length > 0 && (
-        <CheckmarkedLine title="Applying migrations:" done={done} />
+        <CheckmarkedLine
+          done={done}
+          error={!!error}
+          title="Applying migrations:"
+        />
       )}
       <MigrationList list={runMigrationList} />
       {done && !error && (
-        <CheckmarkedLine title="Completed successfully" done={done} />
+        <CheckmarkedLine
+          done={done}
+          error={!!error}
+          title="Completed successfully"
+        />
       )}
       {error && (
-        <CheckmarkedLine done={done} error={!!error} title="Failure with message:" />
+        <CheckmarkedLine
+          title={`Failure with message: ${error}`}
+          done={done}
+          error={!!error}
+        />
       )}
     </Fragment>
   );

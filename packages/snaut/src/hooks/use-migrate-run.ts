@@ -20,7 +20,7 @@ export default function useMigrateRun(loader: MigrationLoader): [ListItem[], boo
   }, []);
 
   useEffect(() => {
-    function pushFailureMigration(migration: string, error: Error) {
+    function pushFailureMigration(migration: string, error: TypeError) {
       addMigration(false, migration);
       setError(error);
     }

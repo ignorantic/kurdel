@@ -20,8 +20,9 @@ export default function useMigrateRollback(loader: MigrationLoader): [ListItem[]
   }, []);
 
   useEffect(() => {
-    function pushFailureMigration(migration: string) {
+    function pushFailureMigration(migration: string, error: TypeError) {
       addMigration(false, migration);
+      setError(error);
     }
     loader.on('down:failure', pushFailureMigration);
     return () => {

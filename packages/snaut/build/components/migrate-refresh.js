@@ -5,11 +5,11 @@ import MigrationList from './migration-list.js';
 export default function MigrateRefresh({ loader }) {
     const [rollbackMigrationList, runMigrationList, done, error,] = useMigrateRefresh(loader);
     return (React.createElement(Fragment, null,
-        rollbackMigrationList.length > 0 && (React.createElement(CheckmarkedLine, { title: "Rolled back migrations:", done: done })),
+        rollbackMigrationList.length > 0 && (React.createElement(CheckmarkedLine, { done: done, error: runMigrationList.length === 0 && !!error, title: "Rolled back migrations:" })),
         React.createElement(MigrationList, { list: rollbackMigrationList }),
-        runMigrationList.length > 0 && (React.createElement(CheckmarkedLine, { title: "Applying migrations:", done: done })),
+        runMigrationList.length > 0 && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Applying migrations:" })),
         React.createElement(MigrationList, { list: runMigrationList }),
-        done && !error && (React.createElement(CheckmarkedLine, { title: "Completed successfully", done: done })),
-        error && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Failure with message:" }))));
+        done && !error && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Completed successfully" })),
+        error && (React.createElement(CheckmarkedLine, { title: `Failure with message: ${error}`, done: done, error: !!error }))));
 }
 //# sourceMappingURL=migrate-refresh.js.map

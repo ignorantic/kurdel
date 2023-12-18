@@ -12,14 +12,26 @@ export default function MigrateRollback({ loader }: Props) {
   return (
     <Fragment>
       {migrationList.length > 0 && (
-        <CheckmarkedLine done={done} error={!!error} title="Rolled back migrations:" />
+        <CheckmarkedLine
+          done={done}
+          error={!!error}
+          title="Rolled back migrations:"
+        />
       )}
       <MigrationList list={migrationList} />
       {done && !error && (
-        <CheckmarkedLine done={done} error={!!error} title="Completed successfully" />
+        <CheckmarkedLine
+          done={done}
+          error={!!error}
+          title="Completed successfully"
+        />
       )}
       {error && (
-        <CheckmarkedLine done={done} error={!!error} title="Failure with message:" />
+        <CheckmarkedLine
+          title={`Failure with message: ${error}`}
+          done={done}
+          error={!!error}
+        />
       )}
     </Fragment>
   );

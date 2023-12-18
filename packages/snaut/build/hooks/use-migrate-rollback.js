@@ -16,8 +16,9 @@ export default function useMigrateRollback(loader) {
         };
     }, []);
     useEffect(() => {
-        function pushFailureMigration(migration) {
+        function pushFailureMigration(migration, error) {
             addMigration(false, migration);
+            setError(error);
         }
         loader.on('down:failure', pushFailureMigration);
         return () => {
