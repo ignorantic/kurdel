@@ -40,7 +40,7 @@ export class MigrationLoader extends EventEmitter {
 
     const lastBatchNumber = await this.getLastBatchNumber();
     const batchNumber = lastBatchNumber + 1;
-    await this.startGenerator(this.getRunGenerator(migrations, batchNumber));
+    await this.runMigrations(migrations, batchNumber);
   }
 
   async rollback() {
@@ -50,7 +50,7 @@ export class MigrationLoader extends EventEmitter {
       this.emit('down:nothing');
     }
 
-    await this.startGenerator(this.getRollbackGenerator(migrations));
+    await this.rollbackMigrations(migrations);
   }
 
   async refresh() {
@@ -58,9 +58,9 @@ export class MigrationLoader extends EventEmitter {
     if (migrationsToRollback.length === 0) {
       this.emit('down:nothing');
     }
-    const result = await this.startGenerator(this.getRollbackGenerator(migrationsToRollback));
 
-    if (result === false) {
+    const result = await this.rollbackMigrations(migrationsToRollback);
+    if (!result) {
       return;
     }
 
@@ -68,27 +68,15 @@ export class MigrationLoader extends EventEmitter {
     if (migrationsToRun.length === 0) {
       this.emit('up:nothing');
     }
-    await this.startGenerator(this.getRunGenerator(migrationsToRun));
+
+    await this.runMigrations(migrationsToRun);
   }
 
   async close() {
     this.connection.close();
   }
 
-  private async startGenerator(generetor: AsyncGenerator<boolean>) {
-    const next = await generetor.next();
-    if (next.value === false) {
-      return false;
-    }
-    if (!next.done) {
-      next.value;
-      await this.startGenerator(generetor);
-    } else {
-      return true;
-    }
-  }
-
-  private async *getRunGenerator(migrations: Migration[], batch: number = 1) {
+  private async runMigrations(migrations: Migration[], batch: number = 1) {
     for (const migration of migrations) {
       try {
         await migration.up();
@@ -98,15 +86,16 @@ export class MigrationLoader extends EventEmitter {
         }).build();
         await this.connection.run(insertQuery)
         this.emit('up:success', migration.constructor.name);
-        yield true;
+        continue;
       } catch(error) {
         this.emit('up:failure', migration.constructor.name, error);
         return false;
       }
-    } 
+    }
+    return true;
   }
 
-  private async *getRollbackGenerator(migrations: Migration[]) {
+  private async rollbackMigrations(migrations: Migration[]) {
     for (const migration of migrations) {
       try {
         await migration.down();
@@ -117,12 +106,13 @@ export class MigrationLoader extends EventEmitter {
           .build();
         await this.connection.run(deleteQuery);
         this.emit('down:success', migration.constructor.name);
-        yield true;
+        continue;
       } catch(error) {
         this.emit('down:failure', migration.constructor.name, error);
         return false;
       }
-    } 
+    }
+    return true;
   }
 
   private async findMigrationsToRun() {
