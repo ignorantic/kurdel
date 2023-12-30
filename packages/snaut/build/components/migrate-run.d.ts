@@ -1,7 +1,7 @@
 import React from 'react';
-import { MigrationLoader } from 'ijon';
+import { MigrationManager } from 'ijon';
 type Props = {
-    loader: MigrationLoader;
+    manager: MigrationManager;
 };
-export default function MigrateRun({ loader }: Props): React.JSX.Element;
+export default function MigrateRun({ manager }: Props): React.JSX.Element;
 export {};

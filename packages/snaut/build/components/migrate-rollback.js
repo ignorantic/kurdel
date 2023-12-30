@@ -2,8 +2,8 @@ import React, { Fragment } from 'react';
 import useMigrateRollback from '../hooks/use-migrate-rollback.js';
 import MigrationList from './migration-list.js';
 import CheckmarkedLine from './checkmarked-line.js';
-export default function MigrateRollback({ loader }) {
-    const [migrationList, done, error] = useMigrateRollback(loader);
+export default function MigrateRollback({ manager }) {
+    const [migrationList, done, error] = useMigrateRollback(manager);
     return (React.createElement(Fragment, null,
         migrationList.length > 0 && (React.createElement(CheckmarkedLine, { done: done, error: !!error, title: "Rolled back migrations:" })),
         React.createElement(MigrationList, { list: migrationList }),

@@ -2,8 +2,8 @@ import React, { Fragment } from 'react';
 import useMigrateRefresh from '../hooks/use-migrate-refresh.js';
 import CheckmarkedLine from './checkmarked-line.js';
 import MigrationList from './migration-list.js';
-export default function MigrateRefresh({ loader }) {
-    const [rollbackMigrationList, runMigrationList, done, error,] = useMigrateRefresh(loader);
+export default function MigrateRefresh({ manager }) {
+    const [rollbackMigrationList, runMigrationList, done, error,] = useMigrateRefresh(manager);
     return (React.createElement(Fragment, null,
         rollbackMigrationList.length > 0 && (React.createElement(CheckmarkedLine, { done: done, error: runMigrationList.length === 0 && !!error, title: "Rolled back migrations:" })),
         React.createElement(MigrationList, { list: rollbackMigrationList }),

@@ -1,13 +1,13 @@
 import React, { Fragment } from 'react';
-import { MigrationLoader } from 'ijon';
+import { MigrationManager } from 'ijon';
 import useMigrateRun from '../hooks/use-migrate-run.js';
 import MigrationList from './migration-list.js';
 import CheckmarkedLine from './checkmarked-line.js';
 
-type Props = { loader: MigrationLoader };
+type Props = { manager: MigrationManager };
 
-export default function MigrateRun({ loader }: Props) {
-  const [migrationList, done, error] = useMigrateRun(loader);
+export default function MigrateRun({ manager }: Props) {
+  const [migrationList, done, error] = useMigrateRun(manager);
 
   return (
     <Fragment>

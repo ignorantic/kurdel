@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
 import useMigrationList from './use-migration-list.js';
-export default function useMigrateRollback(loader) {
+export default function useMigrateRollback(manager) {
     const { exit } = useApp();
     const [done, setDone] = useState(false);
     const [error, setError] = useState();
@@ -10,9 +10,9 @@ export default function useMigrateRollback(loader) {
         function pushSuccessMigration(migration) {
             addMigration(true, migration);
         }
-        loader.on('down:success', pushSuccessMigration);
+        manager.on('down:success', pushSuccessMigration);
         return () => {
-            loader.off('down:success', pushSuccessMigration);
+            manager.off('down:success', pushSuccessMigration);
         };
     }, []);
     useEffect(() => {
@@ -20,18 +20,18 @@ export default function useMigrateRollback(loader) {
             addMigration(false, migration);
             setError(error);
         }
-        loader.on('down:failure', pushFailureMigration);
+        manager.on('down:failure', pushFailureMigration);
         return () => {
-            loader.off('down:failure', pushFailureMigration);
+            manager.off('down:failure', pushFailureMigration);
         };
     }, []);
     useEffect(() => {
-        loader.rollback().then(() => {
+        manager.rollback().then(() => {
             setDone(true);
         }).catch((error) => {
             setError(error);
         }).finally(() => {
-            loader.close().then(() => exit());
+            manager.close().then(() => exit());
         });
     }, []);
     return [list, done, error && error.message];

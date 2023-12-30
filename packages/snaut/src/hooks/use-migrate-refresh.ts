@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
-import { MigrationLoader } from 'ijon';
+import { MigrationManager } from 'ijon';
 import useMigrationList, { ListItem } from './use-migration-list.js';
 
-export default function useMigrateRefresh(loader: MigrationLoader): [ListItem[], ListItem[], boolean, string?] {
+export default function useMigrateRefresh(manager: MigrationManager): [ListItem[], ListItem[], boolean, string?] {
   const { exit } = useApp();
 
   const [done, setDone] = useState(false);
@@ -16,9 +16,9 @@ export default function useMigrateRefresh(loader: MigrationLoader): [ListItem[],
     function pushMigrationDown(migration: string) {
       addRollbackMigration(true, migration)
     }
-    loader.on('down:success', pushMigrationDown);
+    manager.on('down:success', pushMigrationDown);
     return () => {
-      loader.off('down:success', pushMigrationDown);
+      manager.off('down:success', pushMigrationDown);
     }
   }, []);
 
@@ -26,9 +26,9 @@ export default function useMigrateRefresh(loader: MigrationLoader): [ListItem[],
     function pushMigrationUp(migration: string) {
       addRunMigration(true, migration)
     }
-    loader.on('up:success', pushMigrationUp);
+    manager.on('up:success', pushMigrationUp);
     return () => {
-      loader.off('up:success', pushMigrationUp);
+      manager.off('up:success', pushMigrationUp);
     }
   }, []);
 
@@ -37,9 +37,9 @@ export default function useMigrateRefresh(loader: MigrationLoader): [ListItem[],
       addRollbackMigration(false, migration);
       setError(error);
     }
-    loader.on('down:failure', pushFailureMigrationDown);
+    manager.on('down:failure', pushFailureMigrationDown);
     return () => {
-      loader.off('down:failure', pushFailureMigrationDown);
+      manager.off('down:failure', pushFailureMigrationDown);
     }
   }, []);
 
@@ -48,19 +48,19 @@ export default function useMigrateRefresh(loader: MigrationLoader): [ListItem[],
       addRunMigration(false, migration);
       setError(error);
     }
-    loader.on('up:failure', pushFailureMigrationUp);
+    manager.on('up:failure', pushFailureMigrationUp);
     return () => {
-      loader.off('up:failure', pushFailureMigrationUp);
+      manager.off('up:failure', pushFailureMigrationUp);
     }
   }, []);
 
   useEffect(() => {
-    loader.refresh().then(() => {
+    manager.refresh().then(() => {
       setDone(true);
     }).catch((error) => {
       setError(error); 
     }).finally(() => {
-      loader.close().then(() => exit());
+      manager.close().then(() => exit());
     });
   }, []);
 

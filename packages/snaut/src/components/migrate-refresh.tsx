@@ -1,18 +1,18 @@
 import React, { Fragment } from 'react';
-import { MigrationLoader } from 'ijon';
+import { MigrationManager } from 'ijon';
 import useMigrateRefresh from '../hooks/use-migrate-refresh.js';
 import CheckmarkedLine from './checkmarked-line.js';
 import MigrationList from './migration-list.js';
 
-type Props = { loader: MigrationLoader };
+type Props = { manager: MigrationManager };
 
-export default function MigrateRefresh({ loader }: Props) {
+export default function MigrateRefresh({ manager }: Props) {
   const [
     rollbackMigrationList,
     runMigrationList,
     done,
     error,
-] = useMigrateRefresh(loader);
+] = useMigrateRefresh(manager);
 
   return (
     <Fragment>

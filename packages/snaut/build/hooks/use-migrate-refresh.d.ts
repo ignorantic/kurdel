@@ -1,3 +1,3 @@
-import { MigrationLoader } from 'ijon';
+import { MigrationManager } from 'ijon';
 import { ListItem } from './use-migration-list.js';
-export default function useMigrateRefresh(loader: MigrationLoader): [ListItem[], ListItem[], boolean, string?];
+export default function useMigrateRefresh(manager: MigrationManager): [ListItem[], ListItem[], boolean, string?];

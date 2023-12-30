@@ -6,7 +6,7 @@ import MigrateRun from '../components/migrate-run.js';
 import MigrateRollback from '../components/migrate-rollback.js';
 import MigrateRefresh from '../components/migrate-refresh.js';
 import Checkmark from '../components/checkmark.js';
-import useMigrationLoader from '../hooks/use-migration-loader.js';
+import useMigrationManager from '../hooks/use-migration-manager.js';
 
 export const args = zod.tuple([
   zod.enum(['run', 'rollback', 'refresh']).describe(
@@ -22,17 +22,17 @@ type Props = {
 };
 
 export default function MigrateCommand({ args: [command] }: Props) {
-  const loader = useMigrationLoader();
+  const manager = useMigrationManager();
 
   return (
     <Box flexDirection="column" paddingLeft={2}>
       <Box gap={1}>
-        <Checkmark done={!!loader} />
+        <Checkmark done={!!manager} />
         <Text>Connecting database</Text>
       </Box>
-      {!!loader && command === 'run' && <MigrateRun loader={loader}/>}
-      {!!loader && command === 'rollback' && <MigrateRollback loader={loader}/>}
-      {!!loader && command === 'refresh' && <MigrateRefresh loader={loader}/>}
+      {!!manager && command === 'run' && <MigrateRun manager={manager}/>}
+      {!!manager && command === 'rollback' && <MigrateRollback manager={manager}/>}
+      {!!manager && command === 'refresh' && <MigrateRefresh manager={manager}/>}
     </Box>
   );
 }

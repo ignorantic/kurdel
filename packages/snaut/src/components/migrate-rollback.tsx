@@ -1,13 +1,13 @@
 import React, { Fragment } from 'react';
-import { MigrationLoader } from 'ijon';
+import { MigrationManager } from 'ijon';
 import useMigrateRollback from '../hooks/use-migrate-rollback.js';
 import MigrationList from './migration-list.js';
 import CheckmarkedLine from './checkmarked-line.js';
 
-type Props = { loader: MigrationLoader };
+type Props = { manager: MigrationManager };
 
-export default function MigrateRollback({ loader }: Props) {
-  const [migrationList, done, error] = useMigrateRollback(loader);
+export default function MigrateRollback({ manager }: Props) {
+  const [migrationList, done, error] = useMigrateRollback(manager);
 
   return (
     <Fragment>
