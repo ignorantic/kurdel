@@ -4,4 +4,4 @@ const app = new Pastel({
     importMeta: import.meta,
 });
 await app.run();
-//# sourceMappingURL=snaut.js.map
+//# sourceMappingURL=pirx.js.map
