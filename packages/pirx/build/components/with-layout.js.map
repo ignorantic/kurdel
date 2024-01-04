@@ -1,1 +1,0 @@
-{"version":3,"file":"with-layout.js","sourceRoot":"","sources":["../../src/components/with-layout.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAwB,MAAM,OAAO,CAAC;AAC7C,OAAO,MAAM,MAAM,aAAa,CAAC;AAEjC,MAAM,CAAC,OAAO,UAAU,UAAU,CAAe,gBAAkC;IACjF,OAAO,CAAC,KAAQ,EAAE,EAAE,CAAC,CACnB,oBAAC,MAAM;QACL,oBAAC,gBAAgB,OAAM,KAAW,GAAI,CAC/B,CACV,CAAA;AACH,CAAC"}

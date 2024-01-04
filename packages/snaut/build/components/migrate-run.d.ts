@@ -1,5 +1,5 @@
 import React from 'react';
-import { MigrationManager } from 'ijon';
+import { MigrationManager } from '@kurdel/common';
 type Props = {
     manager: MigrationManager;
 };

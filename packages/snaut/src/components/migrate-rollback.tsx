@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { MigrationManager } from 'ijon';
+import { MigrationManager } from '@kurdel/common';
 import useMigrateRollback from '../hooks/use-migrate-rollback.js';
 import MigrationList from './migration-list.js';
 import CheckmarkedLine from './checkmarked-line.js';

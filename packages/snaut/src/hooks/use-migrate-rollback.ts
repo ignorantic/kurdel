@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
-import { MigrationManager } from 'ijon';
+import { MigrationManager } from '@kurdel/common';
 import useMigrationList, { ListItem } from './use-migration-list.js';
 
 export default function useMigrateRollback(manager: MigrationManager): [ListItem[], boolean, string?] {
