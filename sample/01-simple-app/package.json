@@ -1,7 +1,7 @@
 {
-  "name": "app",
+  "name": "simple-app",
   "version": "1.0.0",
-  "description": "example app",
+  "description": "example simple app",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

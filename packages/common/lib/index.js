@@ -3,6 +3,7 @@ export * from './consts.js';
 export * from './db/interfaces.js';
 export * from './db/database-factory.js';
 export * from './db/db-connector.js';
+export * from './http/native-http-server-adapter.js';
 export * from './migrations/migration.js';
 export * from './migrations/migration-manager.js';
 export * from './migrations/column.js';

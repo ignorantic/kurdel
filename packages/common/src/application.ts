@@ -1,13 +1,14 @@
-import http from 'http';
-import { Method, Newable } from './types.js';
+import { Newable } from './types.js';
 import { DBConnector } from './db/db-connector.js';
+import { HttpServerAdapter } from './http/interfaces.js';
+import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { Router } from './router.js';
 import { Identifier, IoCContainer } from './ioc-container.js';
 import { Model } from './model.js';
-import { DATABASE_SYMBOL } from './consts.js';
-import { IDatabase } from 'index.js';
+import { DATABASE_SYMBOL, HTTP_SERVER_SYMBOL } from './consts.js';
 
 export interface AppConfig {
+  http?: Newable<HttpServerAdapter>;
   models?: Newable<Model>[];
   controllers?: [Newable<{}>, Identifier[]][];
 }
@@ -32,7 +33,7 @@ export class Application {
   private async init() {
     const dbConnection = await this.dbConnector.run();
     this.ioc.registerInstance(DATABASE_SYMBOL, dbConnection);
-    const { models, controllers } = this.config;
+    const { models, controllers, http = NativeHttpServerAdapter } = this.config;
     if (models) {
       models.forEach((model) => {
         this.ioc.put(model, [DATABASE_SYMBOL])
@@ -44,26 +45,11 @@ export class Application {
       });
       this.ioc.put(Router, controllers.map(controller => controller[0]));
     }
-  }
-
-  getDBConnection(): IDatabase {
-    return this.ioc.get(DATABASE_SYMBOL);
+    this.ioc.register(HTTP_SERVER_SYMBOL, http, [Router]);
   }
 
   listen(port: number, callback: () => void) {
-    const server = http.createServer((req, res) => {
-      const { method, url } = req;
-
-      const router = this.ioc.get(Router);
-      const handler = router.resolve(method as Method, url as string);
-
-      if (handler) {
-        handler(req, res);
-      } else {
-        res.statusCode = 404;
-        res.end('Not Found');
-      }
-    });
+    const server = this.ioc.get<HttpServerAdapter>(HTTP_SERVER_SYMBOL);
 
     server.listen(port, callback);
   }
