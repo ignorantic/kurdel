@@ -3,7 +3,7 @@
   "compilerOptions": {
     "moduleResolution": "node16",
     "module": "node16",
-    "outDir": "build",
+    "outDir": "lib",
     "sourceMap": true
   },
   "include": ["src"]

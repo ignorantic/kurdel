@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Newable } from '../types.js';
+import { Newable } from '@kurdel/common';
 import { MIGRATIONS_DIR } from '../consts.js';
 import { Migration } from './migration.js';
 

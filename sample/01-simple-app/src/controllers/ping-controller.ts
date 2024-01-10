@@ -1,4 +1,4 @@
-import { Controller, RouteConfig } from '@kurdel/common';
+import { Controller, RouteConfig } from '@kurdel/core';
 
 export class PingController extends Controller<PingController> {
   routes: RouteConfig<PingController> = [

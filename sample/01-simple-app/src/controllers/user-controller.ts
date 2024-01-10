@@ -1,5 +1,5 @@
-import { Controller, RouteConfig } from '@kurdel/common';
-import { UserModel } from 'models/user-model.js';
+import { Controller, RouteConfig } from '@kurdel/core';
+import { UserModel } from '../models/user-model.js';
 
 export class UserController extends Controller<UserController> {
   private service: UserModel;

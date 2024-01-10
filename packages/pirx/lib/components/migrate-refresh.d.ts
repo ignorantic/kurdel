@@ -1,5 +1,5 @@
 import React from 'react';
-import { MigrationManager } from '@kurdel/common';
+import { MigrationManager } from '@kurdel/core';
 type Props = {
     manager: MigrationManager;
 };

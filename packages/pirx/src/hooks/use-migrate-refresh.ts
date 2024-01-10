@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
-import { MigrationManager } from '@kurdel/common';
+import { MigrationManager } from '@kurdel/core';
 import useMigrationList, { ListItem } from './use-migration-list.js';
 
 export default function useMigrateRefresh(manager: MigrationManager): [ListItem[], ListItem[], boolean, string?] {

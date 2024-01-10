@@ -1,4 +1,4 @@
-import { Application } from '@kurdel/common';
+import { Application } from '@kurdel/core';
 import { PingController } from './controllers/ping-controller.js';
 import { UserController } from './controllers/user-controller.js';
 import { UserModel } from './models/user-model.js';

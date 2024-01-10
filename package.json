@@ -6,6 +6,6 @@
     "sample/*"
   ],
   "scripts": {
-    "build": "npm run build -w @kurdel/common -w @kurdel/pirx"
+    "build": "npm run build --ws"
   }
 }

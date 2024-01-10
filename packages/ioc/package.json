@@ -1,5 +1,5 @@
 {
-  "name": "@kurdel/common",
+  "name": "@kurdel/ioc",
   "version": "1.0.0",
   "description": "framework",
   "main": "lib/index.js",
@@ -14,11 +14,14 @@
     "build": "tsc"
   },
   "keywords": [
-    "framework"
+    "ioc"
   ],
   "author": "Andrii Sorokin",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.9.0"
+  },
+  "dependencies": {
+    "@kurdel/common": "^1.0.0"
   }
 }

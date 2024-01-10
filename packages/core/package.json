@@ -1,5 +1,5 @@
 {
-  "name": "@kurdel/common",
+  "name": "@kurdel/core",
   "version": "1.0.0",
   "description": "framework",
   "main": "lib/index.js",
@@ -20,5 +20,11 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.9.0"
+  },
+  "peerDependencies": {
+    "sqlite3": "^5.1.6"
+  },
+  "dependencies": {
+    "@kurdel/ioc": "^1.0.0"
   }
 }

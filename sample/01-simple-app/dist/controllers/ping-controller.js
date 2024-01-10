@@ -1,4 +1,4 @@
-import { Controller } from '@kurdel/common';
+import { Controller } from '@kurdel/core';
 export class PingController extends Controller {
     routes = [
         {

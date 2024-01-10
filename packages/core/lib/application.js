@@ -1,7 +1,7 @@
+import { IoCContainer } from '@kurdel/ioc';
 import { DBConnector } from './db/db-connector.js';
 import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { Router } from './router.js';
-import { IoCContainer } from './ioc-container.js';
 import { DATABASE_SYMBOL, HTTP_SERVER_SYMBOL } from './consts.js';
 export class Application {
     config;

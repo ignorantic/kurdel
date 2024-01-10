@@ -1,9 +1,9 @@
-import { Newable } from './types.js';
+import { Newable } from '@kurdel/common';
+import { Identifier, IoCContainer } from '@kurdel/ioc';
 import { DBConnector } from './db/db-connector.js';
 import { HttpServerAdapter } from './http/interfaces.js';
 import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { Router } from './router.js';
-import { Identifier, IoCContainer } from './ioc-container.js';
 import { Model } from './model.js';
 import { DATABASE_SYMBOL, HTTP_SERVER_SYMBOL } from './consts.js';
 

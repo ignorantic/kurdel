@@ -1,6 +1,6 @@
-import { Newable } from './types.js';
+import { Newable } from '@kurdel/common';
+import { Identifier } from '@kurdel/ioc';
 import { HttpServerAdapter } from './http/interfaces.js';
-import { Identifier } from './ioc-container.js';
 import { Model } from './model.js';
 export interface AppConfig {
     http?: Newable<HttpServerAdapter>;
