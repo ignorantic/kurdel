@@ -1,13 +1,10 @@
 import { Newable } from '@kurdel/common';
-export type Identifier<T = unknown> = string | symbol | Newable<T>;
+import { Identifier } from './types.js';
+import { BindingToContract } from './bindingToContract.js';
+import { BindingWithInContract } from './bindingWithInContract.js';
 export declare class IoCContainer {
-    private readonly dependencies;
-    register<T>(name: Identifier<T>, constructor: {
-        new (...args: any[]): T;
-    }, dependencies: Identifier[]): void;
-    registerInstance<T>(name: Identifier<T>, instance: T): void;
-    put<T>(constructor: {
-        new (...args: any[]): T;
-    }, dependencies: Identifier[]): void;
-    get<T>(name: Identifier<T>): T;
+    private readonly dictionary;
+    bind<T>(key: Identifier<T>): BindingToContract<T>;
+    put<T>(constructor: Newable<T>): BindingWithInContract<T>;
+    get<T>(key: Identifier<T>): T;
 }

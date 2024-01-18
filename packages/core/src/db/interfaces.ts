@@ -12,6 +12,7 @@ export type DatabaseQuery = {
   params: any[],
 }
 
+export const IDatabase = Symbol('IDatabase');
 export interface IDatabase {
   get(query: DatabaseQuery): Promise<any>;
   all(query: DatabaseQuery): Promise<any>;

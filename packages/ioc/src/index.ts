@@ -1,2 +1,3 @@
-export { Identifier, IoCContainer } from './container.js';
+export type { Identifier } from './types.js';
+export { IoCContainer } from './container.js';
 

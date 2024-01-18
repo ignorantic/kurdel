@@ -1,40 +1,51 @@
 import { Newable } from '@kurdel/common';
-
-export type Identifier<T = unknown> = string | symbol | Newable<T>;
+import { Identifier } from './types.js';
+import { Binding } from './binding.js';
+import { BindingToContract } from './bindingToContract.js';
+import { BindingWithInContract } from './bindingWithInContract.js';
 
 export class IoCContainer {
-  private readonly dependencies = new Map<Identifier, any>();
+  private readonly dictionary = new Map<Identifier, Binding<unknown>>();
 
-  public register<T>(name: Identifier<T>, constructor: { new(...args: any[]): T }, dependencies: Identifier[]) {
-    this.dependencies.set(name, { constructor, dependencies });
+  public bind<T>(key: Identifier<T>) {
+    const binding = new Binding<T>();
+    if (this.dictionary.has(key)) {
+      throw new Error(`Dependency ${key.toString()} already registered.`);
+    }
+    this.dictionary.set(key, binding);
+    return new BindingToContract(binding);
   }
 
-  public registerInstance<T>(name: Identifier<T>, instance: T) {
-    if (this.dependencies.has(name)) {
-      throw new Error(`Dependency ${name.toString()} already registered.`);
+  public put<T>(constructor: Newable<T>) {
+    if (this.dictionary.has(constructor)) {
+      throw new Error(`Dependency ${constructor.name.toString()} already registered.`);
     }
-    this.dependencies.set(name, { instance });
+    const binding = new Binding<T>();
+    binding.boundEntity = constructor;
+    this.dictionary.set(constructor, binding);
+    return new BindingWithInContract(binding);
   }
 
-  public put<T>(constructor: { new(...args: any[]): T }, dependencies: Identifier[]) {
-    this.dependencies.set(constructor, { constructor, dependencies });
-  }
+  public get<T>(key: Identifier<T>): T {
+    const target = this.dictionary.get(key);
 
-  public get<T>(name: Identifier<T>): T {
-    const target = this.dependencies.get(name);
-
-    if (!target) {
-        throw new Error(`No dependency found for ${name.toString()}`);
-    }
-    
-    if (target.instance) {
-        return target.instance;
+    if (!target || !target.boundEntity) {
+      throw new Error(`No dependency found for ${key.toString()}`);
     }
 
-    const { constructor, dependencies = [] } = target;
-    const resolvedDependencies = dependencies.map((dep: Identifier<T>) => this.get(dep));
+    const { boundEntity, dependencies } = target;
+    const Constructor = boundEntity as Newable<T>;
+    const resolvedDependencies = dependencies.map((dep: Identifier) => this.get(dep));
 
-    return new constructor(...resolvedDependencies);
+    if (target.scope === 'Singleton') {
+      if (!target.activated) {
+        target.cache = new Constructor(...resolvedDependencies);
+        target.activated = true;
+      }
+      return target.cache as T;
+    }
+
+    return new Constructor(...resolvedDependencies);
   }
 }
 

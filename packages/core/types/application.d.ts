@@ -1,9 +1,9 @@
 import { Newable } from '@kurdel/common';
 import { Identifier } from '@kurdel/ioc';
-import { HttpServerAdapter } from './http/interfaces.js';
+import { IHttpServerAdapter } from './http/interfaces.js';
 import { Model } from './model.js';
 export interface AppConfig {
-    http?: Newable<HttpServerAdapter>;
+    http?: Newable<IHttpServerAdapter>;
     models?: Newable<Model>[];
     controllers?: [Newable<{}>, Identifier[]][];
 }

@@ -10,6 +10,7 @@ export type DatabaseQuery = {
     sql: string;
     params: any[];
 };
+export declare const IDatabase: unique symbol;
 export interface IDatabase {
     get(query: DatabaseQuery): Promise<any>;
     all(query: DatabaseQuery): Promise<any>;
