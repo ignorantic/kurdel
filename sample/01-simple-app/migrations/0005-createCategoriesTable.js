@@ -1,4 +1,4 @@
-import { Migration } from '@kurdel/common';
+import { Migration } from '@kurdel/migrations';
 
 export default class CreateCategoriesTable extends Migration {
   async up() {

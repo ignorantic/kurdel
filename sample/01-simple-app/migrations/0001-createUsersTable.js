@@ -1,4 +1,4 @@
-import { Migration } from '@kurdel/common';
+import { Migration } from '@kurdel/migrations';
 
 export default class CreateUsersTable extends Migration {
   async up() {

@@ -1,4 +1,4 @@
-import { IDatabase } from './db/interfaces.js';
+import { IDatabase } from '@kurdel/db';
 export declare abstract class Model {
     private db;
     private builder;

@@ -21,10 +21,8 @@
   "devDependencies": {
     "@types/node": "^20.9.0"
   },
-  "peerDependencies": {
-    "sqlite3": "^5.1.6"
-  },
   "dependencies": {
+    "@kurdel/db": "^1.0.0",
     "@kurdel/ioc": "^1.0.0"
   }
 }

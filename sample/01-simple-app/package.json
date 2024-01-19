@@ -16,6 +16,7 @@
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
+    "@kurdel/migrations": "^1.0.0",
     "@types/node": "^20.9.0"
   }
 }

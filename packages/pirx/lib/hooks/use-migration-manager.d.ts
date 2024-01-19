@@ -1,2 +1,2 @@
-import { MigrationManager } from '@kurdel/core';
+import { MigrationManager } from '@kurdel/migrations';
 export default function useMigrationManager(): MigrationManager | null;

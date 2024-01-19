@@ -1,4 +1,4 @@
-import { QueryBuilder } from './db/query-builder.js';
+import { QueryBuilder } from '@kurdel/db';
 export class Model {
     db;
     builder;

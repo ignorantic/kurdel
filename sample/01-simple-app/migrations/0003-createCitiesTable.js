@@ -1,4 +1,4 @@
-import { Migration } from '@kurdel/common';
+import { Migration } from '@kurdel/migrations';
 
 export default class CreateCitiesTable extends Migration {
   async up() {

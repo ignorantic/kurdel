@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { MigrationManager } from '@kurdel/core';
+import { MigrationManager } from '@kurdel/migrations';
 import useMigrateRefresh from '../hooks/use-migrate-refresh.js';
 import CheckmarkedLine from './checkmarked-line.js';
 import MigrationList from './migration-list.js';

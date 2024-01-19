@@ -1,1 +1,1 @@
-export * from './types.js';
+export { JSONLoader } from './json-loader.js';

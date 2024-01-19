@@ -1,5 +1,4 @@
-import { IDatabase, IQueryBuilder } from './db/interfaces.js';
-import { QueryBuilder } from './db/query-builder.js';
+import { IDatabase, IQueryBuilder, QueryBuilder } from '@kurdel/db';
 
 export abstract class Model {
   private db: IDatabase;

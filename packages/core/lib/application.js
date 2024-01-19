@@ -1,6 +1,5 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { IDatabase } from './db/interfaces.js';
-import { DBConnector } from './db/db-connector.js';
+import { IDatabase, DBConnector } from '@kurdel/db';
 import { IHttpServerAdapter } from './http/interfaces.js';
 import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { Router } from './router.js';

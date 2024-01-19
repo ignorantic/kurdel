@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MigrationManager } from '@kurdel/core';
+import { MigrationManager } from '@kurdel/migrations';
 export default function useMigrationManager() {
     const [loader, setLoader] = useState(null);
     useEffect(() => {
