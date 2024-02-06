@@ -1,28 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Text } from 'ink';
-import Spinner from 'ink-spinner';
+import zod from 'zod';
 
-export default function Index() {
-  const [result, setResult] = useState<string>();
+export const options = zod.object({
+  name: zod.string().describe('Your name'),
+});
 
-  useEffect(() => {
-    async function fetchUser() {
-      const response = await fetch('http://localhost:3000/');
-      const { message } = await response.json();
-      setResult(message);
-    }
+type Props = {
+  options: zod.infer<typeof options>;
+};
 
-    fetchUser().catch(console.error);
-  }, []);
-
-  if (!result) {
-    return (
-      <Text>
-        <Spinner type="dots" />
-        {' Ping...'}
-      </Text>
-    );
-  }
-
-  return <Text>{result}</Text>;
+export default function Index({options}: Props) {
+  return <Text>Hello, {options.name}!</Text>;
 }
