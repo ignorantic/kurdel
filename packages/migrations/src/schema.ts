@@ -15,7 +15,7 @@ export class Schema {
     configure(blueprint);
     const columnDefinitions = blueprint.getColumnDefinitions();
     const sql = `CREATE TABLE ${tableName} (${columnDefinitions});`;
-    this.connection.run({ sql, params: [] });
+    await this.connection.run({ sql, params: [] });
   }
 
   async drop(tableName: string): Promise<void> {

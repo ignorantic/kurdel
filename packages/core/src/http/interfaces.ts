@@ -1,5 +1,5 @@
-export const IHttpServerAdapter = Symbol('IHttpServerAdapter');
-export interface IHttpServerAdapter {
+export const IServerAdapter = Symbol('IServerAdapter');
+export interface IServerAdapter {
   listen(port: number, callback: Function): void;
 }
 

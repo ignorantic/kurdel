@@ -9,16 +9,17 @@ export class MigrationManager extends EventEmitter {
   private loader: MigrationLoader;
   private registry: MigrationRegistry;
 
-  constructor(connection: IDatabase) {
+  constructor(connection: IDatabase, registry: MigrationRegistry) {
     super();
     this.connection = connection;
+    this.registry = registry;
     this.loader = new MigrationLoader();
-    this.registry = new MigrationRegistry(connection);
   }
 
   public static async create(): Promise<MigrationManager> {
     const connection = await (new DBConnector()).run();
-    return new MigrationManager(connection);
+    const registry = await MigrationRegistry.create(connection);
+    return new MigrationManager(connection, registry);
   }
 
   public async run() {

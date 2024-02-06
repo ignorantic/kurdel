@@ -1,13 +1,13 @@
 import { Newable } from '@kurdel/common';
 import { Identifier, IoCContainer } from '@kurdel/ioc';
 import { IDatabase, DBConnector } from '@kurdel/db';
-import { IHttpServerAdapter } from './http/interfaces.js';
+import { IServerAdapter } from './http/interfaces.js';
 import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { Router } from './router.js';
 import { Model } from './model.js';
 
 export interface AppConfig {
-  http?: Newable<IHttpServerAdapter>;
+  server?: Newable<IServerAdapter>;
   models?: Newable<Model>[];
   controllers?: [Newable<{}>, Identifier[]][];
 }
@@ -32,7 +32,7 @@ export class Application {
   private async init() {
     const dbConnection = await this.dbConnector.run();
     this.ioc.bind(IDatabase).toInstance(dbConnection);
-    const { models, controllers, http = NativeHttpServerAdapter } = this.config;
+    const { models, controllers, server = NativeHttpServerAdapter } = this.config;
     if (models) {
       models.forEach((model) => {
         this.ioc.put(model).with([IDatabase])
@@ -44,11 +44,11 @@ export class Application {
       });
       this.ioc.put(Router).with(controllers.map(([controller]) => controller));
     }
-    this.ioc.bind(IHttpServerAdapter).to(http).with([Router]);
+    this.ioc.bind(IServerAdapter).to(server).with([Router]);
   }
 
   listen(port: number, callback: () => void) {
-    const server = this.ioc.get<IHttpServerAdapter>(IHttpServerAdapter);
+    const server = this.ioc.get<IServerAdapter>(IServerAdapter);
 
     server.listen(port, callback);
   }

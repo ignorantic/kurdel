@@ -1,6 +1,6 @@
 import { IoCContainer } from '@kurdel/ioc';
 import { IDatabase, DBConnector } from '@kurdel/db';
-import { IHttpServerAdapter } from './http/interfaces.js';
+import { IServerAdapter } from './http/interfaces.js';
 import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { Router } from './router.js';
 export class Application {
@@ -20,7 +20,7 @@ export class Application {
     async init() {
         const dbConnection = await this.dbConnector.run();
         this.ioc.bind(IDatabase).toInstance(dbConnection);
-        const { models, controllers, http = NativeHttpServerAdapter } = this.config;
+        const { models, controllers, server = NativeHttpServerAdapter } = this.config;
         if (models) {
             models.forEach((model) => {
                 this.ioc.put(model).with([IDatabase]);
@@ -32,10 +32,10 @@ export class Application {
             });
             this.ioc.put(Router).with(controllers.map(([controller]) => controller));
         }
-        this.ioc.bind(IHttpServerAdapter).to(http).with([Router]);
+        this.ioc.bind(IServerAdapter).to(server).with([Router]);
     }
     listen(port, callback) {
-        const server = this.ioc.get(IHttpServerAdapter);
+        const server = this.ioc.get(IServerAdapter);
         server.listen(port, callback);
     }
 }

@@ -3,7 +3,7 @@ export declare class MigrationRegistry {
     private connection;
     private builder;
     constructor(connection: IDatabase);
-    static create(connection: IDatabase): Promise<void>;
+    static create(connection: IDatabase): Promise<MigrationRegistry>;
     get all(): Promise<string[]>;
     getBatch(batch: number): Promise<string[]>;
     get last(): Promise<number>;

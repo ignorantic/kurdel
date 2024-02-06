@@ -1,9 +1,9 @@
 import http, { Server } from 'http';
 import { Method } from '../types.js';
 import { Router } from '../router.js';
-import { IHttpServerAdapter } from './interfaces.js';
+import { IServerAdapter } from './interfaces.js';
 
-export class NativeHttpServerAdapter implements IHttpServerAdapter {
+export class NativeHttpServerAdapter implements IServerAdapter {
   private server: Server;
 
   constructor(router: Router) {

@@ -20,8 +20,9 @@ export class MigrationRegistry {
     const registry = new MigrationRegistry(connection);
     const exists = await registry.existsMigrtionsTable();
     if (!exists) {
-      registry.createMigrationsTable();
+      await registry.createMigrationsTable();
     }
+    return registry;
   }
 
   public get all(): Promise<string[]>{

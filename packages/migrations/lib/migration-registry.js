@@ -11,8 +11,9 @@ export class MigrationRegistry {
         const registry = new MigrationRegistry(connection);
         const exists = await registry.existsMigrtionsTable();
         if (!exists) {
-            registry.createMigrationsTable();
+            await registry.createMigrationsTable();
         }
+        return registry;
     }
     get all() {
         const query = this.builder.select('*').from('migrations').build();

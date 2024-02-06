@@ -6,15 +6,16 @@ export class MigrationManager extends EventEmitter {
     connection;
     loader;
     registry;
-    constructor(connection) {
+    constructor(connection, registry) {
         super();
         this.connection = connection;
+        this.registry = registry;
         this.loader = new MigrationLoader();
-        this.registry = new MigrationRegistry(connection);
     }
     static async create() {
         const connection = await (new DBConnector()).run();
-        return new MigrationManager(connection);
+        const registry = await MigrationRegistry.create(connection);
+        return new MigrationManager(connection, registry);
     }
     async run() {
         const migrations = await this.findMigrationsToRun();

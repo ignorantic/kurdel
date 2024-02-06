@@ -1,1 +1,1 @@
-export const IHttpServerAdapter = Symbol('IHttpServerAdapter');
+export const IServerAdapter = Symbol('IServerAdapter');
