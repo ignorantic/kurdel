@@ -1,4 +1,3 @@
-/// <reference types="node" resolution-mode="require"/>
 import EventEmitter from 'events';
 import { IDatabase } from '@kurdel/db';
 import { MigrationRegistry } from './migration-registry.js';

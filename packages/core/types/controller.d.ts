@@ -1,5 +1,3 @@
-/// <reference types="node" resolution-mode="require"/>
-/// <reference types="node" resolution-mode="require"/>
 import { IncomingMessage, ServerResponse } from 'http';
 import { ParsedUrlQuery } from 'querystring';
 import { RouteConfig } from './types.js';
