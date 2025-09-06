@@ -3,7 +3,7 @@ function buildURL(req) {
     const host = req.headers.host ?? 'localhost';
     return new URL(req.url ?? '/', `http://${host}`);
 }
-function toParsedQuery(u) {
+function toQuery(u) {
     // Keep compatibility with ParsedUrlQuery: string | string[]
     const out = {};
     u.searchParams.forEach((value, key) => {
@@ -27,7 +27,7 @@ export class Controller {
         this._response = response;
         // Parse query
         const url = buildURL(request);
-        this._query = toParsedQuery(url);
+        this._query = toQuery(url);
         // Resolve action safely
         const action = this.resolveAction(actionName);
         if (!action) {
@@ -76,5 +76,9 @@ export class Controller {
     }
     get query() {
         return this._query ?? {};
+    }
+    queryOne(name) {
+        const v = this.query[name];
+        return Array.isArray(v) ? v[0] : v;
     }
 }

@@ -1,6 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { ParsedUrlQuery } from 'querystring';
-import { RouteConfig } from './types.js';
+import { Query, RouteConfig } from './types.js';
 
 // helpers to build URL and query map
 function buildURL(req: IncomingMessage): URL {
@@ -8,7 +7,7 @@ function buildURL(req: IncomingMessage): URL {
   return new URL(req.url ?? '/', `http://${host}`);
 }
 
-function toParsedQuery(u: URL): ParsedUrlQuery {
+function toQuery(u: URL): Query {
   // Keep compatibility with ParsedUrlQuery: string | string[]
   const out: Record<string, string | string[]> = {};
   u.searchParams.forEach((value, key) => {
@@ -19,13 +18,13 @@ function toParsedQuery(u: URL): ParsedUrlQuery {
       out[key] = value;
     }
   });
-  return out as ParsedUrlQuery;
+  return out as Query;
 }
 
 export abstract class Controller<T = {}> {
   private _request?: IncomingMessage;
   private _response?: ServerResponse;
-  private _query?: ParsedUrlQuery;
+  private _query?: Query;
   private _responded = false;
   abstract readonly routes: RouteConfig<T>;
 
@@ -35,7 +34,7 @@ export abstract class Controller<T = {}> {
 
      // Parse query
     const url = buildURL(request);
-    this._query = toParsedQuery(url);
+    this._query = toQuery(url);
 
     // Resolve action safely
     const action = this.resolveAction(actionName);
@@ -88,7 +87,12 @@ export abstract class Controller<T = {}> {
     this.send(statusCode, { error: message });
   }
 
-  get query(): ParsedUrlQuery {
+  get query(): Query {
     return this._query ?? {};
+  }
+
+  protected queryOne(name: string): string | undefined {
+    const v = this.query[name];
+    return Array.isArray(v) ? v[0] : v;
   }
 }

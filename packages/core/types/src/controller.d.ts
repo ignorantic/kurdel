@@ -1,6 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { ParsedUrlQuery } from 'querystring';
-import { RouteConfig } from './types.js';
+import { Query, RouteConfig } from './types.js';
 export declare abstract class Controller<T = {}> {
     private _request?;
     private _response?;
@@ -13,5 +12,6 @@ export declare abstract class Controller<T = {}> {
     /** Send JSON response once (ignores subsequent calls) */
     send(statusCode: number, data: Record<string, unknown>): void;
     sendError(statusCode: number, message: string): void;
-    get query(): ParsedUrlQuery;
+    get query(): Query;
+    protected queryOne(name: string): string | undefined;
 }
