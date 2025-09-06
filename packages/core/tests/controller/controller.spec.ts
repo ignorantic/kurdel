@@ -1,24 +1,22 @@
-// tests/controller/controller.spec.ts
 import { describe, it, expect } from 'vitest';
-import { Controller } from '../../src/controller.js';     // your abstract one
-import type { RouteConfig } from '../../src/types.js';
-import { createReqRes } from '../utils/http.js';               // mock from previous message
+import { Controller } from '../../src/controller.js';
+import type { RouteConfig, HttpContext, ActionResult } from '../../src/types.js';
+import { createReqRes } from '../utils/http.js';
 
-class UsersController extends Controller {
+class UsersController extends Controller<{}> {
   readonly routes: RouteConfig<{}> = {
-    index: { method: 'GET', path: '/users' },
-  } as any;
+    index: this.index,
+  };
 
-  // IMPORTANT: explicitly send response instead of returning it
-  async index() {
-    this.send(200, { ok: true, q: this.query });
+  async index(ctx: HttpContext<{}>): Promise<ActionResult> {
+    return { kind: 'json', status: 200, body: { ok: true, q: ctx.query } };
   }
 
-  _helper() { return 'secret'; } // must not be callable as action
+  // this is not exposed in routes, so it cannot be called
+  _helper() { return 'secret'; }
 }
 
-// small helper for tests
-async function execAction(ctrl: Controller, action: string, url = '/users?role=admin') {
+async function execAction<TDeps>(ctrl: Controller<TDeps>, action: string, url = '/users?role=admin') {
   const { req, res, getResult } = createReqRes(url, 'GET');
   await ctrl.execute(req, res, action);
   return getResult();
@@ -26,7 +24,7 @@ async function execAction(ctrl: Controller, action: string, url = '/users?role=a
 
 describe('Controller', () => {
   it('calls existing action and sends JSON 200', async () => {
-    const ctrl = new UsersController();
+    const ctrl = new UsersController({});
     const result = await execAction(ctrl, 'index', '/users?role=admin');
     expect(result.statusCode).toBe(200);
     expect((result.headers['content-type'] ?? '')).toContain('application/json');
@@ -36,15 +34,14 @@ describe('Controller', () => {
   });
 
   it('returns 404 for unknown action', async () => {
-    const ctrl = new UsersController();
+    const ctrl = new UsersController({});
     const result = await execAction(ctrl, 'missingAction', '/users');
     expect(result.statusCode).toBe(404);
-    // your abstract controller writes plain text; adjust if you send JSON there
     expect(result.body).toContain(`The method 'missingAction'`);
   });
 
-  it('does not allow calling private/helper methods as actions', async () => {
-    const ctrl = new UsersController();
+  it('does not allow calling helper methods as actions', async () => {
+    const ctrl = new UsersController({});
     const result = await execAction(ctrl, '_helper', '/users');
     expect(result.statusCode).toBe(404);
   });

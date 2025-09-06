@@ -1,67 +1,47 @@
-import { Controller } from '@kurdel/core';
+import { Controller, route, } from '@kurdel/core';
 export class UserController extends Controller {
-    service;
-    routes = [
-        {
-            method: 'POST',
-            path: '/user',
-            action: 'create',
-        },
-        {
-            method: 'GET',
-            path: '/user',
-            action: 'getOne',
-        },
-        {
-            method: 'GET',
-            path: '/users',
-            action: 'getAll',
-        }
-    ];
-    constructor(service) {
-        super();
-        this.service = service;
-    }
-    async create() {
-        const { name } = this.query;
+    routes = {
+        create: route({ method: 'POST', path: '/user' })(this.create),
+        getOne: route({ method: 'GET', path: '/user' })(this.getOne),
+        getAll: route({ method: 'GET', path: '/users' })(this.getAll),
+    };
+    async create(ctx) {
+        const { name } = ctx.query;
         if (typeof name !== 'string') {
-            this.sendError(400, 'Name not found');
-            return;
+            return { kind: 'json', status: 400, body: { error: 'Name not found' } };
         }
         try {
-            await this.service.createUser(name);
-            this.send(200, { message: 'OK' });
+            await ctx.deps.createUser(name);
+            return { kind: 'json', status: 200, body: { message: 'OK' } };
         }
         catch (err) {
-            this.sendError(500, JSON.stringify(err));
+            return { kind: 'json', status: 500, body: { error: String(err) } };
         }
     }
-    async getOne() {
-        const { id } = this.query;
+    async getOne(ctx) {
+        const { id } = ctx.query;
         if (typeof id !== 'string') {
-            this.sendError(400, 'Name not found');
-            return;
+            return { kind: 'json', status: 400, body: { error: 'Id not found' } };
         }
-        const userId = +id;
-        if (typeof userId !== 'number') {
-            this.sendError(400, 'Name not found');
-            return;
+        const userId = Number(id);
+        if (!Number.isFinite(userId)) {
+            return { kind: 'json', status: 400, body: { error: 'Invalid id' } };
         }
         try {
-            const record = await this.service.getUser(userId);
-            this.send(200, record);
+            const record = await ctx.deps.getUser(userId);
+            return { kind: 'json', status: 200, body: record };
         }
         catch (err) {
-            this.sendError(500, JSON.stringify(err));
+            return { kind: 'json', status: 500, body: { error: String(err) } };
         }
     }
-    async getAll() {
+    async getAll(ctx) {
         try {
-            const records = await this.service.getUsers();
-            this.send(200, records);
+            const records = await ctx.deps.getUsers();
+            return { kind: 'json', status: 200, body: records };
         }
         catch (err) {
-            this.sendError(500, JSON.stringify(err));
+            return { kind: 'json', status: 500, body: { error: String(err) } };
         }
     }
 }

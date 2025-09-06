@@ -1,13 +1,10 @@
-import { IncomingMessage, ServerResponse } from 'http';
-import { ParsedUrlQuery } from 'querystring';
-import { RouteConfig } from './types.js';
-export declare abstract class Controller<T = {}> {
-    private _request?;
-    private _response?;
-    private _query?;
-    abstract readonly routes: RouteConfig<T>;
-    execute(request: IncomingMessage, response: ServerResponse, actionName: string): Promise<void>;
-    send(statusCode: number, data: Record<string, unknown>): void;
-    sendError(statusCode: number, message: string): void;
-    get query(): ParsedUrlQuery;
+import { ServerResponse, IncomingMessage } from 'http';
+import type { ActionResult, RouteConfig } from './types.js';
+export declare abstract class Controller<TDeps = unknown> {
+    protected readonly deps: TDeps;
+    constructor(deps: TDeps);
+    abstract readonly routes: RouteConfig<TDeps>;
+    execute(req: IncomingMessage, res: ServerResponse, actionName: string): Promise<void>;
+    protected render(res: ServerResponse, r: ActionResult): void;
 }
+//# sourceMappingURL=controller.d.ts.map

@@ -1,27 +1,32 @@
-import { parse } from 'url';
+import { ROUTE_META } from './routing.js';
 export class Router {
-    routes;
-    constructor(...controllers) {
-        this.routes = [];
-        controllers.forEach(controller => this.useController(controller));
-    }
-    useController(controller) {
-        controller.routes.forEach((item) => {
-            this.addRoute(item.method, item.path, controller, item.action);
+    constructor(resolver, controllers) {
+        this.entries = [];
+        controllers.forEach((ControllerClass) => {
+            const instance = resolver.get(ControllerClass);
+            this.useController(instance);
         });
     }
-    addRoute(method, path, controller, action) {
-        const handler = this.controllerAction(controller, action);
-        this.routes.push({ method, path, handler });
+    useController(controller) {
+        for (const [action, handler] of Object.entries(controller.routes)) {
+            const meta = handler[ROUTE_META];
+            if (!meta)
+                continue;
+            this.add(meta.method, meta.path, controller, action);
+        }
+    }
+    add(method, path, controller, action) {
+        this.entries.push({ method, path, controller, action });
     }
     resolve(method, url) {
-        const { pathname } = parse(url, true);
-        const route = this.routes.find(route => route.method === method && route.path === pathname);
-        return route ? route.handler : null;
-    }
-    controllerAction(controller, action) {
+        const safe = (url || '/').replace(/\\/g, '/');
+        const pathname = new URL(safe, 'http://internal').pathname;
+        const found = this.entries.find((e) => e.method === method && e.path === pathname);
+        if (!found)
+            return null;
         return (req, res) => {
-            controller.execute(req, res, action);
+            found.controller.execute(req, res, found.action);
         };
     }
 }
+//# sourceMappingURL=router.js.map

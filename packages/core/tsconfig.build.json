@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "rootDir": "src",
+    "outDir": "lib",
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "types",
+    "emitDeclarationOnly": false,
+    "composite": true,
+    "noEmit": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts", "tests/**", "vitest.config.ts"]
+}

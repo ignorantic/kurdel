@@ -5,3 +5,4 @@ export declare class NativeHttpServerAdapter implements IServerAdapter {
     constructor(router: Router);
     listen(port: number, callback: () => void): void;
 }
+//# sourceMappingURL=native-http-server-adapter.d.ts.map

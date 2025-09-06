@@ -12,6 +12,16 @@ export interface AppConfig {
   controllers?: [Newable<{}>, Identifier[]][];
 }
 
+export class IoCControllerResolver {
+  constructor(private readonly container: IoCContainer) {}
+
+  get<T>(cls: Newable<T>): T {
+    return this.container.get<T>(cls);
+  }
+}
+
+export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
+
 export class Application {
   private config: AppConfig;
   private ioc: IoCContainer;
@@ -42,7 +52,9 @@ export class Application {
       controllers.forEach(([controller, dependencies]) => {
         this.ioc.put(controller).with(dependencies);
       });
-      this.ioc.put(Router).with(controllers.map(([controller]) => controller));
+      this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map(([c]) => c));
+      this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));
+      this.ioc.put(Router).with([IoCControllerResolver, CONTROLLER_CLASSES]);
     }
     this.ioc.bind(IServerAdapter).to(server).with([Router]);
   }

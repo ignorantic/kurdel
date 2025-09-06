@@ -1,6 +1,5 @@
 import http from 'http';
 export class NativeHttpServerAdapter {
-    server;
     constructor(router) {
         this.server = http.createServer((req, res) => {
             const { method, url } = req;
@@ -18,3 +17,4 @@ export class NativeHttpServerAdapter {
         this.server.listen(port, callback);
     }
 }
+//# sourceMappingURL=native-http-server-adapter.js.map

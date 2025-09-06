@@ -1,37 +1,53 @@
+import type { Newable } from '@kurdel/common';
 import { IncomingMessage, ServerResponse } from 'http';
-import { parse } from 'url';
 import { Controller } from './controller.js';
-import { Method, Route } from './types.js';
+import { ROUTE_META, type RouteMeta } from './routing.js';
+import type { Method } from './types.js';
+
+export interface ControllerResolver {
+  get<T>(cls: Newable<T>): T;
+}
+
+type Entry = {
+  method: Method;
+  path: string;
+  controller: Controller<any>;
+  action: string;
+};
 
 export class Router {
-  private routes: Route[];
+  private entries: Entry[] = [];
 
-  constructor(...controllers: Controller<unknown>[]) {
-    this.routes = [];
-    controllers.forEach(controller => this.useController(controller));
+  constructor(resolver: ControllerResolver, controllers: Newable<Controller<any>>[]) {
+    controllers.forEach((ControllerClass) => {
+      const instance = resolver.get(ControllerClass);
+      this.useController(instance);
+    });
   }
 
-  useController<T>(controller: Controller<T>) {
-    controller.routes.forEach((item) => {
-      this.addRoute<T>(item.method, item.path, controller, item.action as string)
-    })
+  private useController<T>(controller: Controller<T>) {
+    for (const [action, handler] of Object.entries(controller.routes)) {
+      const meta: RouteMeta | undefined = (handler as any)[ROUTE_META];
+      if (!meta) continue;
+      this.add(meta.method, meta.path, controller, action);
+    }
   }
 
-  private addRoute<T>(method: Method, path: string, controller: Controller<T>, action: string) {
-    const handler = this.controllerAction<T>(controller, action)
-    this.routes.push({ method, path, handler });
+  private add<T>(method: Method, path: string, controller: Controller<T>, action: string) {
+    this.entries.push({ method, path, controller, action });
   }
 
   resolve(method: Method, url: string) {
-    const { pathname } = parse(url, true);
-    const route = this.routes.find(route => route.method === method && route.path === pathname);
-    return route ? route.handler : null;
-  }
+    const safe = (url || '/').replace(/\\/g, '/');
+    const pathname = new URL(safe, 'http://internal').pathname;
 
-  controllerAction<T>(controller: Controller<T>, action: string) {
+    const found = this.entries.find(
+      (e) => e.method === method && e.path === pathname
+    );
+    if (!found) return null;
+
     return (req: IncomingMessage, res: ServerResponse) => {
-      controller.execute(req, res, action);
+      found.controller.execute(req, res, found.action);
     };
   }
 }
-

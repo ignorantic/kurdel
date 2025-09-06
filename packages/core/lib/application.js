@@ -3,10 +3,16 @@ import { IDatabase, DBConnector } from '@kurdel/db';
 import { IServerAdapter } from './http/interfaces.js';
 import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { Router } from './router.js';
+export class IoCControllerResolver {
+    constructor(container) {
+        this.container = container;
+    }
+    get(cls) {
+        return this.container.get(cls);
+    }
+}
+export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
 export class Application {
-    config;
-    ioc;
-    dbConnector;
     constructor(config) {
         this.config = config;
         this.ioc = new IoCContainer();
@@ -30,7 +36,9 @@ export class Application {
             controllers.forEach(([controller, dependencies]) => {
                 this.ioc.put(controller).with(dependencies);
             });
-            this.ioc.put(Router).with(controllers.map(([controller]) => controller));
+            this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map(([c]) => c));
+            this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));
+            this.ioc.put(Router).with([IoCControllerResolver, CONTROLLER_CLASSES]);
         }
         this.ioc.bind(IServerAdapter).to(server).with([Router]);
     }
@@ -39,3 +47,4 @@ export class Application {
         server.listen(port, callback);
     }
 }
+//# sourceMappingURL=application.js.map

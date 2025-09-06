@@ -1,13 +1,9 @@
-import { Controller } from '@kurdel/core';
+import { Controller, route, } from '@kurdel/core';
 export class PingController extends Controller {
-    routes = [
-        {
-            method: 'GET',
-            path: '/',
-            action: 'ping',
-        }
-    ];
-    async ping() {
-        this.send(200, { message: 'OK' });
+    routes = {
+        ping: route({ method: 'GET', path: '/' })(this.ping),
+    };
+    async ping(_ctx) {
+        return { kind: 'json', status: 200, body: { message: 'OK' } };
     }
 }

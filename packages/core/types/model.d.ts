@@ -8,3 +8,4 @@ export declare abstract class Model {
     find(field: string, values: any[]): Promise<any>;
     findAll(): Promise<any>;
 }
+//# sourceMappingURL=model.d.ts.map

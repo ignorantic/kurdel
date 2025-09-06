@@ -1,37 +1,67 @@
-import { parse } from 'url';
+import { buildURL, toQuery } from './utils/url.js';
 export class Controller {
-    _request;
-    _response;
-    _query;
-    async execute(request, response, actionName) {
-        this._request = request;
-        this._response = response;
-        if (request.url) {
-            const { query } = parse(request.url ?? '', true);
-            this._query = query;
+    constructor(deps) {
+        this.deps = deps;
+    }
+    async execute(req, res, actionName) {
+        const handler = this.routes[actionName];
+        if (typeof handler !== 'function') {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.end(`The method '${actionName}' was not found in '${this.constructor.name}' class.`);
+            return;
         }
-        else {
-            this._query = {};
+        const url = buildURL(req);
+        const ctx = {
+            req,
+            res,
+            url,
+            query: toQuery(url),
+            deps: this.deps,
+        };
+        try {
+            const result = await handler.call(this, ctx);
+            if (!res.headersSent)
+                this.render(res, result);
         }
-        const action = this[actionName];
-        if (typeof action === 'function') {
-            await action.call(this);
-        }
-        else {
-            this._response.statusCode = 404;
-            this._response.end(`The method '${actionName}' was not found in '${this.constructor.name}' class.`);
+        catch (e) {
+            if (!res.headersSent) {
+                this.render(res, { kind: 'json', status: 500, body: { error: 'Internal Server Error' } });
+            }
+            // optional logging via deps
+            try {
+                this.deps?.logger?.error?.(e);
+            }
+            catch { }
         }
     }
-    send(statusCode, data) {
-        if (this._request && this._response) {
-            this._response.writeHead(statusCode, { 'Content-Type': 'application/json' });
-            this._response.end(JSON.stringify(data));
+    render(res, r) {
+        switch (r.kind) {
+            case 'json': {
+                const body = JSON.stringify(r.body);
+                res.writeHead(r.status, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Length': Buffer.byteLength(body).toString(),
+                });
+                res.end(body);
+                return;
+            }
+            case 'text': {
+                res.writeHead(r.status, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end(r.body);
+                return;
+            }
+            case 'redirect': {
+                res.writeHead(r.status, { Location: r.location });
+                res.end();
+                return;
+            }
+            case 'empty': {
+                res.statusCode = r.status;
+                res.end();
+                return;
+            }
         }
-    }
-    sendError(statusCode, message) {
-        this.send(statusCode, { error: message });
-    }
-    get query() {
-        return this._query ?? {};
     }
 }
+//# sourceMappingURL=controller.js.map

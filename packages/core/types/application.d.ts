@@ -1,5 +1,5 @@
 import { Newable } from '@kurdel/common';
-import { Identifier } from '@kurdel/ioc';
+import { Identifier, IoCContainer } from '@kurdel/ioc';
 import { IServerAdapter } from './http/interfaces.js';
 import { Model } from './model.js';
 export interface AppConfig {
@@ -7,6 +7,12 @@ export interface AppConfig {
     models?: Newable<Model>[];
     controllers?: [Newable<{}>, Identifier[]][];
 }
+export declare class IoCControllerResolver {
+    private readonly container;
+    constructor(container: IoCContainer);
+    get<T>(cls: Newable<T>): T;
+}
+export declare const CONTROLLER_CLASSES: unique symbol;
 export declare class Application {
     private config;
     private ioc;
@@ -16,3 +22,4 @@ export declare class Application {
     private init;
     listen(port: number, callback: () => void): void;
 }
+//# sourceMappingURL=application.d.ts.map

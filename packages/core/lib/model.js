@@ -1,7 +1,5 @@
 import { QueryBuilder } from '@kurdel/db';
 export class Model {
-    db;
-    builder;
     constructor(db) {
         this.db = db;
         this.builder = new QueryBuilder();
@@ -16,3 +14,4 @@ export class Model {
         return this.db.all(this.builder.select('*').from(this.table).build());
     }
 }
+//# sourceMappingURL=model.js.map

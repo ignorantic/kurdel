@@ -14,7 +14,8 @@
     "test:ui": "vitest",
     "test:watch": "vitest --watch",
     "coverage": "vitest run --coverage",
-    "build": "tsc"
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rimraf lib types"
   },
   "keywords": [
     "framework"
@@ -22,7 +23,8 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.9.0"
+    "@types/node": "^20.9.0",
+    "rimraf": "^6.0.1"
   },
   "dependencies": {
     "@kurdel/db": "^1.0.0",
