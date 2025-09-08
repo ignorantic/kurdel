@@ -10,6 +10,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "incremental": true,
+    "tsBuildInfoFile": "../../.cache/tsconfig.common.build.tsbuildinfo"
   }
 }

@@ -11,7 +11,7 @@
     "composite": true,
     "noEmit": false,
     "incremental": true,
-    "tsBuildInfoFile": "../../.cache/tsconfig.build.tsbuildinfo"
+    "tsBuildInfoFile": "../../.cache/tsconfig.core.build.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts", "tests/**", "vitest.config.ts"]
