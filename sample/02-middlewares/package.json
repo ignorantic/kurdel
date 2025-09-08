@@ -1,0 +1,22 @@
+{
+  "name": "middlewares",
+  "version": "1.0.0",
+  "description": "example app with middlewares",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "dev": "node dist/app.js"
+  },
+  "author": "Andrii Sorokin",
+  "license": "MIT",
+  "dependencies": {
+    "@kurdel/core": "^1.0.0",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "@kurdel/migrations": "^1.0.0",
+    "@types/node": "^20.9.0"
+  }
+}

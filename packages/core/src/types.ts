@@ -34,3 +34,8 @@ export type RouteConfig<TDeps> = {
 export interface ControllerResolver {
   get<T>(cls: Newable<T>): T;
 }
+
+export type Middleware<TDeps = unknown> = (
+  ctx: HttpContext<TDeps>,
+  next: () => Promise<ActionResult>
+) => Promise<ActionResult>;

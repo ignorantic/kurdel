@@ -1,6 +1,6 @@
 import { ServerResponse, IncomingMessage } from 'http';
 import { buildURL, toQuery } from './utils/url.js';
-import type { ActionResult, HttpContext, RouteConfig } from './types.js';
+import type { ActionResult, HttpContext, Middleware, RouteConfig } from './types.js';
 
 export abstract class Controller<TDeps = unknown> {
   constructor(protected readonly deps: TDeps) {}
@@ -8,7 +8,18 @@ export abstract class Controller<TDeps = unknown> {
   // strict whitelist
   abstract readonly routes: RouteConfig<TDeps>;
 
-  async execute(req: IncomingMessage, res: ServerResponse, actionName: string): Promise<void> {
+  private middlewares: Middleware<TDeps>[] = [];
+
+  use(mw: Middleware<TDeps>) {
+    this.middlewares.push(mw);
+  }
+
+  async execute(
+    req: IncomingMessage,
+    res: ServerResponse,
+    actionName: string,
+    globalMiddlewares: Middleware<TDeps>[] = []
+  ): Promise<void> {
     const handler = this.routes[actionName];
     if (typeof handler !== 'function') {
       res.statusCode = 404;
@@ -27,14 +38,26 @@ export abstract class Controller<TDeps = unknown> {
       deps: this.deps,
     };
 
+    const pipeline = [...globalMiddlewares, ...this.middlewares];
+
+    // last step = actual action
+    const dispatch = async (): Promise<ActionResult> => handler.call(this, ctx);
+
+    // build composed middleware chain
+    const composed = pipeline.reduceRight<() => Promise<ActionResult>>(
+      (next, mw) => {
+        return () => mw(ctx, next);
+      },
+      dispatch
+    );
+
     try {
-      const result = await handler.call(this, ctx);
+      const result = await composed();
       if (!res.headersSent) this.render(res, result);
     } catch (e) {
       if (!res.headersSent) {
         this.render(res, { kind: 'json', status: 500, body: { error: 'Internal Server Error' } });
       }
-      // optional logging via deps
       try { (this.deps as any)?.logger?.error?.(e); } catch {}
     }
   }

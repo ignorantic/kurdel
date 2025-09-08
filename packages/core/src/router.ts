@@ -2,7 +2,8 @@ import type { Newable } from '@kurdel/common';
 import { IncomingMessage, ServerResponse } from 'http';
 import { Controller } from './controller.js';
 import { ROUTE_META, type RouteMeta } from './routing.js';
-import type { Method, ControllerResolver } from './types.js';
+import type { Method, ControllerResolver, Middleware } from './types.js';
+import { MiddlewareRegistry } from './middleware-registry.js';
 
 type Entry = {
   method: Method;
@@ -30,10 +31,20 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
 
 export class Router {
   private entries: Entry[] = [];
+  private middlewares: Middleware[] = [];
 
-  constructor(resolver: ControllerResolver, controllers: Newable<Controller<any>>[]) {
+  constructor(
+    resolver: ControllerResolver,
+    controllers: Newable<Controller<any>>[],
+    registry: MiddlewareRegistry
+  ) {
+    this.middlewares = registry.all();
+
     controllers.forEach((ControllerClass) => {
       const instance = resolver.get<Controller<any>>(ControllerClass);
+
+      registry.for(ControllerClass).forEach((mw) => instance.use(mw));
+      
       this.useController(instance);
     });
   }
@@ -49,6 +60,10 @@ export class Router {
   private add<T>(method: Method, path: string, controller: Controller<T>, action: string) {
     const { regex, keys } = compilePath(path);
     this.entries.push({ method, path, regex, keys, controller, action });
+  }
+
+  use(mw: Middleware) {
+    this.middlewares.push(mw);
   }
 
   resolve(method: Method, url: string) {
@@ -68,7 +83,7 @@ export class Router {
       return (req: IncomingMessage, res: ServerResponse) => {
         // enrich ctx.params via monkey-patch
         (req as any).__params = params;
-        entry.controller.execute(req, res, entry.action);
+        entry.controller.execute(req, res, entry.action, this.middlewares);
       };
     }
 

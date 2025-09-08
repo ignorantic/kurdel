@@ -14,10 +14,13 @@ function compilePath(path) {
     return { regex: new RegExp(`^${pattern}$`), keys };
 }
 export class Router {
-    constructor(resolver, controllers) {
+    constructor(resolver, controllers, registry) {
         this.entries = [];
+        this.middlewares = [];
+        this.middlewares = registry.all();
         controllers.forEach((ControllerClass) => {
             const instance = resolver.get(ControllerClass);
+            registry.for(ControllerClass).forEach((mw) => instance.use(mw));
             this.useController(instance);
         });
     }
@@ -32,6 +35,9 @@ export class Router {
     add(method, path, controller, action) {
         const { regex, keys } = compilePath(path);
         this.entries.push({ method, path, regex, keys, controller, action });
+    }
+    use(mw) {
+        this.middlewares.push(mw);
     }
     resolve(method, url) {
         const safe = (url || '/').replace(/\\/g, '/');
@@ -49,7 +55,7 @@ export class Router {
             return (req, res) => {
                 // enrich ctx.params via monkey-patch
                 req.__params = params;
-                entry.controller.execute(req, res, entry.action);
+                entry.controller.execute(req, res, entry.action, this.middlewares);
             };
         }
         return null;

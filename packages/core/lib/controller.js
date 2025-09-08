@@ -2,8 +2,12 @@ import { buildURL, toQuery } from './utils/url.js';
 export class Controller {
     constructor(deps) {
         this.deps = deps;
+        this.middlewares = [];
     }
-    async execute(req, res, actionName) {
+    use(mw) {
+        this.middlewares.push(mw);
+    }
+    async execute(req, res, actionName, globalMiddlewares = []) {
         const handler = this.routes[actionName];
         if (typeof handler !== 'function') {
             res.statusCode = 404;
@@ -20,8 +24,15 @@ export class Controller {
             params: req.__params ?? {},
             deps: this.deps,
         };
+        const pipeline = [...globalMiddlewares, ...this.middlewares];
+        // last step = actual action
+        const dispatch = async () => handler.call(this, ctx);
+        // build composed middleware chain
+        const composed = pipeline.reduceRight((next, mw) => {
+            return () => mw(ctx, next);
+        }, dispatch);
         try {
-            const result = await handler.call(this, ctx);
+            const result = await composed();
             if (!res.headersSent)
                 this.render(res, result);
         }
@@ -29,7 +40,6 @@ export class Controller {
             if (!res.headersSent) {
                 this.render(res, { kind: 'json', status: 500, body: { error: 'Internal Server Error' } });
             }
-            // optional logging via deps
             try {
                 this.deps?.logger?.error?.(e);
             }

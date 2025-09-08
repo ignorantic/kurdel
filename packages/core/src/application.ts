@@ -6,9 +6,12 @@ import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { IoCControllerResolver } from './ioc-controller-resolver.js';
 import { Router } from './router.js';
 import { Model } from './model.js';
+import { MiddlewareRegistry } from './middleware-registry.js';
 
 export interface AppConfig {
   server?: Newable<IServerAdapter>;
+  db?: Boolean;
+  services?: Newable<any>[];
   models?: Newable<Model>[];
   controllers?: [Newable<{}>, Identifier[]][];
 }
@@ -18,12 +21,14 @@ export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
 export class Application {
   private config: AppConfig;
   private ioc: IoCContainer;
-  private dbConnector: DBConnector;
+  private dbConnector?: DBConnector;
 
   constructor(config: AppConfig) {
     this.config = config;
     this.ioc = new IoCContainer();
-    this.dbConnector = new DBConnector();
+    if (this.config.db === undefined || this.config.db === true) {
+      this.dbConnector = new DBConnector();
+    }
   }
 
   static async create(config: AppConfig = {}): Promise<Application> {
@@ -33,21 +38,35 @@ export class Application {
   }
 
   private async init() {
-    const dbConnection = await this.dbConnector.run();
-    this.ioc.bind(IDatabase).toInstance(dbConnection);
-    const { models, controllers, server = NativeHttpServerAdapter } = this.config;
+    if (this.dbConnector) {
+      const dbConnection = await this.dbConnector.run();
+      this.ioc.bind(IDatabase).toInstance(dbConnection);
+    }
+
+    const { services, models, controllers, server = NativeHttpServerAdapter } = this.config;
+
+    const registry = new MiddlewareRegistry();
+    this.ioc.bind(MiddlewareRegistry).toInstance(registry);
+
+    if (services) {
+      services.forEach((service) => {
+        this.ioc.put(service)
+      })
+    }
+    
     if (models) {
       models.forEach((model) => {
         this.ioc.put(model).with([IDatabase])
       })
     }
+
     if (controllers) {
       controllers.forEach(([controller, dependencies]) => {
         this.ioc.put(controller).with(dependencies);
       });
       this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map(([c]) => c));
       this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));
-      this.ioc.put(Router).with([IoCControllerResolver, CONTROLLER_CLASSES]);
+      this.ioc.put(Router).with([IoCControllerResolver, CONTROLLER_CLASSES, MiddlewareRegistry]);
     }
     this.ioc.bind(IServerAdapter).to(server).with([Router]);
   }
