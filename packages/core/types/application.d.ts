@@ -2,12 +2,14 @@ import { Newable } from '@kurdel/common';
 import { Identifier } from '@kurdel/ioc';
 import { IServerAdapter } from './http/interfaces.js';
 import { Model } from './model.js';
+import { Middleware } from './types.js';
 export interface AppConfig {
     server?: Newable<IServerAdapter>;
     db?: Boolean;
-    services?: Newable<any>[];
+    services?: Newable<{}>[];
     models?: Newable<Model>[];
-    controllers?: [Newable<{}>, Identifier[]][];
+    middlewares?: Middleware[];
+    controllers?: [Newable<{}>, Identifier[]?, Middleware[]?][];
 }
 export declare const CONTROLLER_CLASSES: unique symbol;
 export declare class Application {

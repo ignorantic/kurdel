@@ -24,7 +24,7 @@ export class Application {
             const dbConnection = await this.dbConnector.run();
             this.ioc.bind(IDatabase).toInstance(dbConnection);
         }
-        const { services, models, controllers, server = NativeHttpServerAdapter } = this.config;
+        const { services, models, controllers, middlewares, server = NativeHttpServerAdapter } = this.config;
         const registry = new MiddlewareRegistry();
         this.ioc.bind(MiddlewareRegistry).toInstance(registry);
         if (services) {
@@ -37,9 +37,21 @@ export class Application {
                 this.ioc.put(model).with([IDatabase]);
             });
         }
+        if (middlewares) {
+            middlewares.forEach((middleware) => {
+                registry.use(middleware);
+            });
+        }
         if (controllers) {
-            controllers.forEach(([controller, dependencies]) => {
-                this.ioc.put(controller).with(dependencies);
+            controllers.forEach(([controller, dependencies, middlewares]) => {
+                if (dependencies) {
+                    this.ioc.put(controller).with(dependencies);
+                }
+                if (middlewares) {
+                    middlewares.forEach((middleware) => {
+                        registry.useFor(controller, middleware);
+                    });
+                }
             });
             this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map(([c]) => c));
             this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));

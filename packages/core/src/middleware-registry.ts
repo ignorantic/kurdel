@@ -4,13 +4,13 @@ import { Controller } from './controller.js';
 
 export class MiddlewareRegistry {
   private readonly global: Middleware[] = [];
-  private readonly perController = new Map<Newable<Controller>, Middleware[]>();
+  private readonly perController = new Map<Newable<{}>, Middleware[]>();
 
   use(mw: Middleware) {
     this.global.push(mw);
   }
 
-  useFor(controller: Newable<Controller>, mw: Middleware) {
+  useFor(controller: Newable<{}>, mw: Middleware) {
     if (!this.perController.has(controller)) {
       this.perController.set(controller, []);
     }
