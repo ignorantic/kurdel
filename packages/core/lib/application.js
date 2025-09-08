@@ -5,6 +5,7 @@ import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
 import { IoCControllerResolver } from './ioc-controller-resolver.js';
 import { Router } from './router.js';
 import { MiddlewareRegistry } from './middleware-registry.js';
+import { errorHandler } from './middlewares/error-handle.js';
 export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
 export class Application {
     constructor(config) {
@@ -42,6 +43,7 @@ export class Application {
                 registry.use(middleware);
             });
         }
+        registry.use(errorHandler);
         if (controllers) {
             controllers.forEach(([controller, dependencies, middlewares]) => {
                 if (dependencies) {

@@ -4,6 +4,7 @@ import {
   HttpContext,
   ActionResult,
   route,
+  HttpError,
 } from '@kurdel/core';
 import { PostService } from 'services/post-service.js';
 
@@ -19,28 +20,24 @@ export class PostController extends Controller<Deps> {
     const { id } = ctx.params;
 
     if (typeof id !== 'string') {
-      return { kind: 'json', status: 400, body: { error: 'Id not found' } };
+      throw new HttpError(400, 'ID is required');
     }
 
     const postId = Number(id);
     if (!Number.isFinite(postId)) {
-      return { kind: 'json', status: 400, body: { error: 'Invalid id' } };
+      throw new HttpError(400, 'ID must be a number');
     }
 
-    try {
-      const record = await ctx.deps.getPost(postId);
-      return { kind: 'json', status: 200, body: record };
-    } catch (err) {
-      return { kind: 'json', status: 500, body: { error: String(err) } };
+    const record = await ctx.deps.getPost(postId);
+    if (!record) {
+      throw new HttpError(404, 'Post not found');
     }
+
+    return { kind: 'json', status: 200, body: record };
   }
 
   async getAll(ctx: HttpContext<Deps>): Promise<ActionResult> {
-    try {
-      const records = await ctx.deps.getPosts();
-      return { kind: 'json', status: 200, body: records };
-    } catch (err) {
-      return { kind: 'json', status: 500, body: { error: String(err) } };
-    }
+    const records = await ctx.deps.getPosts();
+    return { kind: 'json', status: 200, body: records };
   }
 }

@@ -8,6 +8,7 @@ import { Router } from './router.js';
 import { Model } from './model.js';
 import { MiddlewareRegistry } from './middleware-registry.js';
 import { Middleware } from './types.js';
+import { errorHandler } from './middlewares/error-handle.js';
 
 export interface AppConfig {
   server?: Newable<IServerAdapter>;
@@ -73,6 +74,8 @@ export class Application {
         registry.use(middleware);
       })
     }
+
+    registry.use(errorHandler);
 
     if (controllers) {
       controllers.forEach(([controller, dependencies, middlewares]) => {
