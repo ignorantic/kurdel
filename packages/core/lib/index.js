@@ -8,4 +8,5 @@ export * from './middleware-registry.js';
 export * from './application.js';
 export * from './middlewares/error-handle.js';
 export * from './http-error.js';
+export * from './http-results.js';
 //# sourceMappingURL=index.js.map

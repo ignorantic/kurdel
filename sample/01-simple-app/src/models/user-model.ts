@@ -3,8 +3,8 @@ import { Model } from '@kurdel/core';
 export class UserModel extends Model {
   table = 'users';
 
-  public async createUser(name: string) {
-    return this.create({ id: null, name });
+  public async createUser(name: string, role: string) {
+    return this.create({ id: null, name, role });
   }
 
   public async getUser(id: number) {

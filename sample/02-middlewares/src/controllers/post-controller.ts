@@ -4,7 +4,9 @@ import {
   HttpContext,
   ActionResult,
   route,
-  HttpError,
+  BadRequest,
+  NotFound,
+  Ok,
 } from '@kurdel/core';
 import { PostService } from 'services/post-service.js';
 
@@ -20,24 +22,24 @@ export class PostController extends Controller<Deps> {
     const { id } = ctx.params;
 
     if (typeof id !== 'string') {
-      throw new HttpError(400, 'ID is required');
+      throw BadRequest('ID is required');
     }
 
     const postId = Number(id);
     if (!Number.isFinite(postId)) {
-      throw new HttpError(400, 'ID must be a number');
+      throw BadRequest('ID must be a number');
     }
 
     const record = await ctx.deps.getPost(postId);
     if (!record) {
-      throw new HttpError(404, 'Post not found');
+      throw NotFound('User not found');
     }
 
-    return { kind: 'json', status: 200, body: record };
+    return Ok(record);
   }
 
   async getAll(ctx: HttpContext<Deps>): Promise<ActionResult> {
     const records = await ctx.deps.getPosts();
-    return { kind: 'json', status: 200, body: records };
+    return Ok(records);
   }
 }

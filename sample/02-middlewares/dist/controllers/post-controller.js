@@ -1,4 +1,4 @@
-import { Controller, route, HttpError, } from '@kurdel/core';
+import { Controller, route, BadRequest, NotFound, Ok, } from '@kurdel/core';
 export class PostController extends Controller {
     routes = {
         getOne: route({ method: 'GET', path: '/post/:id' })(this.getOne),
@@ -7,20 +7,20 @@ export class PostController extends Controller {
     async getOne(ctx) {
         const { id } = ctx.params;
         if (typeof id !== 'string') {
-            throw new HttpError(400, 'ID is required');
+            throw BadRequest('ID is required');
         }
         const postId = Number(id);
         if (!Number.isFinite(postId)) {
-            throw new HttpError(400, 'ID must be a number');
+            throw BadRequest('ID must be a number');
         }
         const record = await ctx.deps.getPost(postId);
         if (!record) {
-            throw new HttpError(404, 'Post not found');
+            throw NotFound('User not found');
         }
-        return { kind: 'json', status: 200, body: record };
+        return Ok(record);
     }
     async getAll(ctx) {
         const records = await ctx.deps.getPosts();
-        return { kind: 'json', status: 200, body: records };
+        return Ok(records);
     }
 }
