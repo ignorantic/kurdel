@@ -23,6 +23,7 @@ export abstract class Controller<TDeps = unknown> {
       res,
       url,
       query: toQuery(url),
+      params: (req as any).__params ?? {},
       deps: this.deps,
     };
 

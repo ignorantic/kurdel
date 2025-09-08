@@ -12,7 +12,7 @@ type Deps = UserModel;
 export class UserController extends Controller<Deps> {
   readonly routes: RouteConfig<Deps> = {
     create: route({ method: 'POST', path: '/user' })(this.create),
-    getOne: route({ method: 'GET', path: '/user' })(this.getOne),
+    getOne: route({ method: 'GET', path: '/user/:id' })(this.getOne),
     getAll: route({ method: 'GET', path: '/users' })(this.getAll),
   };
 
@@ -32,7 +32,7 @@ export class UserController extends Controller<Deps> {
   }
 
   async getOne(ctx: HttpContext<Deps>): Promise<ActionResult> {
-    const { id } = ctx.query;
+    const { id } = ctx.params;
 
     if (typeof id !== 'string') {
       return { kind: 'json', status: 400, body: { error: 'Id not found' } };

@@ -1,4 +1,18 @@
 import { ROUTE_META } from './routing.js';
+function compilePath(path) {
+    const keys = [];
+    const pattern = path
+        .split('/')
+        .map((segment) => {
+        if (segment.startsWith(':')) {
+            keys.push(segment.slice(1));
+            return '([^/]+)';
+        }
+        return segment;
+    })
+        .join('/');
+    return { regex: new RegExp(`^${pattern}$`), keys };
+}
 export class Router {
     constructor(resolver, controllers) {
         this.entries = [];
@@ -16,17 +30,29 @@ export class Router {
         }
     }
     add(method, path, controller, action) {
-        this.entries.push({ method, path, controller, action });
+        const { regex, keys } = compilePath(path);
+        this.entries.push({ method, path, regex, keys, controller, action });
     }
     resolve(method, url) {
         const safe = (url || '/').replace(/\\/g, '/');
         const pathname = new URL(safe, 'http://internal').pathname;
-        const found = this.entries.find((e) => e.method === method && e.path === pathname);
-        if (!found)
-            return null;
-        return (req, res) => {
-            found.controller.execute(req, res, found.action);
-        };
+        for (const entry of this.entries) {
+            if (entry.method !== method)
+                continue;
+            const match = entry.regex.exec(pathname);
+            if (!match)
+                continue;
+            const params = {};
+            entry.keys.forEach((key, i) => {
+                params[key] = match[i + 1];
+            });
+            return (req, res) => {
+                // enrich ctx.params via monkey-patch
+                req.__params = params;
+                entry.controller.execute(req, res, entry.action);
+            };
+        }
+        return null;
     }
 }
 //# sourceMappingURL=router.js.map

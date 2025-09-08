@@ -17,6 +17,7 @@ export class Controller {
             res,
             url,
             query: toQuery(url),
+            params: req.__params ?? {},
             deps: this.deps,
         };
         try {

@@ -1,10 +1,7 @@
 import type { Newable } from '@kurdel/common';
 import { IncomingMessage, ServerResponse } from 'http';
 import { Controller } from './controller.js';
-import type { Method } from './types.js';
-export interface ControllerResolver {
-    get<T>(cls: Newable<T>): T;
-}
+import type { Method, ControllerResolver } from './types.js';
 export declare class Router {
     private entries;
     constructor(resolver: ControllerResolver, controllers: Newable<Controller<any>>[]);

@@ -9,7 +9,9 @@
     "declarationDir": "types",
     "emitDeclarationOnly": false,
     "composite": true,
-    "noEmit": false
+    "noEmit": false,
+    "incremental": true,
+    "tsBuildInfoFile": "../../.cache/tsconfig.build.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts", "tests/**", "vitest.config.ts"]

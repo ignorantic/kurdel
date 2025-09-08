@@ -1,4 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
+import { Newable } from '@kurdel/common';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 export type Route = {
     method: Method;
@@ -30,9 +31,13 @@ export type HttpContext<TDeps = unknown> = {
     res: ServerResponse;
     url: URL;
     query: Query;
+    params: Record<string, string>;
     deps: TDeps;
 };
 export type RouteConfig<TDeps> = {
     [action: string]: (ctx: HttpContext<TDeps>) => Promise<ActionResult> | ActionResult;
 };
+export interface ControllerResolver {
+    get<T>(cls: Newable<T>): T;
+}
 //# sourceMappingURL=types.d.ts.map

@@ -3,6 +3,7 @@ import { Identifier, IoCContainer } from '@kurdel/ioc';
 import { IDatabase, DBConnector } from '@kurdel/db';
 import { IServerAdapter } from './http/interfaces.js';
 import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
+import { IoCControllerResolver } from './ioc-controller-resolver.js';
 import { Router } from './router.js';
 import { Model } from './model.js';
 
@@ -10,14 +11,6 @@ export interface AppConfig {
   server?: Newable<IServerAdapter>;
   models?: Newable<Model>[];
   controllers?: [Newable<{}>, Identifier[]][];
-}
-
-export class IoCControllerResolver {
-  constructor(private readonly container: IoCContainer) {}
-
-  get<T>(cls: Newable<T>): T {
-    return this.container.get<T>(cls);
-  }
 }
 
 export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');

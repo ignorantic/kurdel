@@ -2,15 +2,8 @@ import { IoCContainer } from '@kurdel/ioc';
 import { IDatabase, DBConnector } from '@kurdel/db';
 import { IServerAdapter } from './http/interfaces.js';
 import { NativeHttpServerAdapter } from './http/native-http-server-adapter.js';
+import { IoCControllerResolver } from './ioc-controller-resolver.js';
 import { Router } from './router.js';
-export class IoCControllerResolver {
-    constructor(container) {
-        this.container = container;
-    }
-    get(cls) {
-        return this.container.get(cls);
-    }
-}
 export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
 export class Application {
     constructor(config) {

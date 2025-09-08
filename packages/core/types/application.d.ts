@@ -1,16 +1,11 @@
 import { Newable } from '@kurdel/common';
-import { Identifier, IoCContainer } from '@kurdel/ioc';
+import { Identifier } from '@kurdel/ioc';
 import { IServerAdapter } from './http/interfaces.js';
 import { Model } from './model.js';
 export interface AppConfig {
     server?: Newable<IServerAdapter>;
     models?: Newable<Model>[];
     controllers?: [Newable<{}>, Identifier[]][];
-}
-export declare class IoCControllerResolver {
-    private readonly container;
-    constructor(container: IoCContainer);
-    get<T>(cls: Newable<T>): T;
 }
 export declare const CONTROLLER_CLASSES: unique symbol;
 export declare class Application {
