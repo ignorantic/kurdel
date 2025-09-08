@@ -1,7 +1,7 @@
-import { HttpError } from "@kurdel/core";
+import { Unauthorized } from "@kurdel/core";
 export const authMiddleware = async (ctx, next) => {
     if (!ctx.req.headers['authorization']) {
-        throw new HttpError(400, 'Unauthorized');
+        throw Unauthorized();
     }
     return next();
 };
