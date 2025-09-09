@@ -1,4 +1,4 @@
-import { Application } from '@kurdel/core';
+import { Application, jsonBodyParser } from '@kurdel/core';
 import { PingController } from './controllers/ping-controller.js';
 import { UserController } from './controllers/user-controller.js';
 import { UserModel } from './models/user-model.js';
@@ -6,7 +6,7 @@ const app = await Application.create({
     models: [UserModel],
     controllers: [
         [PingController, []],
-        [UserController, [UserModel]],
+        [UserController, [UserModel], [jsonBodyParser]],
     ]
 });
 app.listen(3000, () => {

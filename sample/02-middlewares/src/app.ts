@@ -1,4 +1,4 @@
-import { Application, Middleware, MiddlewareRegistry } from '@kurdel/core';
+import { Application } from '@kurdel/core';
 import { UserController } from './controllers/user-controller.js';
 import { PostController } from './controllers/post-controller.js';
 import { UserService } from './services/user-service.js';

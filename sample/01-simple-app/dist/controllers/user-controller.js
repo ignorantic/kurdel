@@ -6,7 +6,7 @@ export class UserController extends Controller {
         getAll: route({ method: 'GET', path: '/users' })(this.getAll),
     };
     async create(ctx) {
-        const { name, role } = ctx.query;
+        const { name, role } = ctx.body ?? {};
         if (typeof name !== 'string') {
             throw BadRequest('Name is required');
         }

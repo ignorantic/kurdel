@@ -7,6 +7,7 @@ export * from './routing.js';
 export * from './middleware-registry.js';
 export * from './application.js';
 export * from './middlewares/error-handle.js';
+export * from './middlewares/json-body-parser.js';
 export * from './http-error.js';
 export * from './http-results.js';
 //# sourceMappingURL=index.d.ts.map

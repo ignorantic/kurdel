@@ -7,9 +7,9 @@ export type Route = {
     handler: Function;
 };
 export type Query = Readonly<Record<string, string | string[]>>;
-export type JsonValue = string | number | boolean | null | {
+export type JsonValue = string | number | boolean | null | JsonValue[] | {
     [k: string]: JsonValue;
-} | JsonValue[];
+};
 export type ActionResult = {
     kind: 'json';
     status: number;
@@ -26,19 +26,21 @@ export type ActionResult = {
     status: number;
     location: string;
 };
-export type HttpContext<TDeps = unknown> = {
+export type HttpContext<TDeps = unknown, TBody = unknown> = {
     req: IncomingMessage;
     res: ServerResponse;
     url: URL;
     query: Query;
     params: Record<string, string>;
     deps: TDeps;
+    body?: TBody;
 };
+export type RouteHandler<TDeps, TBody = unknown> = (ctx: HttpContext<TDeps, TBody>) => Promise<ActionResult>;
 export type RouteConfig<TDeps> = {
-    [action: string]: (ctx: HttpContext<TDeps>) => Promise<ActionResult> | ActionResult;
+    [key: string]: RouteHandler<TDeps, any>;
 };
 export interface ControllerResolver {
     get<T>(cls: Newable<T>): T;
 }
-export type Middleware<TDeps = unknown> = (ctx: HttpContext<TDeps>, next: () => Promise<ActionResult>) => Promise<ActionResult>;
+export type Middleware<TDeps = unknown, TBody = unknown> = (ctx: HttpContext<TDeps, TBody>, next: () => Promise<ActionResult>) => Promise<ActionResult>;
 //# sourceMappingURL=types.d.ts.map

@@ -20,8 +20,8 @@ export class UserController extends Controller<Deps> {
     getAll: route({ method: 'GET', path: '/users' })(this.getAll),
   };
 
-  async create(ctx: HttpContext<Deps>): Promise<ActionResult> {
-    const { name, role } = ctx.query;
+  async create(ctx: HttpContext<Deps, { name: string, role: string }>): Promise<ActionResult> {
+    const { name, role } = ctx.body ?? {};
 
     if (typeof name !== 'string') {
       throw BadRequest('Name is required');
@@ -32,7 +32,7 @@ export class UserController extends Controller<Deps> {
     }
 
     await ctx.deps.createUser(name, role);
-    return Created();
+    return Created({ name, role });
   }
 
   async getOne(ctx: HttpContext<Deps>): Promise<ActionResult> {
