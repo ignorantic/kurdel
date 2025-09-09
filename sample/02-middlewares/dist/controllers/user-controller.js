@@ -13,14 +13,14 @@ export class UserController extends Controller {
         if (!Number.isFinite(userId)) {
             throw BadRequest('ID must be a number');
         }
-        const record = await ctx.deps.getUser(userId);
+        const record = await ctx.deps.service.getUser(userId);
         if (!record) {
             throw NotFound('User not found');
         }
         return Ok(record);
     }
     async getAll(ctx) {
-        const records = await ctx.deps.getUsers();
+        const records = await ctx.deps.service.getUsers();
         return Ok(records);
     }
 }

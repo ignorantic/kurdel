@@ -29,22 +29,24 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
   return { regex: new RegExp(`^${pattern}$`), keys };
 }
 
+interface RouterDeps {
+  resolver: ControllerResolver;
+  controllers: Newable<Controller<any>>[];
+  registry: MiddlewareRegistry;
+}
+
 export class Router {
   private entries: Entry[] = [];
   private middlewares: Middleware[] = [];
 
-  constructor(
-    resolver: ControllerResolver,
-    controllers: Newable<Controller<any>>[],
-    registry: MiddlewareRegistry
-  ) {
+  constructor({ resolver, controllers, registry }: RouterDeps) {
     this.middlewares = registry.all();
 
     controllers.forEach((ControllerClass) => {
       const instance = resolver.get<Controller<any>>(ControllerClass);
 
       registry.for(ControllerClass).forEach((mw) => instance.use(mw));
-      
+
       this.useController(instance);
     });
   }

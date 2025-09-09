@@ -11,8 +11,17 @@ const app = await Application.create({
   services: [PostService, UserService],
   middlewares: [loggerMiddleware],
   controllers: [
-    [PostController, [PostService]],
-    [UserController, [UserService], [authMiddleware]],
+    {
+      use: PostController,
+      deps: { service: PostService }
+    },
+    {
+      use: UserController,
+      deps: {
+        service: UserService
+      },
+      middlewares: [authMiddleware]
+    },
   ]
 });
 

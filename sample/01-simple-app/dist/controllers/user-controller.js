@@ -13,8 +13,8 @@ export class UserController extends Controller {
         if (typeof role !== 'string') {
             throw BadRequest('Role is required');
         }
-        await ctx.deps.createUser(name, role);
-        return Created();
+        await ctx.deps.model.createUser(name, role);
+        return Created({ name, role });
     }
     async getOne(ctx) {
         const { id } = ctx.params;
@@ -25,14 +25,14 @@ export class UserController extends Controller {
         if (!Number.isFinite(userId)) {
             throw BadRequest('ID is required');
         }
-        const record = await ctx.deps.getUser(userId);
+        const record = await ctx.deps.model.getUser(userId);
         if (!record) {
             throw NotFound('User not found');
         }
         return Ok(record);
     }
     async getAll(ctx) {
-        const records = await ctx.deps.getUsers();
+        const records = await ctx.deps.model.getUsers();
         return Ok(records);
     }
 }

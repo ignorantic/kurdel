@@ -1,12 +1,16 @@
 import { IDatabase, IQueryBuilder, QueryBuilder } from '@kurdel/db';
 
+interface ModelDeps {
+  db: IDatabase;
+}
+
 export abstract class Model {
   private db: IDatabase;
   private builder: IQueryBuilder;
   protected abstract table: string;
 
-  constructor(db: IDatabase) {
-    this.db = db;
+  constructor(deps: ModelDeps) {
+    this.db = deps.db;
     this.builder = new QueryBuilder();
   }
 

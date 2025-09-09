@@ -6,8 +6,16 @@ import { UserModel } from './models/user-model.js';
 const app = await Application.create({
   models: [UserModel],
   controllers: [
-    [PingController, []],
-    [UserController, [UserModel], [jsonBodyParser]],
+    {
+      use: PingController
+    },
+    {
+      use: UserController,
+      deps: {
+        model: UserModel
+      },
+      middlewares: [jsonBodyParser]
+    },
   ]
 });
 

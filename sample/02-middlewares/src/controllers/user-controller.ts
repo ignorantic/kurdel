@@ -10,7 +10,9 @@ import {
 } from '@kurdel/core';
 import { UserService } from '../services/user-service.js';
 
-type Deps = UserService;
+type Deps = {
+  service: UserService
+};
 
 export class UserController extends Controller<Deps> {
   readonly routes: RouteConfig<Deps> = {
@@ -30,7 +32,7 @@ export class UserController extends Controller<Deps> {
       throw BadRequest('ID must be a number');
     }
 
-    const record = await ctx.deps.getUser(userId);
+    const record = await ctx.deps.service.getUser(userId);
     if (!record) {
       throw NotFound('User not found');
     }
@@ -39,7 +41,7 @@ export class UserController extends Controller<Deps> {
   }
 
   async getAll(ctx: HttpContext<Deps>): Promise<ActionResult> {
-    const records = await ctx.deps.getUsers();
+    const records = await ctx.deps.service.getUsers();
     return Ok(records);
   }
 }

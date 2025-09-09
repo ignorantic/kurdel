@@ -1,6 +1,7 @@
+import { describe, test, expect, beforeEach } from 'vitest';
 import { IoCContainer } from '../src/container.js';
 
-describe('put', () => {
+describe('IoCContainer', () => {
   let iocContainer: IoCContainer;
 
   beforeEach(() => {
@@ -21,19 +22,20 @@ describe('put', () => {
     class TestClass1 {}
 
     class TestClass2 {
-      public dependency: TestClass1;
+      public service: TestClass1;
 
-      constructor(dependency: TestClass1) {
-        this.dependency = dependency;
+      constructor({ dependency }: { dependency: TestClass1 }) {
+        this.service = dependency;
       }
     }
 
     iocContainer.put(TestClass1);
-    iocContainer.put(TestClass2).with([TestClass1]);
+    iocContainer.put(TestClass2).with({ dependency: TestClass1 });
+
     const instance = iocContainer.get<TestClass2>(TestClass2);
 
     expect(instance).toBeInstanceOf(TestClass2);
-    expect(instance.dependency).toBeInstanceOf(TestClass1);
+    expect(instance.service).toBeInstanceOf(TestClass1);
   });
 
   test('should retrieve a transient instance', () => {
@@ -62,11 +64,11 @@ describe('put', () => {
     expect(instance2.count).toEqual(1);
   });
 
-  test('should throw', () => {
+  test('should throw when registering the same dependency twice', () => {
     class TestClass {}
 
     iocContainer.put<TestClass>(TestClass);
-    const tryPutAgain = () => { iocContainer.put<TestClass>(TestClass); }
+    const tryPutAgain = () => { iocContainer.put<TestClass>(TestClass); };
 
     expect(tryPutAgain).toThrow();
   });

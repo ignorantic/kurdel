@@ -10,7 +10,9 @@ import {
 } from '@kurdel/core';
 import { PostService } from 'services/post-service.js';
 
-type Deps = PostService;
+type Deps = {
+  service: PostService
+};
 
 export class PostController extends Controller<Deps> {
   readonly routes: RouteConfig<Deps> = {
@@ -30,7 +32,7 @@ export class PostController extends Controller<Deps> {
       throw BadRequest('ID must be a number');
     }
 
-    const record = await ctx.deps.getPost(postId);
+    const record = await ctx.deps.service.getPost(postId);
     if (!record) {
       throw NotFound('User not found');
     }
@@ -39,7 +41,7 @@ export class PostController extends Controller<Deps> {
   }
 
   async getAll(ctx: HttpContext<Deps>): Promise<ActionResult> {
-    const records = await ctx.deps.getPosts();
+    const records = await ctx.deps.service.getPosts();
     return Ok(records);
   }
 }

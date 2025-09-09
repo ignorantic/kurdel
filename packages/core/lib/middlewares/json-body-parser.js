@@ -13,7 +13,6 @@ import { BadRequest } from '../http-results.js';
  */
 export const jsonBodyParser = async (ctx, next) => {
     const contentType = ctx.req.headers['content-type'] ?? '';
-    console.log(contentType);
     if (contentType.includes('application/json')) {
         try {
             const chunks = [];
@@ -21,10 +20,8 @@ export const jsonBodyParser = async (ctx, next) => {
                 chunks.push(chunk);
             }
             const raw = Buffer.concat(chunks).toString();
-            console.log('raw', raw);
             if (raw.length > 0) {
                 ctx.body = JSON.parse(raw);
-                console.log('parsed raw', JSON.parse(raw));
             }
         }
         catch {

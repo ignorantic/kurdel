@@ -9,14 +9,22 @@ import { Model } from './model.js';
 import { MiddlewareRegistry } from './middleware-registry.js';
 import { Middleware } from './types.js';
 import { errorHandler } from './middlewares/error-handle.js';
+import { Controller } from './controller.js';
+
+interface ControllerConfig {
+  use: Newable<Controller<any>>;
+  deps?: Record<string, Identifier>;
+  middlewares?: Middleware[];
+  prefix?: string;
+}
 
 export interface AppConfig {
   server?: Newable<IServerAdapter>;
-  db?: Boolean;
+  db?: boolean;
   services?: Newable<{}>[];
   models?: Newable<Model>[];
   middlewares?: Middleware[];
-  controllers?: [Newable<{}>, Identifier[]?, Middleware[]?][];
+  controllers?: ControllerConfig[];
 }
 
 export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
@@ -51,54 +59,61 @@ export class Application {
       models,
       controllers,
       middlewares,
-      server = NativeHttpServerAdapter
+      server = NativeHttpServerAdapter,
     } = this.config;
 
-    const registry = new MiddlewareRegistry();
-    this.ioc.bind(MiddlewareRegistry).toInstance(registry);
+    this.ioc.put(MiddlewareRegistry).inSingletonScope();
+    const registry = this.ioc.get(MiddlewareRegistry);
 
     if (services) {
       services.forEach((service) => {
-        this.ioc.put(service)
-      })
+        this.ioc.put(service);
+      });
     }
-    
+
     if (models) {
       models.forEach((model) => {
-        this.ioc.put(model).with([IDatabase])
-      })
+        this.ioc.put(model).with({ db: IDatabase });
+      });
     }
 
     if (middlewares) {
-      middlewares.forEach((middleware) => {
-        registry.use(middleware);
-      })
+      middlewares.forEach((mw) => registry.use(mw));
     }
 
     registry.use(errorHandler);
 
     if (controllers) {
-      controllers.forEach(([controller, dependencies, middlewares]) => {
-        if (dependencies) {
-          this.ioc.put(controller).with(dependencies);
+      controllers.forEach(({ use, deps, middlewares }) => {
+        if (deps) {
+          this.ioc.put(use).with(deps);
+        } else {
+          this.ioc.put(use);
         }
+
         if (middlewares) {
-          middlewares.forEach((middleware) => {
-            registry.useFor(controller, middleware);
-          })
+          middlewares.forEach((mw) => {
+            registry.useFor(use, mw);
+          });
         }
       });
-      this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map(([c]) => c));
+
+      this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map(c => c.use));
       this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));
-      this.ioc.put(Router).with([IoCControllerResolver, CONTROLLER_CLASSES, MiddlewareRegistry]);
+      this.ioc.put(Router).with({
+        resolver: IoCControllerResolver,
+        controllers: CONTROLLER_CLASSES,
+        registry: MiddlewareRegistry,
+      });
     }
-    this.ioc.bind(IServerAdapter).to(server).with([Router]);
+
+    this.ioc.bind(IServerAdapter).to(server).with({ router: Router });
   }
 
   listen(port: number, callback: () => void) {
     const server = this.ioc.get<IServerAdapter>(IServerAdapter);
-
     server.listen(port, callback);
   }
 }
+
 

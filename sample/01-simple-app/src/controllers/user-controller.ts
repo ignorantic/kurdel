@@ -11,7 +11,9 @@ import {
 } from '@kurdel/core';
 import { UserModel } from '../models/user-model.js';
 
-type Deps = UserModel;
+type Deps = {
+  model: UserModel
+};
 
 export class UserController extends Controller<Deps> {
   readonly routes: RouteConfig<Deps> = {
@@ -31,7 +33,7 @@ export class UserController extends Controller<Deps> {
       throw BadRequest('Role is required');
     }
 
-    await ctx.deps.createUser(name, role);
+    await ctx.deps.model.createUser(name, role);
     return Created({ name, role });
   }
 
@@ -47,7 +49,7 @@ export class UserController extends Controller<Deps> {
       throw BadRequest('ID is required');
     }
 
-    const record = await ctx.deps.getUser(userId);
+    const record = await ctx.deps.model.getUser(userId);
     if (!record) {
       throw NotFound('User not found');
     }
@@ -56,7 +58,7 @@ export class UserController extends Controller<Deps> {
   }
 
   async getAll(ctx: HttpContext<Deps>): Promise<ActionResult> {
-    const records = await ctx.deps.getUsers();
+    const records = await ctx.deps.model.getUsers();
     return Ok(records);
   }
 }

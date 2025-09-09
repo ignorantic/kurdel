@@ -14,7 +14,7 @@ function compilePath(path) {
     return { regex: new RegExp(`^${pattern}$`), keys };
 }
 export class Router {
-    constructor(resolver, controllers, registry) {
+    constructor({ resolver, controllers, registry }) {
         this.entries = [];
         this.middlewares = [];
         this.middlewares = registry.all();

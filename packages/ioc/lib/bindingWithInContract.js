@@ -1,16 +1,41 @@
 import { BindingInContract } from './bindingInContract.js';
 import { BindingWithContract } from './bindingWithContract.js';
+/**
+ * Fluent contract returned from IoCContainer.put().
+ *
+ * Allows you to configure additional options for the binding:
+ *
+ * - declare dependencies with .with({ key: Identifier })
+ * - control scope with .inSingletonScope()
+ *
+ * @example
+ * ```ts
+ * ioc.put(UserController)
+ *    .with({ userService: UserService, logger: Logger })
+ *    .inSingletonScope();
+ * ```
+ */
 export class BindingWithInContract {
-    bindingInContract;
-    bindingWithContract;
     constructor(binding) {
         this.bindingInContract = new BindingInContract(binding);
         this.bindingWithContract = new BindingWithContract(binding);
     }
+    /**
+     * Make this binding a singleton — only one instance will be created
+     * and cached in the container.
+     */
     inSingletonScope() {
         this.bindingInContract.inSingletonScope();
+        return this;
     }
-    with(dependencies) {
-        this.bindingWithContract.with(dependencies);
+    /**
+     * Declare dependencies for this binding as a map of identifiers.
+     * Each entry will be resolved from the container and injected into
+     * the constructor as an object.
+     */
+    with(deps) {
+        this.bindingWithContract.with(deps);
+        return this;
     }
 }
+//# sourceMappingURL=bindingWithInContract.js.map

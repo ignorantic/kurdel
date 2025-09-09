@@ -13,14 +13,14 @@ export class PostController extends Controller {
         if (!Number.isFinite(postId)) {
             throw BadRequest('ID must be a number');
         }
-        const record = await ctx.deps.getPost(postId);
+        const record = await ctx.deps.service.getPost(postId);
         if (!record) {
             throw NotFound('User not found');
         }
         return Ok(record);
     }
     async getAll(ctx) {
-        const records = await ctx.deps.getPosts();
+        const records = await ctx.deps.service.getPosts();
         return Ok(records);
     }
 }

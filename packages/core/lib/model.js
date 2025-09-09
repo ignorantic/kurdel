@@ -1,7 +1,7 @@
 import { QueryBuilder } from '@kurdel/db';
 export class Model {
-    constructor(db) {
-        this.db = db;
+    constructor(deps) {
+        this.db = deps.db;
         this.builder = new QueryBuilder();
     }
     async create(data) {
