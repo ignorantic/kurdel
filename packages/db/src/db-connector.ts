@@ -11,8 +11,12 @@ export class DBConnector {
   }
 
   public async run(): Promise<IDatabase> {
-    const dbConfig = this.jsonLoader.load(DB_CONFIG_FILENAME);
-    return this.establish(dbConfig);
+    try {
+      const dbConfig = this.jsonLoader.load(DB_CONFIG_FILENAME);
+      return this.establish(dbConfig);
+    } catch (err) {
+      throw new Error(`Database connection failed: ${String(err)}`);
+    }
   }
 
   private async establish(dbConfig: ICombinedDatabaseConfig): Promise<IDatabase> {

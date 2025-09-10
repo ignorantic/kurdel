@@ -15,6 +15,9 @@ export class Application {
             this.dbConnector = new DBConnector();
         }
     }
+    getContainer() {
+        return this.ioc;
+    }
     static async create(config = {}) {
         const app = new Application(config);
         await app.init();
@@ -22,8 +25,13 @@ export class Application {
     }
     async init() {
         if (this.dbConnector) {
-            const dbConnection = await this.dbConnector.run();
-            this.ioc.bind(IDatabase).toInstance(dbConnection);
+            try {
+                const dbConnection = await this.dbConnector.run();
+                this.ioc.bind(IDatabase).toInstance(dbConnection);
+            }
+            catch (err) {
+                throw new Error(`Application failed to init database: ${String(err)}`);
+            }
         }
         const { services, models, controllers, middlewares, server = NativeHttpServerAdapter, } = this.config;
         this.ioc.put(MiddlewareRegistry).inSingletonScope();
@@ -56,15 +64,15 @@ export class Application {
                     });
                 }
             });
-            this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map(c => c.use));
-            this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));
-            this.ioc.put(Router).with({
-                resolver: IoCControllerResolver,
-                controllers: CONTROLLER_CLASSES,
-                registry: MiddlewareRegistry,
-            });
         }
-        this.ioc.bind(IServerAdapter).to(server).with({ router: Router });
+        this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers?.map(c => c.use) ?? []);
+        this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));
+        this.ioc.put(Router).with({
+            resolver: IoCControllerResolver,
+            controllers: CONTROLLER_CLASSES,
+            registry: MiddlewareRegistry,
+        });
+        this.ioc.bind(IServerAdapter).to(server).with({ router: Router }).inSingletonScope();
     }
     listen(port, callback) {
         const server = this.ioc.get(IServerAdapter);

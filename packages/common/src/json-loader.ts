@@ -8,7 +8,7 @@ export class JSONLoader {
       return config;
     } catch (err) {
       console.error(`Error reading config file: ${err}`);
-      process.exit(1);
+      throw new Error(`Failed to read config file: ${filePath}`);
     }
   }
 }

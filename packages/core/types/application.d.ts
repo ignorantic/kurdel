@@ -1,5 +1,5 @@
 import { Newable } from '@kurdel/common';
-import { Identifier } from '@kurdel/ioc';
+import { Identifier, IoCContainer } from '@kurdel/ioc';
 import { IServerAdapter } from './http/interfaces.js';
 import { Model } from './model.js';
 import { Middleware } from './types.js';
@@ -24,6 +24,7 @@ export declare class Application {
     private ioc;
     private dbConnector?;
     constructor(config: AppConfig);
+    getContainer(): IoCContainer;
     static create(config?: AppConfig): Promise<Application>;
     private init;
     listen(port: number, callback: () => void): void;

@@ -7,8 +7,13 @@ export class DBConnector {
         this.jsonLoader = new JSONLoader();
     }
     async run() {
-        const dbConfig = this.jsonLoader.load(DB_CONFIG_FILENAME);
-        return this.establish(dbConfig);
+        try {
+            const dbConfig = this.jsonLoader.load(DB_CONFIG_FILENAME);
+            return this.establish(dbConfig);
+        }
+        catch (err) {
+            throw new Error(`Database connection failed: ${String(err)}`);
+        }
     }
     async establish(dbConfig) {
         const driver = DatabaseFactory.createDriver(dbConfig);

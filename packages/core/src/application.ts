@@ -42,6 +42,10 @@ export class Application {
     }
   }
 
+  public getContainer(): IoCContainer {
+    return this.ioc;
+  }
+
   static async create(config: AppConfig = {}): Promise<Application> {
     const app = new Application(config);
     await app.init();
@@ -50,8 +54,12 @@ export class Application {
 
   private async init() {
     if (this.dbConnector) {
-      const dbConnection = await this.dbConnector.run();
-      this.ioc.bind(IDatabase).toInstance(dbConnection);
+      try {
+        const dbConnection = await this.dbConnector.run();
+        this.ioc.bind(IDatabase).toInstance(dbConnection);
+      } catch (err) {
+        throw new Error(`Application failed to init database: ${String(err)}`);
+      }
     }
 
     const {
@@ -89,25 +97,25 @@ export class Application {
           this.ioc.put(use).with(deps);
         } else {
           this.ioc.put(use);
-        }
+        } 
 
         if (middlewares) {
-          middlewares.forEach((mw) => {
+          middlewares.forEach((mw) => { 
             registry.useFor(use, mw);
           });
         }
       });
-
-      this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map(c => c.use));
-      this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));
-      this.ioc.put(Router).with({
-        resolver: IoCControllerResolver,
-        controllers: CONTROLLER_CLASSES,
-        registry: MiddlewareRegistry,
-      });
     }
 
-    this.ioc.bind(IServerAdapter).to(server).with({ router: Router });
+    this.ioc.bind(CONTROLLER_CLASSES).toInstance(controllers?.map(c => c.use) ?? []);
+    this.ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(this.ioc));
+    this.ioc.put(Router).with({
+      resolver: IoCControllerResolver,
+      controllers: CONTROLLER_CLASSES,
+      registry: MiddlewareRegistry,
+    });
+
+    this.ioc.bind(IServerAdapter).to(server).with({ router: Router }).inSingletonScope();
   }
 
   listen(port: number, callback: () => void) {
