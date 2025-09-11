@@ -1,14 +1,27 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { CONTROLLER_CLASSES, AppConfig } from '../config.js';
+import { CONTROLLER_CLASSES } from '../config.js';
 import { IoCControllerResolver } from '../ioc-controller-resolver.js';
 import { Router } from '../router.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
-import { Initializer } from './initializer.js';
+import { AppConfig } from '../config.js';
+import { AppModule } from './app-module.js';
 
-export class ControllerInitializer implements Initializer {
-  run(ioc: IoCContainer, config: AppConfig) {
-    const { controllers } = config;
-    if (!controllers) return;
+/**
+ * ControllerModule
+ *
+ * - Exports: Router
+ * - Imports: MiddlewareRegistry
+ *
+ * Registers controllers and their dependencies.
+ * Attaches controller-specific middlewares.
+ * Produces a Router instance with full route metadata.
+ */
+export const ControllerModule: AppModule = {
+  imports: { registry: MiddlewareRegistry },
+  exports: { router: Router },
+
+  register(ioc: IoCContainer, config: AppConfig) {
+    const { controllers = [] } = config;
 
     const registry = ioc.get(MiddlewareRegistry);
 
@@ -24,5 +37,5 @@ export class ControllerInitializer implements Initializer {
       controllers: CONTROLLER_CLASSES,
       registry: MiddlewareRegistry,
     });
-  }
-}
+  },
+};

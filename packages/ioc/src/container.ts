@@ -96,4 +96,8 @@ export class IoCContainer {
 
     return new Constructor(resolvedDeps);
   }
+
+  public has(key: Identifier): boolean {
+    return this.dictionary.has(key);
+  }
 }

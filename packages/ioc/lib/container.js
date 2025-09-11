@@ -83,5 +83,8 @@ export class IoCContainer {
         }
         return new Constructor(resolvedDeps);
     }
+    has(key) {
+        return this.dictionary.has(key);
+    }
 }
 //# sourceMappingURL=container.js.map

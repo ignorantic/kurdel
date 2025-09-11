@@ -46,5 +46,6 @@ export declare class IoCContainer {
      * ```
      */
     get<T>(key: Identifier<T>): T;
+    has(key: Identifier): boolean;
 }
 //# sourceMappingURL=container.d.ts.map
