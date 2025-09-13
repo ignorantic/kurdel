@@ -1,13 +1,13 @@
+import { IoCContainer } from '@kurdel/ioc';
 import { AppModule } from './app-module.js';
+import { AppConfig } from '../config.js';
 /**
  * ServiceModule
  *
- * - Exports: none
- * - Imports: none
- *
- * Registers application services in the IoC container.
- * Services are typically plain classes that may depend
- * on models or other services.
+ * - Registers application services from AppConfig
+ * - Does not export anything directly (services consumed by controllers)
  */
-export declare const ServiceModule: AppModule;
+export declare class ServiceModule implements AppModule<AppConfig> {
+    register(ioc: IoCContainer, config: AppConfig): Promise<void>;
+}
 //# sourceMappingURL=service-module.d.ts.map

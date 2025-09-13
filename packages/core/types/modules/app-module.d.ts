@@ -1,33 +1,49 @@
-import { Identifier, IoCContainer } from '@kurdel/ioc';
-import { AppConfig } from '../config.js';
+import type { Identifier, IoCContainer } from '@kurdel/ioc';
+import type { AppConfig } from '../config.js';
+/**
+ * ProviderConfig
+ *
+ * Describes how a dependency should be provided to the IoC container.
+ *
+ * - `useClass`: Register a class with optional dependencies (resolved via IoC).
+ * - `useInstance`: Provide a pre-constructed instance (singleton).
+ * - `useFactory`: Provide a factory function for custom instantiation logic.
+ */
+export type ProviderConfig<T = any> = {
+    provide: Identifier<T>;
+    useClass: new (...args: any[]) => T;
+    deps?: Record<string, Identifier>;
+    isSingleton?: boolean;
+} | {
+    provide: Identifier<T>;
+    useInstance: T;
+} | {
+    provide: Identifier<T>;
+    useFactory: (ioc: IoCContainer) => T;
+    isSingleton?: boolean;
+};
 /**
  * AppModule
  *
- * A generic contract for all application modules.
- * Defines what a module requires (imports) and what it provides (exports).
- * Used by the Application to orchestrate initialization and dependency wiring.
+ * A unit of application composition.
+ * - Can import tokens from other modules
+ * - Can export tokens for others
+ * - Can provide classes or instances
+ * - Can run custom async logic in register()
  */
-export interface AppModule {
+export interface AppModule<TConfig = AppConfig> {
+    /** Tokens this module depends on */
+    readonly imports?: Record<string, any>;
+    /** Tokens this module exports for others */
+    readonly exports?: Record<string, any>;
+    /** Providers defined declaratively */
+    readonly providers?: ProviderConfig[];
     /**
-     * Imports: dependencies that this module requires
-     * to be present in the IoC container before its initialization.
+     * Register additional logic (async, dynamic config, side effects).
      *
-     * Example: ModelModule imports IDatabase.
+     * Called by Application during initialization.
+     * Even if module uses only providers, this method must exist.
      */
-    imports?: Record<string, Identifier>;
-    /**
-     * Exports: bindings that this module registers into the IoC container
-     * and makes available for other modules.
-     *
-     * Example: DatabaseModule exports IDatabase.
-     */
-    exports?: Record<string, Identifier>;
-    /**
-     * Entry point of the module.
-     * Called by the Application during startup.
-     * Responsible for registering classes, services, models,
-     * or controllers into the IoC container.
-     */
-    register(ioc: IoCContainer, config: AppConfig): Promise<void> | void;
+    register(ioc: IoCContainer, config: TConfig): Promise<void> | void;
 }
 //# sourceMappingURL=app-module.d.ts.map

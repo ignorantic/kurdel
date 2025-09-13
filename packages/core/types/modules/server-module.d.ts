@@ -1,13 +1,23 @@
-import { AppModule } from './app-module.js';
+import { AppModule, ProviderConfig } from './app-module.js';
+import { IoCContainer } from '@kurdel/ioc';
+import { Router } from '../router.js';
+import { AppConfig } from '../config.js';
 /**
  * ServerModule
  *
- * - Exports: IServerAdapter (bound to configured server)
- * - Imports: Router
- *
- * Binds the HTTP server adapter into IoC.
- * Defaults to NativeHttpServerAdapter if none provided in config.
- * Always uses singleton scope.
+ * - Registers HTTP server adapter
+ * - Depends on Router
+ * - Exports IServerAdapter
  */
-export declare const ServerModule: AppModule;
+export declare class ServerModule implements AppModule<AppConfig> {
+    readonly imports: {
+        router: typeof Router;
+    };
+    readonly exports: {
+        server: symbol;
+    };
+    readonly providers: ProviderConfig[];
+    constructor(config: AppConfig);
+    register(_ioc: IoCContainer): Promise<void>;
+}
 //# sourceMappingURL=server-module.d.ts.map

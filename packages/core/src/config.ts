@@ -4,6 +4,7 @@ import { IServerAdapter } from './http/interfaces.js';
 import { Model } from './model.js';
 import { Middleware } from './types.js';
 import { Controller } from './controller.js';
+import { AppModule } from './modules/app-module.js';
 
 export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
 
@@ -21,4 +22,5 @@ export interface AppConfig {
   models?: Newable<Model>[];
   middlewares?: Middleware[];
   controllers?: ControllerConfig[];
+  modules?: AppModule[];
 }

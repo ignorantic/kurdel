@@ -3,7 +3,11 @@ import type { Newable } from '@kurdel/common';
 import { ControllerResolver } from './types.js';
 
 export class IoCControllerResolver implements ControllerResolver {
-  constructor(private readonly container: IoCContainer) {}
+  private readonly container: IoCContainer;
+
+  constructor(container: IoCContainer) {
+    this.container = container;
+  }
 
   get<T>(cls: Newable<T>): T {
     return this.container.get<T>(cls);

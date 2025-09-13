@@ -1,51 +1,66 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { AppConfig } from './config.js';
+import type { AppConfig } from './config.js';
 /**
  * Application
  *
- * Main entry point of the framework. Bootstraps the IoC container,
- * runs all application modules, and wires up the HTTP server.
- *
- * Responsibilities:
- * - Orchestrates initialization of database, services, models, middlewares,
- *   controllers, and server.
- * - Provides a simple API for creating an application instance and starting
- *   the server.
- * - Enforces module contracts via imports/exports.
+ * Central orchestrator of the framework. Responsible for:
+ * - Bootstrapping IoC container
+ * - Executing built-in and user-defined modules
+ * - Registering providers (useClass, useInstance, useFactory)
+ * - Validating imports/exports between modules
  */
 export declare class Application {
-    /** Application configuration (controllers, models, services, etc.) */
+    /** Application configuration object */
     private readonly config;
-    /** IoC container instance */
+    /** Underlying IoC container */
     private readonly ioc;
-    /** List of built-in modules */
+    /** List of all modules (built-in + custom from config) */
     private readonly modules;
     constructor(config: AppConfig);
     /**
-     * Factory method: create and initialize a new Application instance.
+     * Factory method to create and initialize an Application instance.
      *
      * @param config Application configuration
      * @returns Initialized Application instance
      */
     static create(config?: AppConfig): Promise<Application>;
     /**
-     * Initialize application by running all modules.
-     *
-     * - Validates module imports/exports
-     * - Registers dependencies in IoC
-     * - Builds middleware pipeline
-     * - Configures controllers and server
+     * Initialize all modules:
+     * - Validate required imports
+     * - Register providers (classes, instances, factories)
+     * - Run optional custom module logic
+     * - Validate expected exports
      */
     private init;
     /**
-     * Start listening for incoming HTTP requests.
+     * Register a provider into the IoC container.
      *
-     * @param port Port number
-     * @param callback Callback executed once server is running
+     * Supports three strategies:
+     * - useClass: binds a class (optionally with dependencies and singleton scope)
+     * - useInstance: binds an existing instance
+     * - useFactory: binds a factory function (singleton or transient)
+     *
+     * @param provider Provider configuration object
      */
+    private registerProvider;
+    /**
+      * Register a provider into the IoC container.
+      *
+      * Supports three strategies:
+      * - useClass: binds a class (optionally with dependencies and singleton scope)
+      * - useInstance: binds an existing instance
+      * - useFactory: binds a factory function (singleton or transient)
+      *
+      * @param provider Provider configuration object
+      */
     listen(port: number, callback: () => void): void;
     /**
-     * Access underlying IoC container (useful for testing or advanced scenarios).
+     * Expose underlying IoC container
+     *
+     * Useful for:
+     * - Unit tests
+     * - Advanced dependency management
+     * - Manual resolution of services
      *
      * @returns IoCContainer instance
      */

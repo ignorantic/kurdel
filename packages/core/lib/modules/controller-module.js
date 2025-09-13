@@ -1,34 +1,56 @@
-import { CONTROLLER_CLASSES } from '../config.js';
 import { IoCControllerResolver } from '../ioc-controller-resolver.js';
-import { Router } from '../router.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
+import { Router } from '../router.js';
+import { CONTROLLER_CLASSES } from '../config.js';
 /**
  * ControllerModule
  *
- * - Exports: Router
- * - Imports: MiddlewareRegistry
- *
- * Registers controllers and their dependencies.
- * Attaches controller-specific middlewares.
- * Produces a Router instance with full route metadata.
+ * - Registers controllers from AppConfig
+ * - Wires Router with IoCControllerResolver and MiddlewareRegistry
+ * - Exports Router and CONTROLLER_CLASSES
  */
-export const ControllerModule = {
-    imports: { registry: MiddlewareRegistry },
-    exports: { router: Router },
-    register(ioc, config) {
-        const { controllers = [] } = config;
-        const registry = ioc.get(MiddlewareRegistry);
-        controllers.forEach(({ use, deps, middlewares }) => {
-            deps ? ioc.put(use).with(deps) : ioc.put(use);
-            middlewares?.forEach((mw) => registry.useFor(use, mw));
-        });
-        ioc.bind(CONTROLLER_CLASSES).toInstance(controllers.map((c) => c.use));
-        ioc.bind(IoCControllerResolver).toInstance(new IoCControllerResolver(ioc));
-        ioc.put(Router).with({
-            resolver: IoCControllerResolver,
+export class ControllerModule {
+    constructor(config) {
+        this.imports = { registry: MiddlewareRegistry };
+        this.exports = {
             controllers: CONTROLLER_CLASSES,
-            registry: MiddlewareRegistry,
-        });
-    },
-};
+            router: Router,
+        };
+        const { controllers = [] } = config;
+        this.providers = [
+            {
+                provide: IoCControllerResolver,
+                useFactory: (ioc) => new IoCControllerResolver(ioc),
+                isSingleton: true,
+            },
+            {
+                provide: Router,
+                useClass: Router,
+                deps: {
+                    resolver: IoCControllerResolver,
+                    controllers: CONTROLLER_CLASSES,
+                    registry: MiddlewareRegistry,
+                },
+            },
+            ...controllers.map(({ use, deps, middlewares }) => ({
+                provide: use,
+                useClass: use,
+                deps,
+            })),
+            {
+                provide: CONTROLLER_CLASSES,
+                useInstance: controllers.map((c) => c.use),
+            },
+        ];
+        this.register = async (ioc) => {
+            const registry = ioc.get(MiddlewareRegistry);
+            controllers.forEach(({ use, middlewares }) => {
+                middlewares?.forEach((mw) => registry.useFor(use, mw));
+            });
+        };
+    }
+    async register(_ioc) {
+        // No-op (everything in providers)
+    }
+}
 //# sourceMappingURL=controller-module.js.map

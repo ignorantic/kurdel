@@ -1,41 +1,31 @@
-import { IDatabase, DBConnector, DatabaseQuery } from '@kurdel/db';
 import { IoCContainer } from '@kurdel/ioc';
-import { AppConfig } from '../config.js';
+import { IDatabase, DBConnector } from '@kurdel/db';
 import { AppModule } from './app-module.js';
-
-class NoopDatabase implements IDatabase {
-  query = this.error;
-  get = this.error;
-  all = this.error;
-  run = this.error;
-  close = this.error;
-  
-  private async error() {
-    throw new Error('Database is disabled (db=false in config)');
-  }
-}
+import { AppConfig } from '../config.js';
 
 /**
  * DatabaseModule
  *
- * - Exports: IDatabase (DB connection)
- * - Imports: none
- *
- * Responsible for creating a database connection (via DBConnector)
- * and binding it into the IoC container as a singleton instance.
+ * - Provides a database connection if enabled
+ * - Exports the IDatabase token
+ * - Falls back to NoopDatabase when disabled
  */
-export const DatabaseModule: AppModule = {
-  exports: { db: IDatabase },
+export class DatabaseModule implements AppModule<AppConfig> {
+  readonly exports = { db: IDatabase };
 
-  async register(ioc: IoCContainer, config: AppConfig) {
+  async register(ioc: IoCContainer, config: AppConfig): Promise<void> {
     if (config.db === false) {
-      // bind stub instead of trying to run DBConnector
+      class NoopDatabase {
+        async query() {
+          throw new Error('Database disabled');
+        }
+      }
       ioc.bind(IDatabase).toInstance(new NoopDatabase());
       return;
     }
 
     const connector = new DBConnector();
-    const dbConnection = await connector.run();
-    ioc.bind(IDatabase).toInstance(dbConnection);
-  },
-};
+    const connection = await connector.run();
+    ioc.bind(IDatabase).toInstance(connection);
+  }
+}

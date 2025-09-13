@@ -4,6 +4,7 @@ import { IServerAdapter } from './http/interfaces.js';
 import { Model } from './model.js';
 import { Middleware } from './types.js';
 import { Controller } from './controller.js';
+import { AppModule } from './modules/app-module.js';
 export declare const CONTROLLER_CLASSES: unique symbol;
 export interface ControllerConfig {
     use: Newable<Controller<any>>;
@@ -18,5 +19,6 @@ export interface AppConfig {
     models?: Newable<Model>[];
     middlewares?: Middleware[];
     controllers?: ControllerConfig[];
+    modules?: AppModule[];
 }
 //# sourceMappingURL=config.d.ts.map

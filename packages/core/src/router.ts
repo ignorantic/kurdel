@@ -41,7 +41,7 @@ export class Router {
 
   constructor({ resolver, controllers, registry }: RouterDeps) {
     this.middlewares = registry.all();
-
+    
     controllers.forEach((ControllerClass) => {
       const instance = resolver.get<Controller<any>>(ControllerClass);
 

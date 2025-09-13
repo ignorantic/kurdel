@@ -1,29 +1,26 @@
+import { IoCContainer } from '@kurdel/ioc';
+import { AppModule } from './app-module.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
 import { errorHandler } from '../middlewares/error-handle.js';
-import { IoCContainer } from '@kurdel/ioc';
-import { Middleware } from '../types.js';
 import { AppConfig } from '../config.js';
-import { AppModule } from './app-module.js';
 
 /**
  * MiddlewareModule
  *
- * - Exports: MiddlewareRegistry
- * - Imports: none
- *
- * Registers global middleware pipeline:
- * - creates MiddlewareRegistry
- * - attaches user-provided middlewares
- * - always attaches built-in errorHandler as last middleware
+ * - Registers global middlewares
+ * - Provides MiddlewareRegistry as an export
  */
-export const MiddlewareModule: AppModule = {
-  exports: { registry: MiddlewareRegistry },
+export class MiddlewareModule implements AppModule<AppConfig> {
+  readonly exports = { registry: MiddlewareRegistry };
 
-  register(ioc: IoCContainer, config: AppConfig) {
+  async register(ioc: IoCContainer, config: AppConfig): Promise<void> {
     const registry = new MiddlewareRegistry();
     ioc.bind(MiddlewareRegistry).toInstance(registry);
 
-    (config.middlewares ?? []).forEach((mw: Middleware) => registry.use(mw));
+    const { middlewares = [] } = config;
+    middlewares.forEach((mw) => registry.use(mw));
+
+    // Always include default error handler
     registry.use(errorHandler);
-  },
-};
+  }
+}

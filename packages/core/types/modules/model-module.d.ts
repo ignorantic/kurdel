@@ -1,13 +1,16 @@
+import { IoCContainer } from '@kurdel/ioc';
 import { AppModule } from './app-module.js';
+import { AppConfig } from '../config.js';
 /**
  * ModelModule
  *
- * - Exports: none
- * - Imports: IDatabase
- *
- * Registers application models in the IoC container.
- * Each model receives the database instance automatically
- * injected through constructor parameter mapping.
+ * - Registers application models from AppConfig
+ * - Models depend on IDatabase
  */
-export declare const ModelModule: AppModule;
+export declare class ModelModule implements AppModule<AppConfig> {
+    readonly imports: {
+        db: symbol;
+    };
+    register(ioc: IoCContainer, config: AppConfig): Promise<void>;
+}
 //# sourceMappingURL=model-module.d.ts.map

@@ -1,12 +1,17 @@
+import { IoCContainer } from '@kurdel/ioc';
 import { AppModule } from './app-module.js';
+import { AppConfig } from '../config.js';
 /**
  * DatabaseModule
  *
- * - Exports: IDatabase (DB connection)
- * - Imports: none
- *
- * Responsible for creating a database connection (via DBConnector)
- * and binding it into the IoC container as a singleton instance.
+ * - Provides a database connection if enabled
+ * - Exports the IDatabase token
+ * - Falls back to NoopDatabase when disabled
  */
-export declare const DatabaseModule: AppModule;
+export declare class DatabaseModule implements AppModule<AppConfig> {
+    readonly exports: {
+        db: symbol;
+    };
+    register(ioc: IoCContainer, config: AppConfig): Promise<void>;
+}
 //# sourceMappingURL=database-module.d.ts.map

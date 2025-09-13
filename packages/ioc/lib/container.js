@@ -50,6 +50,18 @@ export class IoCContainer {
         return new BindingWithInContract(binding);
     }
     /**
+     * Register a custom factory for a binding.
+     *
+     * @param key Identifier to bind
+     * @param factory Function that produces an instance
+     * @returns void
+     */
+    toFactory(key, factory) {
+        const binding = new Binding();
+        binding.toFactory = factory;
+        this.dictionary.set(key, binding);
+    }
+    /**
      * Resolve an instance from the container.
      *
      * If the binding has a dependency map, those dependencies will

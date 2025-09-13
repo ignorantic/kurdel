@@ -1,24 +1,19 @@
-import { IDatabase } from '@kurdel/db';
 import { IoCContainer } from '@kurdel/ioc';
-import { AppConfig } from '../config.js';
+import { IDatabase } from '@kurdel/db';
 import { AppModule } from './app-module.js';
+import { AppConfig } from '../config.js';
 
 /**
  * ModelModule
  *
- * - Exports: none
- * - Imports: IDatabase
- *
- * Registers application models in the IoC container.
- * Each model receives the database instance automatically
- * injected through constructor parameter mapping.
+ * - Registers application models from AppConfig
+ * - Models depend on IDatabase
  */
-export const ModelModule: AppModule = {
-  imports: { db: IDatabase },
+export class ModelModule implements AppModule<AppConfig> {
+  readonly imports = { db: IDatabase };
 
-  register(ioc: IoCContainer, config: AppConfig) {
-    config.models?.forEach((model) => {
-      ioc.put(model).with({ db: IDatabase });
-    });
-  },
-};
+  async register(ioc: IoCContainer, config: AppConfig): Promise<void> {
+    const { models = [] } = config;
+    models.forEach((model) => ioc.put(model).with({ db: IDatabase }));
+  }
+}

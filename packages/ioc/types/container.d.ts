@@ -34,6 +34,14 @@ export declare class IoCContainer {
      */
     put<T>(constructor: Newable<T>): BindingWithInContract<T>;
     /**
+     * Register a custom factory for a binding.
+     *
+     * @param key Identifier to bind
+     * @param factory Function that produces an instance
+     * @returns void
+     */
+    toFactory<T>(key: Identifier<T>, factory: () => T): void;
+    /**
      * Resolve an instance from the container.
      *
      * If the binding has a dependency map, those dependencies will

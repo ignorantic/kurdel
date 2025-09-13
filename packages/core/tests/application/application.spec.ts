@@ -17,8 +17,7 @@ describe('Application', () => {
     class MyService {}
     const app = await Application.create({ db: false, services: [MyService] });
 
-    // доступ к IoC из приватного поля можно через (app as any).ioc
-    const resolved = (app as any).ioc.get(MyService);
+    const resolved = app.getContainer().get(MyService);
     expect(resolved).toBeInstanceOf(MyService);
   });
 

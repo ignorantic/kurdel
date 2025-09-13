@@ -1,40 +1,37 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { IServerAdapter } from './http/interfaces.js';
 import { DatabaseModule } from './modules/database-module.js';
 import { ServiceModule } from './modules/service-module.js';
 import { ModelModule } from './modules/model-module.js';
 import { MiddlewareModule } from './modules/middleware-module.js';
 import { ControllerModule } from './modules/controller-module.js';
 import { ServerModule } from './modules/server-module.js';
+import { IServerAdapter } from './http/interfaces.js';
 /**
  * Application
  *
- * Main entry point of the framework. Bootstraps the IoC container,
- * runs all application modules, and wires up the HTTP server.
- *
- * Responsibilities:
- * - Orchestrates initialization of database, services, models, middlewares,
- *   controllers, and server.
- * - Provides a simple API for creating an application instance and starting
- *   the server.
- * - Enforces module contracts via imports/exports.
+ * Central orchestrator of the framework. Responsible for:
+ * - Bootstrapping IoC container
+ * - Executing built-in and user-defined modules
+ * - Registering providers (useClass, useInstance, useFactory)
+ * - Validating imports/exports between modules
  */
 export class Application {
     constructor(config) {
-        /** List of built-in modules */
-        this.modules = [
-            DatabaseModule,
-            ServiceModule,
-            ModelModule,
-            MiddlewareModule,
-            ControllerModule,
-            ServerModule,
-        ];
         this.config = config;
         this.ioc = new IoCContainer();
+        // Built-in modules
+        this.modules = [
+            new DatabaseModule(),
+            new ServiceModule(),
+            new ModelModule(),
+            new MiddlewareModule(),
+            new ControllerModule(config),
+            new ServerModule(config),
+            ...(config.modules || []), // Allow custom modules
+        ];
     }
     /**
-     * Factory method: create and initialize a new Application instance.
+     * Factory method to create and initialize an Application instance.
      *
      * @param config Application configuration
      * @returns Initialized Application instance
@@ -45,47 +42,94 @@ export class Application {
         return app;
     }
     /**
-     * Initialize application by running all modules.
-     *
-     * - Validates module imports/exports
-     * - Registers dependencies in IoC
-     * - Builds middleware pipeline
-     * - Configures controllers and server
+     * Initialize all modules:
+     * - Validate required imports
+     * - Register providers (classes, instances, factories)
+     * - Run optional custom module logic
+     * - Validate expected exports
      */
     async init() {
         for (const module of this.modules) {
-            // validate imports
+            // 1. Validate imports
             if (module.imports) {
                 Object.values(module.imports).forEach((dep) => {
                     if (!this.ioc.has(dep)) {
-                        throw new Error(`Missing dependency: ${String(dep.toString())}`);
+                        throw new Error(`Missing dependency: ${String(dep)}`);
                     }
                 });
             }
-            // register module
-            await module.register(this.ioc, this.config);
-            // validate exports
+            // 2. Register providers
+            if (module.providers) {
+                for (const provider of module.providers) {
+                    this.registerProvider(provider);
+                }
+            }
+            // 3. Run custom registration logic (if provided)
+            if (module.register) {
+                await module.register(this.ioc, this.config);
+            }
+            // 4. Validate exports
             if (module.exports) {
                 Object.values(module.exports).forEach((token) => {
                     if (!this.ioc.has(token)) {
-                        throw new Error(`Module did not register expected export: ${String(token.toString())}`);
+                        throw new Error(`Module did not register expected export: ${String(token)}`);
                     }
                 });
             }
         }
     }
     /**
-     * Start listening for incoming HTTP requests.
+     * Register a provider into the IoC container.
      *
-     * @param port Port number
-     * @param callback Callback executed once server is running
+     * Supports three strategies:
+     * - useClass: binds a class (optionally with dependencies and singleton scope)
+     * - useInstance: binds an existing instance
+     * - useFactory: binds a factory function (singleton or transient)
+     *
+     * @param provider Provider configuration object
      */
+    registerProvider(provider) {
+        if ('useClass' in provider) {
+            const binding = this.ioc.bind(provider.provide).to(provider.useClass);
+            if (provider.deps)
+                binding.with(provider.deps);
+            if (provider.isSingleton)
+                binding.inSingletonScope();
+        }
+        if ('useInstance' in provider) {
+            this.ioc.bind(provider.provide).toInstance(provider.useInstance);
+        }
+        if ('useFactory' in provider) {
+            const instance = provider.useFactory(this.ioc);
+            if (provider.isSingleton) {
+                this.ioc.bind(provider.provide).toInstance(instance);
+            }
+            else {
+                this.ioc.toFactory(provider.provide, () => provider.useFactory(this.ioc));
+            }
+        }
+    }
+    /**
+      * Register a provider into the IoC container.
+      *
+      * Supports three strategies:
+      * - useClass: binds a class (optionally with dependencies and singleton scope)
+      * - useInstance: binds an existing instance
+      * - useFactory: binds a factory function (singleton or transient)
+      *
+      * @param provider Provider configuration object
+      */
     listen(port, callback) {
         const server = this.ioc.get(IServerAdapter);
         server.listen(port, callback);
     }
     /**
-     * Access underlying IoC container (useful for testing or advanced scenarios).
+     * Expose underlying IoC container
+     *
+     * Useful for:
+     * - Unit tests
+     * - Advanced dependency management
+     * - Manual resolution of services
      *
      * @returns IoCContainer instance
      */
