@@ -1,4 +1,16 @@
 import { IDatabase, DBConnector } from '@kurdel/db';
+export class NoopDatabase {
+    constructor() {
+        this.query = this.error;
+        this.get = this.error;
+        this.all = this.error;
+        this.run = this.error;
+        this.close = this.error;
+    }
+    async error() {
+        throw new Error('Database is disabled (db=false in config)');
+    }
+}
 /**
  * DatabaseModule
  *
@@ -12,11 +24,6 @@ export class DatabaseModule {
     }
     async register(ioc, config) {
         if (config.db === false) {
-            class NoopDatabase {
-                async query() {
-                    throw new Error('Database disabled');
-                }
-            }
             ioc.bind(IDatabase).toInstance(new NoopDatabase());
             return;
         }

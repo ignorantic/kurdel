@@ -3,6 +3,18 @@ import { IDatabase, DBConnector } from '@kurdel/db';
 import { AppModule } from './app-module.js';
 import { AppConfig } from '../config.js';
 
+export class NoopDatabase implements IDatabase {
+  query = this.error;
+  get = this.error;
+  all = this.error;
+  run = this.error;
+  close = this.error;
+  
+  private async error() {
+    throw new Error('Database is disabled (db=false in config)');
+  }
+}
+
 /**
  * DatabaseModule
  *
@@ -15,11 +27,6 @@ export class DatabaseModule implements AppModule<AppConfig> {
 
   async register(ioc: IoCContainer, config: AppConfig): Promise<void> {
     if (config.db === false) {
-      class NoopDatabase {
-        async query() {
-          throw new Error('Database disabled');
-        }
-      }
       ioc.bind(IDatabase).toInstance(new NoopDatabase());
       return;
     }
