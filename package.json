@@ -6,7 +6,11 @@
     "sample/*"
   ],
   "scripts": {
-    "build": "npm run build --ws"
+    "test": "npm run test --ws",
+    "clean": "npm run clean --workspaces",
+    "clean:all": "npm run clean --workspaces && rimraf .cache",
+    "build": "npm run build --ws",
+    "rebuild": "npm run clean:all && npm run build"
   },
   "devDependencies": {
     "@types/node": "^24.3.1",

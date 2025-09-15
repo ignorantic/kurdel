@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/common" },
+    { "path": "./packages/core" },
+    { "path": "./packages/db" },
+    { "path": "./packages/ioc" },
+    { "path": "./packages/migrations" },
+    { "path": "./packages/pirx" }
+  ]
+}

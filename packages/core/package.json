@@ -14,8 +14,8 @@
     "test:ui": "vitest",
     "test:watch": "vitest --watch",
     "coverage": "vitest run --coverage",
-    "build": "tsc -p tsconfig.build.json",
-    "clean": "rimraf lib types"
+    "clean": "rimraf lib types",
+    "build": "tsc -p tsconfig.build.json"
   },
   "keywords": [
     "framework"
