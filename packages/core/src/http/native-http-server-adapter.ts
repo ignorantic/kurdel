@@ -28,4 +28,8 @@ export class NativeHttpServerAdapter implements IServerAdapter {
   public listen(port: number, callback: () => void) {
     this.server.listen(port, callback);
   }
+
+  public getHttpServer(): Server {
+    return this.server;
+  }
 }

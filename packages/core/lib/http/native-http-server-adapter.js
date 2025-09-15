@@ -18,5 +18,8 @@ export class NativeHttpServerAdapter {
     listen(port, callback) {
         this.server.listen(port, callback);
     }
+    getHttpServer() {
+        return this.server;
+    }
 }
 //# sourceMappingURL=native-http-server-adapter.js.map

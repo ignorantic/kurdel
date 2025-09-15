@@ -7,7 +7,7 @@ export declare abstract class Model {
     private builder;
     protected abstract table: string;
     constructor(deps: ModelDeps);
-    create(data: Record<string, any>): Promise<any>;
+    create(data: Record<string, any>): Promise<void>;
     find(field: string, values: any[]): Promise<any>;
     findAll(): Promise<any>;
 }

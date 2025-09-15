@@ -19,7 +19,7 @@ export declare class NoopDatabase implements IDatabase {
  */
 export declare class DatabaseModule implements AppModule<AppConfig> {
     readonly exports: {
-        db: any;
+        db: symbol;
     };
     register(ioc: IoCContainer, config: AppConfig): Promise<void>;
 }

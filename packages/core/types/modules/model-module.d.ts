@@ -9,7 +9,7 @@ import { AppConfig } from '../config.js';
  */
 export declare class ModelModule implements AppModule<AppConfig> {
     readonly imports: {
-        db: any;
+        db: symbol;
     };
     register(ioc: IoCContainer, config: AppConfig): Promise<void>;
 }
