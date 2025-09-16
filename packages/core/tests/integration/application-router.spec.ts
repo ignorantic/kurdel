@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import { Application } from '../../src/application.ts';
-import { IServerAdapter } from '../../src/http/interfaces.ts';
-import { NativeHttpServerAdapter } from '../../src/http/native-http-server-adapter.ts';
+import { Application, IServerAdapter } from '@kurdel/core';
 import { UserController } from './utils/user-controller.ts';
 import { LoggerMiddleware } from './utils/logger-middleware.ts';
 
@@ -12,20 +10,22 @@ let server: any;
 describe('Application + Router integration', () => {
   beforeAll(async () => {
     app = await Application.create({
-      db: false,
-      controllers: [{
-        use: UserController,
-      }],
+      controllers: [
+        { use: UserController },
+      ],
       middlewares: [LoggerMiddleware],
+      db: false,
     });
 
     const adapter = app.getContainer().get(IServerAdapter);
     server = adapter.getHttpServer();
-    adapter.listen(0, () => {});
+    app.listen(0, () => {});
   });
 
   afterAll(async () => {
-    server.close();
+    if (server) {
+      server.close();
+    }
   });
 
   it('GET /users should return list', async () => {
@@ -42,10 +42,10 @@ describe('Application + Router integration', () => {
     expect(res.headers['x-logged']).toBe('true');
   });
 
-  it('GET /users/error should return 500', async () => {
+  it('GET /users/error should return 400 via BadRequest', async () => {
     const res = await request(server).get('/users/error');
-    expect(res.status).toBe(500);
-    expect(res.body.error).toBe('Internal Server Error');
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Bad request test');
   });
 });
 

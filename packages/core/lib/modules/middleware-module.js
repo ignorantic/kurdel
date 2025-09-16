@@ -1,5 +1,6 @@
 import { MiddlewareRegistry } from '../middleware-registry.js';
 import { errorHandler } from '../middlewares/error-handle.js';
+import { jsonBodyParser } from '../middlewares/json-body-parser.js';
 /**
  * MiddlewareModule
  *
@@ -15,8 +16,9 @@ export class MiddlewareModule {
         ioc.bind(MiddlewareRegistry).toInstance(registry);
         const { middlewares = [] } = config;
         middlewares.forEach((mw) => registry.use(mw));
-        // Always include default error handler
+        // Always include default error handler and body parser
         registry.use(errorHandler);
+        registry.use(jsonBodyParser);
     }
 }
 //# sourceMappingURL=middleware-module.js.map
