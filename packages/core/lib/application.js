@@ -1,6 +1,5 @@
 import { IoCContainer } from '@kurdel/ioc';
 import { DatabaseModule } from './modules/database-module.js';
-import { ServiceModule } from './modules/service-module.js';
 import { ModelModule } from './modules/model-module.js';
 import { MiddlewareModule } from './modules/middleware-module.js';
 import { ControllerModule } from './modules/controller-module.js';
@@ -10,24 +9,29 @@ import { IServerAdapter } from './http/interfaces.js';
  * Application
  *
  * Central orchestrator of the framework. Responsible for:
- * - Bootstrapping IoC container
+ * - Bootstrapping the IoC container
  * - Executing built-in and user-defined modules
- * - Registering providers (useClass, useInstance, useFactory)
+ * - Aggregating controllers and middlewares from HttpModules
+ * - Registering providers (classes, instances, factories)
  * - Validating imports/exports between modules
  */
 export class Application {
     constructor(config) {
         this.config = config;
         this.ioc = new IoCContainer();
-        // Built-in modules
+        // Collect models, controllers and middlewares from HttpModules
+        const httpModules = (config.modules ?? []).filter((m) => 'models' in m || 'controllers' in m || 'middlewares' in m);
+        const allModels = httpModules.flatMap((m) => m.models ?? []);
+        const allControllers = httpModules.flatMap((m) => m.controllers ?? []);
+        const allMiddlewares = httpModules.flatMap((m) => m.middlewares ?? []);
+        // Built-in + user modules
         this.modules = [
             new DatabaseModule(),
-            new ServiceModule(),
-            new ModelModule(),
-            new MiddlewareModule(),
-            new ControllerModule(config),
+            ...(config.modules || []),
+            new ModelModule(allModels),
+            new MiddlewareModule(allMiddlewares),
+            new ControllerModule(allControllers),
             new ServerModule(config),
-            ...(config.modules || []), // Allow custom modules
         ];
     }
     /**
@@ -43,14 +47,13 @@ export class Application {
     }
     /**
      * Initialize all modules:
-     * - Validate required imports
+     * - Validate imports
      * - Register providers (classes, instances, factories)
-     * - Run optional custom module logic
+     * - Run custom registration logic
      * - Validate expected exports
      */
     async init() {
         for (const module of this.modules) {
-            // 1. Validate imports
             if (module.imports) {
                 Object.values(module.imports).forEach((dep) => {
                     if (!this.ioc.has(dep)) {
@@ -58,17 +61,14 @@ export class Application {
                     }
                 });
             }
-            // 2. Register providers
             if (module.providers) {
                 for (const provider of module.providers) {
                     this.registerProvider(provider);
                 }
             }
-            // 3. Run custom registration logic (if provided)
             if (module.register) {
                 await module.register(this.ioc, this.config);
             }
-            // 4. Validate exports
             if (module.exports) {
                 Object.values(module.exports).forEach((token) => {
                     if (!this.ioc.has(token)) {
@@ -82,11 +82,9 @@ export class Application {
      * Register a provider into the IoC container.
      *
      * Supports three strategies:
-     * - useClass: binds a class (optionally with dependencies and singleton scope)
-     * - useInstance: binds an existing instance
-     * - useFactory: binds a factory function (singleton or transient)
-     *
-     * @param provider Provider configuration object
+     * - useClass
+     * - useInstance
+     * - useFactory
      */
     registerProvider(provider) {
         if ('useClass' in provider) {
@@ -110,28 +108,14 @@ export class Application {
         }
     }
     /**
-      * Register a provider into the IoC container.
-      *
-      * Supports three strategies:
-      * - useClass: binds a class (optionally with dependencies and singleton scope)
-      * - useInstance: binds an existing instance
-      * - useFactory: binds a factory function (singleton or transient)
-      *
-      * @param provider Provider configuration object
-      */
+     * Start listening on a given port using the configured server adapter.
+     */
     listen(port, callback) {
         const server = this.ioc.get(IServerAdapter);
         server.listen(port, callback);
     }
     /**
-     * Expose underlying IoC container
-     *
-     * Useful for:
-     * - Unit tests
-     * - Advanced dependency management
-     * - Manual resolution of services
-     *
-     * @returns IoCContainer instance
+     * Expose underlying IoC container for advanced use cases.
      */
     getContainer() {
         return this.ioc;

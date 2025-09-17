@@ -1,22 +1,8 @@
-import { Application, jsonBodyParser } from '@kurdel/core';
-import { PingController } from './controllers/ping-controller.js';
-import { UserController } from './controllers/user-controller.js';
-import { UserModel } from './models/user-model.js';
+import { Application } from '@kurdel/core';
+import { UserModule } from './user-module.js';
 
 const app = await Application.create({
-  models: [UserModel],
-  controllers: [
-    {
-      use: PingController
-    },
-    {
-      use: UserController,
-      deps: {
-        model: UserModel
-      },
-      middlewares: [jsonBodyParser]
-    },
-  ]
+  modules: [new UserModule()]
 });
 
 app.listen(3000, () => {

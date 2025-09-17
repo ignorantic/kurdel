@@ -7,13 +7,16 @@ describe('MiddlewareModule', () => {
   it('should register global middlewares from config', async () => {
     const mw = vi.fn();
 
-    const ioc = { bind: vi.fn(() => ({ toInstance: vi.fn() })) } as any;
-
     const registry = { use: vi.fn() } as unknown as MiddlewareRegistry;
+    const ioc = {
+      get: vi.fn(() => registry),
+      bind: vi.fn(() => ({ toInstance: vi.fn() })),
+    } as any;
+
     vi.spyOn(MiddlewareRegistry.prototype, 'use').mockImplementation(registry.use);
 
-    const module = new MiddlewareModule();
-    await module.register(ioc, { middlewares: [mw] });
+    const module = new MiddlewareModule([mw]);
+    await module.register(ioc);
 
     expect(registry.use).toHaveBeenCalledWith(mw);
     expect(registry.use).toHaveBeenCalledWith(errorHandler);

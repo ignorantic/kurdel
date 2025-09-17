@@ -1,22 +1,22 @@
 import { IoCControllerResolver } from '../ioc-controller-resolver.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
 import { Router } from '../router.js';
-import { CONTROLLER_CLASSES } from '../config.js';
+export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
 /**
  * ControllerModule
  *
- * - Registers controllers from AppConfig
+ * - Registers controllers from all HttpModules
  * - Wires Router with IoCControllerResolver and MiddlewareRegistry
- * - Exports Router and CONTROLLER_CLASSES
+ * - Supports controller-level middlewares and prefix metadata
  */
 export class ControllerModule {
-    constructor(config) {
+    constructor(controllers) {
+        this.controllers = controllers;
         this.imports = { registry: MiddlewareRegistry };
         this.exports = {
             controllers: CONTROLLER_CLASSES,
             router: Router,
         };
-        const { controllers = [] } = config;
         this.providers = [
             {
                 provide: IoCControllerResolver,
@@ -32,25 +32,22 @@ export class ControllerModule {
                     registry: MiddlewareRegistry,
                 },
             },
-            ...controllers.map(({ use, deps, middlewares }) => ({
-                provide: use,
-                useClass: use,
-                deps,
+            ...controllers.map((c) => ({
+                provide: c.use,
+                useClass: c.use,
+                deps: c.deps,
             })),
             {
                 provide: CONTROLLER_CLASSES,
                 useInstance: controllers.map((c) => c.use),
             },
         ];
-        this.register = async (ioc) => {
-            const registry = ioc.get(MiddlewareRegistry);
-            controllers.forEach(({ use, middlewares }) => {
-                middlewares?.forEach((mw) => registry.useFor(use, mw));
-            });
-        };
     }
-    async register(_ioc) {
-        // No-op (everything in providers)
+    async register(ioc) {
+        const registry = ioc.get(MiddlewareRegistry);
+        this.controllers.forEach((c) => {
+            c.middlewares?.forEach((mw) => registry.useFor(c.use, mw));
+        });
     }
 }
 //# sourceMappingURL=controller-module.js.map

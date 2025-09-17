@@ -5,16 +5,18 @@ import { IoCControllerResolver } from '../ioc-controller-resolver.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
 import { Router } from '../router.js';
 import { Controller } from '../controller.js';
-import { AppConfig, CONTROLLER_CLASSES } from '../config.js';
+import { ControllerConfig } from '../http/interfaces.js';
+
+export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
 
 /**
  * ControllerModule
  *
- * - Registers controllers from AppConfig
+ * - Registers controllers from all HttpModules
  * - Wires Router with IoCControllerResolver and MiddlewareRegistry
- * - Exports Router and CONTROLLER_CLASSES
+ * - Supports controller-level middlewares and prefix metadata
  */
-export class ControllerModule implements AppModule<AppConfig> {
+export class ControllerModule implements AppModule {
   readonly imports = { registry: MiddlewareRegistry };
   readonly exports = {
     controllers: CONTROLLER_CLASSES,
@@ -23,9 +25,7 @@ export class ControllerModule implements AppModule<AppConfig> {
 
   readonly providers: ProviderConfig[];
 
-  constructor(config: AppConfig) {
-    const { controllers = [] } = config;
-
+  constructor(private controllers: ControllerConfig[]) {
     this.providers = [
       {
         provide: IoCControllerResolver,
@@ -41,26 +41,26 @@ export class ControllerModule implements AppModule<AppConfig> {
           registry: MiddlewareRegistry,
         },
       },
-      ...controllers.map(({ use, deps, middlewares }) => ({
-        provide: use,
-        useClass: use,
-        deps,
+      ...controllers.map((c) => ({
+        provide: c.use,
+        useClass: c.use,
+        deps: c.deps,
       })),
       {
         provide: CONTROLLER_CLASSES,
-        useInstance: controllers.map((c) => c.use as Newable<Controller<any>>),
+        useInstance: controllers.map(
+          (c) => c.use as Newable<Controller<any>>
+        ),
       },
     ];
-
-    this.register = async (ioc: IoCContainer) => {
-      const registry = ioc.get(MiddlewareRegistry);
-      controllers.forEach(({ use, middlewares }) => {
-        middlewares?.forEach((mw) => registry.useFor(use, mw));
-      });
-    };
   }
 
-  async register(_ioc: IoCContainer): Promise<void> {
-    // No-op (everything in providers)
+  async register(ioc: IoCContainer): Promise<void> {
+    const registry = ioc.get(MiddlewareRegistry);
+
+    this.controllers.forEach((c) => {
+      c.middlewares?.forEach((mw) => registry.useFor(c.use, mw));
+    });
   }
 }
+

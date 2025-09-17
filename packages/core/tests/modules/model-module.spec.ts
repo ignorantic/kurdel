@@ -13,8 +13,8 @@ describe('ModelModule', () => {
     const put = vi.fn(() => ({ with: withFn }));
     const ioc = { put } as any;
 
-    const module = new ModelModule();
-    await module.register(ioc, { models: [TestModel] });
+    const module = new ModelModule([TestModel]);
+    await module.register(ioc);
 
     expect(put).toHaveBeenCalledWith(TestModel);
     expect(withFn).toHaveBeenCalledWith({ db: IDatabase });

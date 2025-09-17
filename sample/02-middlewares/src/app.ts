@@ -1,27 +1,14 @@
 import { Application } from '@kurdel/core';
-import { UserController } from './controllers/user-controller.js';
-import { PostController } from './controllers/post-controller.js';
-import { UserService } from './services/user-service.js';
-import { PostService } from './services/post-service.js';
-import { loggerMiddleware } from './middlewares/logger.js';
-import { authMiddleware } from './middlewares/auth.js';
+import { UserModule } from './modules/user-module.js';
+import { PostModule } from './modules/post-module.js';
+import { LoggerModule } from './modules/logger-module.js';
 
 const app = await Application.create({
   db: false,
-  services: [PostService, UserService],
-  middlewares: [loggerMiddleware],
-  controllers: [
-    {
-      use: PostController,
-      deps: { service: PostService }
-    },
-    {
-      use: UserController,
-      deps: {
-        service: UserService
-      },
-      middlewares: [authMiddleware]
-    },
+  modules: [
+    new UserModule,
+    new PostModule,
+    new LoggerModule,
   ]
 });
 

@@ -4,17 +4,15 @@ import type { AppConfig } from './config.js';
  * Application
  *
  * Central orchestrator of the framework. Responsible for:
- * - Bootstrapping IoC container
+ * - Bootstrapping the IoC container
  * - Executing built-in and user-defined modules
- * - Registering providers (useClass, useInstance, useFactory)
+ * - Aggregating controllers and middlewares from HttpModules
+ * - Registering providers (classes, instances, factories)
  * - Validating imports/exports between modules
  */
 export declare class Application {
-    /** Application configuration object */
     private readonly config;
-    /** Underlying IoC container */
     private readonly ioc;
-    /** List of all modules (built-in + custom from config) */
     private readonly modules;
     constructor(config: AppConfig);
     /**
@@ -26,9 +24,9 @@ export declare class Application {
     static create(config?: AppConfig): Promise<Application>;
     /**
      * Initialize all modules:
-     * - Validate required imports
+     * - Validate imports
      * - Register providers (classes, instances, factories)
-     * - Run optional custom module logic
+     * - Run custom registration logic
      * - Validate expected exports
      */
     private init;
@@ -36,33 +34,17 @@ export declare class Application {
      * Register a provider into the IoC container.
      *
      * Supports three strategies:
-     * - useClass: binds a class (optionally with dependencies and singleton scope)
-     * - useInstance: binds an existing instance
-     * - useFactory: binds a factory function (singleton or transient)
-     *
-     * @param provider Provider configuration object
+     * - useClass
+     * - useInstance
+     * - useFactory
      */
     private registerProvider;
     /**
-      * Register a provider into the IoC container.
-      *
-      * Supports three strategies:
-      * - useClass: binds a class (optionally with dependencies and singleton scope)
-      * - useInstance: binds an existing instance
-      * - useFactory: binds a factory function (singleton or transient)
-      *
-      * @param provider Provider configuration object
-      */
+     * Start listening on a given port using the configured server adapter.
+     */
     listen(port: number, callback: () => void): void;
     /**
-     * Expose underlying IoC container
-     *
-     * Useful for:
-     * - Unit tests
-     * - Advanced dependency management
-     * - Manual resolution of services
-     *
-     * @returns IoCContainer instance
+     * Expose underlying IoC container for advanced use cases.
      */
     getContainer(): IoCContainer;
 }

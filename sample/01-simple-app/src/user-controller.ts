@@ -9,7 +9,7 @@ import {
   Ok,
   Created,
 } from '@kurdel/core';
-import { UserModel } from '../models/user-model.js';
+import { UserModel } from './user-model.js';
 
 type Deps = {
   model: UserModel

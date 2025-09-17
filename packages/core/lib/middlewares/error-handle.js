@@ -4,6 +4,7 @@ export const errorHandler = async (ctx, next) => {
         return await next();
     }
     catch (err) {
+        console.error(err);
         if (err instanceof HttpError) {
             return {
                 kind: 'json',

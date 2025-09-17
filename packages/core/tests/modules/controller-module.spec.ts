@@ -11,7 +11,7 @@ describe('ControllerModule', () => {
       readonly routes = {};
     }
 
-    const module = new ControllerModule({ controllers: [{ use: TestController }] });
+    const module = new ControllerModule([{ use: TestController }]);
 
     const routerProvider = module.providers.find((p) => 'provide' in p && p.provide === Router);
     const controllersProvider = module.providers.find(
@@ -31,9 +31,7 @@ describe('ControllerModule', () => {
     const fakeRegistry = { useFor: vi.fn(), all: () => [] } as unknown as MiddlewareRegistry;
     const fakeIoc = { get: () => fakeRegistry };
 
-    const module = new ControllerModule({
-      controllers: [{ use: TestController, middlewares: [mw] }],
-    });
+    const module = new ControllerModule([{ use: TestController, middlewares: [mw] }]);
 
     await module.register(fakeIoc as any);
 
