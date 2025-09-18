@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Controller } from '../../src/controller.js';
-import type { RouteConfig, HttpContext, ActionResult } from '../../src/types.js';
+import { Controller } from '../../../src/controller.js';
+import type { RouteConfig, HttpContext, ActionResult } from '../../../src/types.js';
 import { createReqRes } from '../utils/http.js';
 
 class UsersController extends Controller<{}> {

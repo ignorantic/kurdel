@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { IDatabase } from '@kurdel/db';
-import { ModelModule } from '../../src/modules/model-module.js';
-import { Model } from '../../src/model.js';
+import { ModelModule } from '../../../src/modules/model-module.js';
+import { Model } from '../../../src/model.js';
 
 describe('ModelModule', () => {
   it('should register models with db dependency', async () => {

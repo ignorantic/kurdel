@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Application } from '../../src/application.js';
-import { IServerAdapter } from '../../src/http/interfaces.js';
+import { Application } from '../../../src/application.js';
+import { IServerAdapter } from '../../../src/http/interfaces.js';
 
 describe('Application', () => {
   it('should create application without errors', async () => {

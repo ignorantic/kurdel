@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ServerModule } from '../../src/modules/server-module.js';
-import { IServerAdapter } from '../../src/http/interfaces.js';
+import { ServerModule } from '../../../src/modules/server-module.js';
+import { IServerAdapter } from '../../../src/http/interfaces.js';
 
 describe('ServerModule', () => {
   it('should provide IServerAdapter with default server', () => {

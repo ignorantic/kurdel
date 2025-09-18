@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ControllerModule } from '../../src/modules/controller-module.js';
-import { Router } from '../../src/router.js';
-import { MiddlewareRegistry } from '../../src/middleware-registry.js';
-import { CONTROLLER_CLASSES } from '../../src/config.js';
-import { Controller } from '../../src/controller.js';
+import { ControllerModule } from '../../../src/modules/controller-module.js';
+import { Router } from '../../../src/router.js';
+import { MiddlewareRegistry } from '../../../src/middleware-registry.js';
+import { CONTROLLER_CLASSES } from '../../../src/config.js';
+import { Controller } from '../../../src/controller.js';
 
 describe('ControllerModule', () => {
   it('should provide Router and CONTROLLER_CLASSES', () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { MiddlewareRegistry } from '../../src/middleware-registry.js';
-import { MiddlewareModule } from '../../src/modules/middleware-module.js';
-import { errorHandler } from '../../src/middlewares/error-handle.js';
+import { MiddlewareRegistry } from '../../../src/middleware-registry.js';
+import { MiddlewareModule } from '../../../src/modules/middleware-module.js';
+import { errorHandler } from '../../../src/middlewares/error-handle.js';
 
 describe('MiddlewareModule', () => {
   it('should register global middlewares from config', async () => {
