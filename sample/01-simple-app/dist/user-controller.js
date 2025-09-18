@@ -1,9 +1,9 @@
 import { Controller, route, BadRequest, NotFound, Ok, Created, } from '@kurdel/core';
 export class UserController extends Controller {
     routes = {
-        create: route({ method: 'POST', path: '/user' })(this.create),
-        getOne: route({ method: 'GET', path: '/user/:id' })(this.getOne),
-        getAll: route({ method: 'GET', path: '/users' })(this.getAll),
+        create: route({ method: 'POST', path: '/' })(this.create),
+        getOne: route({ method: 'GET', path: '/:id' })(this.getOne),
+        getAll: route({ method: 'GET', path: '/' })(this.getAll),
     };
     async create(ctx) {
         const { name, role } = ctx.body ?? {};

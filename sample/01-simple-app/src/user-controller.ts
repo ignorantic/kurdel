@@ -17,9 +17,9 @@ type Deps = {
 
 export class UserController extends Controller<Deps> {
   readonly routes: RouteConfig<Deps> = {
-    create: route({ method: 'POST', path: '/user' })(this.create),
-    getOne: route({ method: 'GET', path: '/user/:id' })(this.getOne),
-    getAll: route({ method: 'GET', path: '/users' })(this.getAll),
+    create: route({ method: 'POST', path: '/' })(this.create),
+    getOne: route({ method: 'GET', path: '/:id' })(this.getOne),
+    getAll: route({ method: 'GET', path: '/' })(this.getAll),
   };
 
   async create(ctx: HttpContext<Deps, { name: string, role: string }>): Promise<ActionResult> {

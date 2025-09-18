@@ -1,8 +1,12 @@
 import { ROUTE_META } from './routing.js';
 function compilePath(path) {
     const keys = [];
+    if (!path || path === '/') {
+        return { regex: /^\/?$/, keys };
+    }
     const pattern = path
         .split('/')
+        .filter(Boolean)
         .map((segment) => {
         if (segment.startsWith(':')) {
             keys.push(segment.slice(1));
@@ -11,25 +15,26 @@ function compilePath(path) {
         return segment;
     })
         .join('/');
-    return { regex: new RegExp(`^${pattern}$`), keys };
+    return { regex: new RegExp(`^/${pattern}/?$`), keys };
 }
 export class Router {
-    constructor({ resolver, controllers, registry }) {
+    constructor({ resolver, controllerConfigs, registry }) {
         this.entries = [];
         this.middlewares = [];
         this.middlewares = registry.all();
-        controllers.forEach((ControllerClass) => {
-            const instance = resolver.get(ControllerClass);
-            registry.for(ControllerClass).forEach((mw) => instance.use(mw));
-            this.useController(instance);
+        controllerConfigs.forEach((cfg) => {
+            const instance = resolver.get(cfg.use);
+            cfg.middlewares?.forEach((mw) => instance.use(mw));
+            this.useController(instance, cfg.prefix ?? '');
         });
     }
-    useController(controller) {
+    useController(controller, prefix) {
         for (const [action, handler] of Object.entries(controller.routes)) {
             const meta = handler[ROUTE_META];
             if (!meta)
                 continue;
-            this.add(meta.method, meta.path, controller, action);
+            const fullPath = prefix + meta.path;
+            this.add(meta.method, fullPath, controller, action);
         }
     }
     add(method, path, controller, action) {

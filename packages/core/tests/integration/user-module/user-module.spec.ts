@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import http from 'http';
 import request from 'supertest';
 import { Application, IServerAdapter } from '@kurdel/core';
 import { UserModule } from './user-module.js';
 
-let app: Application;
-let server: any;
+let server: http.Server;
 
 describe('UserModule integration', () => {
   beforeAll(async () => {
-    app = await Application.create({
+    const app = await Application.create({
       modules: [new UserModule()],
       db: false,
     });

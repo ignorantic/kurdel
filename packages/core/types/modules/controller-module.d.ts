@@ -3,7 +3,7 @@ import { AppModule, ProviderConfig } from './app-module.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
 import { Router } from '../router.js';
 import { ControllerConfig } from '../http/interfaces.js';
-export declare const CONTROLLER_CLASSES: unique symbol;
+export declare const CONTROLLER_CONFIGS: unique symbol;
 /**
  * ControllerModule
  *
@@ -17,7 +17,7 @@ export declare class ControllerModule implements AppModule {
         registry: typeof MiddlewareRegistry;
     };
     readonly exports: {
-        controllers: symbol;
+        controllerConfigs: symbol;
         router: typeof Router;
     };
     readonly providers: ProviderConfig[];

@@ -1,13 +1,11 @@
-import type { Newable } from '@kurdel/common';
 import { IoCContainer } from '@kurdel/ioc';
 import { AppModule, ProviderConfig } from './app-module.js';
 import { IoCControllerResolver } from '../ioc-controller-resolver.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
 import { Router } from '../router.js';
-import { Controller } from '../controller.js';
 import { ControllerConfig } from '../http/interfaces.js';
 
-export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
+export const CONTROLLER_CONFIGS = Symbol('CONTROLLER_CONFIGS');
 
 /**
  * ControllerModule
@@ -19,7 +17,7 @@ export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
 export class ControllerModule implements AppModule {
   readonly imports = { registry: MiddlewareRegistry };
   readonly exports = {
-    controllers: CONTROLLER_CLASSES,
+    controllerConfigs: CONTROLLER_CONFIGS,
     router: Router,
   };
 
@@ -37,7 +35,7 @@ export class ControllerModule implements AppModule {
         useClass: Router,
         deps: {
           resolver: IoCControllerResolver,
-          controllers: CONTROLLER_CLASSES,
+          controllerConfigs: CONTROLLER_CONFIGS,
           registry: MiddlewareRegistry,
         },
       },
@@ -47,10 +45,8 @@ export class ControllerModule implements AppModule {
         deps: c.deps,
       })),
       {
-        provide: CONTROLLER_CLASSES,
-        useInstance: controllers.map(
-          (c) => c.use as Newable<Controller<any>>
-        ),
+        provide: CONTROLLER_CONFIGS,
+        useInstance: controllers,
       },
     ];
   }

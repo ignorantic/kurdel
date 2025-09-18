@@ -1,7 +1,7 @@
 import { IoCControllerResolver } from '../ioc-controller-resolver.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
 import { Router } from '../router.js';
-export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
+export const CONTROLLER_CONFIGS = Symbol('CONTROLLER_CONFIGS');
 /**
  * ControllerModule
  *
@@ -14,7 +14,7 @@ export class ControllerModule {
         this.controllers = controllers;
         this.imports = { registry: MiddlewareRegistry };
         this.exports = {
-            controllers: CONTROLLER_CLASSES,
+            controllerConfigs: CONTROLLER_CONFIGS,
             router: Router,
         };
         this.providers = [
@@ -28,7 +28,7 @@ export class ControllerModule {
                 useClass: Router,
                 deps: {
                     resolver: IoCControllerResolver,
-                    controllers: CONTROLLER_CLASSES,
+                    controllerConfigs: CONTROLLER_CONFIGS,
                     registry: MiddlewareRegistry,
                 },
             },
@@ -38,8 +38,8 @@ export class ControllerModule {
                 deps: c.deps,
             })),
             {
-                provide: CONTROLLER_CLASSES,
-                useInstance: controllers.map((c) => c.use),
+                provide: CONTROLLER_CONFIGS,
+                useInstance: controllers,
             },
         ];
     }

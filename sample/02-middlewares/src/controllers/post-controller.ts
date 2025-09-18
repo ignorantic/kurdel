@@ -16,8 +16,8 @@ type Deps = {
 
 export class PostController extends Controller<Deps> {
   readonly routes: RouteConfig<Deps> = {
-    getOne: route({ method: 'GET', path: '/post/:id' })(this.getOne),
-    getAll: route({ method: 'GET', path: '/posts' })(this.getAll),
+    getOne: route({ method: 'GET', path: '/:id' })(this.getOne),
+    getAll: route({ method: 'GET', path: '/' })(this.getAll),
   };
 
   async getOne(ctx: HttpContext<Deps>): Promise<ActionResult> {

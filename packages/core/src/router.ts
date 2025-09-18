@@ -1,9 +1,9 @@
-import type { Newable } from '@kurdel/common';
 import { IncomingMessage, ServerResponse } from 'http';
-import { Controller } from './controller.js';
+import { Controller } from 'src/controller.js';
 import { ROUTE_META, type RouteMeta } from './routing.js';
 import type { Method, ControllerResolver, Middleware } from './types.js';
 import { MiddlewareRegistry } from './middleware-registry.js';
+import { ControllerConfig } from './http/interfaces.js';
 
 type Entry = {
   method: Method;
@@ -16,8 +16,14 @@ type Entry = {
 
 function compilePath(path: string): { regex: RegExp; keys: string[] } {
   const keys: string[] = [];
+
+  if (!path || path === '/') {
+    return { regex: /^\/?$/, keys };
+  }
+
   const pattern = path
     .split('/')
+    .filter(Boolean)
     .map((segment) => {
       if (segment.startsWith(':')) {
         keys.push(segment.slice(1));
@@ -26,12 +32,12 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
       return segment;
     })
     .join('/');
-  return { regex: new RegExp(`^${pattern}$`), keys };
+  return { regex: new RegExp(`^/${pattern}/?$`), keys };
 }
 
 interface RouterDeps {
   resolver: ControllerResolver;
-  controllers: Newable<Controller<any>>[];
+  controllerConfigs: ControllerConfig[];
   registry: MiddlewareRegistry;
 }
 
@@ -39,23 +45,25 @@ export class Router {
   private entries: Entry[] = [];
   private middlewares: Middleware[] = [];
 
-  constructor({ resolver, controllers, registry }: RouterDeps) {
+  constructor({ resolver, controllerConfigs, registry }: RouterDeps) {
     this.middlewares = registry.all();
     
-    controllers.forEach((ControllerClass) => {
-      const instance = resolver.get<Controller<any>>(ControllerClass);
+    controllerConfigs.forEach((cfg) => {
+      const instance = resolver.get(cfg.use);
 
-      registry.for(ControllerClass).forEach((mw) => instance.use(mw));
+      cfg.middlewares?.forEach((mw) => instance.use(mw));
 
-      this.useController(instance);
+      this.useController(instance, cfg.prefix ?? '');
     });
   }
 
-  private useController<T>(controller: Controller<T>) {
+  private useController<T>(controller: Controller<T>, prefix: string) {
     for (const [action, handler] of Object.entries(controller.routes)) {
       const meta: RouteMeta | undefined = (handler as any)[ROUTE_META];
       if (!meta) continue;
-      this.add(meta.method, meta.path, controller, action);
+
+      const fullPath = prefix + meta.path;
+      this.add(meta.method, fullPath, controller, action);
     }
   }
 

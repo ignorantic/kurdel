@@ -1,8 +1,8 @@
 import { Controller, route, BadRequest, NotFound, Ok, } from '@kurdel/core';
 export class PostController extends Controller {
     routes = {
-        getOne: route({ method: 'GET', path: '/post/:id' })(this.getOne),
-        getAll: route({ method: 'GET', path: '/posts' })(this.getAll),
+        getOne: route({ method: 'GET', path: '/:id' })(this.getOne),
+        getAll: route({ method: 'GET', path: '/' })(this.getAll),
     };
     async getOne(ctx) {
         const { id } = ctx.params;
