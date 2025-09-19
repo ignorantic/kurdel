@@ -1,24 +1,75 @@
-import { describe, it, expect, vi } from 'vitest';
-import { Application } from '../../../src/application.js';
-import { IServerAdapter } from '../../../src/http/interfaces.js';
+import { describe, it, expect } from 'vitest';
+import { Application, AppModule } from '@kurdel/core';
+
+const TOKEN_A = Symbol('A');
+const TOKEN_B = Symbol('B');
+const TOKEN_FACTORY = Symbol('factory');
+const TOKEN_SINGLETON = Symbol('factory-singleton');
 
 describe('Application', () => {
-  it('should create application without errors', async () => {
-    const app = await Application.create({ db: false });
-    expect(app).toBeInstanceOf(Application);
-  });
-
-  it('should call server.listen when app.listen is invoked', async () => {
-    class FakeServer implements IServerAdapter {
-      listen = vi.fn();
-      getHttpServer = vi.fn(); 
+  it('should throw if required import is missing', async () => {
+    class ImportingModule implements AppModule {
+      readonly imports = { a: TOKEN_A };
+      async register() {}
     }
 
-    const app = await Application.create({ db: false, server: FakeServer });
-    app.listen(3000, () => {});
-    const server = app.getContainer().get<IServerAdapter>(IServerAdapter);
+    // no module provides TOKEN_A
+    await expect(() =>
+      Application.create({ db: false, modules: [new ImportingModule()] })
+    ).rejects.toThrow(/Missing dependency/);
+  });
 
-    expect(server.listen).toHaveBeenCalled();
-    expect(server.listen).toHaveBeenCalledWith(3000, expect.any(Function));
+  it('should throw if expected export not registered', async () => {
+    class BadModule implements AppModule {
+      readonly exports = { b: TOKEN_B };
+      async register() {}
+    }
+
+    await expect(() =>
+      Application.create({ db: false, modules: [new BadModule()] })
+    ).rejects.toThrow(/Module did not register expected export/);
+  });
+
+  it('should support useFactory without singleton', async () => {
+    let counter = 0;
+
+    class FactoryModule implements AppModule {
+      readonly providers = [
+        {
+          provide: TOKEN_FACTORY,
+          useFactory: () => ({ n: ++counter }),
+          isSingleton: false,
+        },
+      ];
+      async register() {}
+    }
+
+    const app = await Application.create({ db: false, modules: [new FactoryModule()] });
+    const ioc = app.getContainer();
+    const first = ioc.get<{ n: number }>(TOKEN_FACTORY);
+    const second = ioc.get<{ n: number }>(TOKEN_FACTORY);
+    expect(first.n).not.toBe(second.n); // should be new each time
+  });
+
+  it('should support useFactory with singleton', async () => {
+    let counter = 0;
+
+    class FactoryModule implements AppModule {
+      readonly providers = [
+        {
+          provide: TOKEN_SINGLETON,
+          useFactory: () => ({ n: ++counter }),
+          isSingleton: true,
+        },
+      ];
+      async register() {}
+    }
+
+    const app = await Application.create({ db: false, modules: [new FactoryModule()] });
+    const ioc = app.getContainer();
+    const first = ioc.get<{ n: number }>(TOKEN_SINGLETON);
+    const second = ioc.get<{ n: number }>(TOKEN_SINGLETON);
+    expect(first.n).toBe(second.n); // same instance
   });
 });
+

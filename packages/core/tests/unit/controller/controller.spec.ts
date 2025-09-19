@@ -1,15 +1,30 @@
 import { describe, it, expect } from 'vitest';
-import { Controller } from '../../../src/controller.js';
-import type { RouteConfig, HttpContext, ActionResult } from '../../../src/types.js';
+import { route, Controller } from '@kurdel/core';
+import type { RouteConfig, HttpContext, ActionResult } from '@kurdel/core';
 import { createReqRes } from '../utils/http.js';
 
 class UsersController extends Controller<{}> {
   readonly routes: RouteConfig<{}> = {
-    index: this.index,
+    index: route({ method: 'GET', path: '/users' })(this.index),
+    redirect: route({ method: 'GET', path: '/redirect' })(this.redirect),
+    empty: route({ method: 'GET', path: '/empty' })(this.empty),
+    boom: route({ method: 'GET', path: '/boom' })(this.boom),
   };
 
   async index(ctx: HttpContext<{}>): Promise<ActionResult> {
     return { kind: 'json', status: 200, body: { ok: true, q: ctx.query } };
+  }
+
+  async redirect(): Promise<ActionResult> {
+    return { kind: 'redirect', status: 302, location: '/target' };
+  }
+
+  async empty(): Promise<ActionResult> {
+    return { kind: 'empty', status: 204 };
+  }
+
+  async boom(): Promise<ActionResult> {
+    throw new Error('Unexpected');
   }
 
   // this is not exposed in routes, so it cannot be called
@@ -44,5 +59,24 @@ describe('Controller', () => {
     const ctrl = new UsersController({});
     const result = await execAction(ctrl, '_helper', '/users');
     expect(result.statusCode).toBe(404);
+  });
+
+  it('should handle redirect', async () => {
+    const ctrl = new UsersController({});
+    const result = await execAction(ctrl, 'redirect', '/redirect');
+    expect(result.statusCode).toBe(302);
+    expect(result.headers.location).toContain('/target');
+  });
+
+  it('should handle empty result', async () => {
+    const ctrl = new UsersController({});
+    const result = await execAction(ctrl, 'empty', '/empty');
+    expect(result.statusCode).toBe(204);
+  });
+
+  it('should map thrown error to 500 Internal Server Error', async () => {
+    const ctrl = new UsersController({});
+    const result = await execAction(ctrl, 'boom', '/boom');
+    expect(result.body).toContain('Internal Server Error');
   });
 });

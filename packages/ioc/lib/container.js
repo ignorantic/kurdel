@@ -75,7 +75,13 @@ export class IoCContainer {
      */
     get(key) {
         const target = this.dictionary.get(key);
-        if (!target || !target.boundEntity) {
+        if (!target) {
+            throw new Error(`No dependency found for ${key.toString()}`);
+        }
+        if (target.toFactory) {
+            return target.toFactory();
+        }
+        if (!target.boundEntity) {
             throw new Error(`No dependency found for ${key.toString()}`);
         }
         const { boundEntity, depsMap } = target;

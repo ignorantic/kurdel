@@ -98,8 +98,8 @@ export class Application {
             this.ioc.bind(provider.provide).toInstance(provider.useInstance);
         }
         if ('useFactory' in provider) {
-            const instance = provider.useFactory(this.ioc);
             if (provider.isSingleton) {
+                const instance = provider.useFactory(this.ioc);
                 this.ioc.bind(provider.provide).toInstance(instance);
             }
             else {
