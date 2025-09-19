@@ -14,6 +14,21 @@ export const NoContent = () => ({
     kind: 'empty',
     status: 204,
 });
+export const Text = (body, status = 200) => ({
+    kind: 'text',
+    status,
+    body,
+});
+export const Json = (data, status = 200) => ({
+    kind: 'json',
+    status,
+    body: JSON.stringify(data),
+});
+export const Redirect = (location, status = 302) => ({
+    kind: 'redirect',
+    status,
+    location,
+});
 // errors
 export const BadRequest = (msg, details) => new HttpError(400, msg, details);
 export const Unauthorized = (msg = 'Unauthorized', details) => new HttpError(401, msg, details);

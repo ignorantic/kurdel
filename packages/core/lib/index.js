@@ -3,6 +3,7 @@ export * from './http/interfaces.js';
 export * from './http/native-http-server-adapter.js';
 export * from './modules/app-module.js';
 export * from './modules/http-module.js';
+export * from './modules/controller-module.js';
 export * from './config.js';
 export * from './controller.js';
 export * from './model.js';

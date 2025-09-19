@@ -19,6 +19,24 @@ export const NoContent = (): ActionResult => ({
   status: 204,
 });
 
+export const Text = (body: string, status = 200): ActionResult => ({
+  kind: 'text',
+  status,
+  body,
+});
+
+export const Json = (data: JsonValue, status = 200): ActionResult => ({
+  kind: 'json',
+  status,
+  body: JSON.stringify(data),
+});
+
+export const Redirect = (location: string, status = 302): ActionResult => ({
+  kind: 'redirect',
+  status,
+  location,
+});
+
 // errors
 export const BadRequest = (msg: string, details?: unknown) =>
   new HttpError(400, msg, details);
