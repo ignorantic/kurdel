@@ -1,6 +1,6 @@
-import { IoCControllerResolver } from '../ioc-controller-resolver.js';
-import { MiddlewareRegistry } from '../middleware-registry.js';
-import { Router } from '../router.js';
+import { IoCControllerResolver } from '../runtime/ioc-controller-resolver.js';
+import { MiddlewareRegistry } from '../runtime/middleware-registry.js';
+import { Router } from '../runtime/router.js';
 export const CONTROLLER_CONFIGS = Symbol('CONTROLLER_CONFIGS');
 /**
  * ControllerModule

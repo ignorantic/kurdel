@@ -1,6 +1,6 @@
-import { IServerAdapter } from '../http/interfaces.js';
-import { NativeHttpServerAdapter } from '../http/native-http-server-adapter.js';
-import { Router } from '../router.js';
+import { IServerAdapter } from '../api/interfaces.js';
+import { NativeHttpServerAdapter } from '../adapters/native-http-server-adapter.js';
+import { Router } from '../runtime/router.js';
 /**
  * ServerModule
  *

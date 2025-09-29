@@ -1,6 +1,6 @@
 import { Newable } from '@kurdel/common';
-import type { Middleware } from './types.js';
-import { Controller } from './controller.js';
+import type { Middleware } from './api/types.js';
+import { Controller } from './api/controller.js';
 export declare class MiddlewareRegistry {
     private readonly global;
     private readonly perController;

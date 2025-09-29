@@ -5,7 +5,7 @@ import {
   NoContent,
   Redirect,
   Json,
-} from 'src/http-results.js';
+} from '../../../src/api/http-results.js';
 
 describe('http-results success helpers', () => {
   it('Ok should wrap value with status 200', () => {

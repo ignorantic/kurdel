@@ -1,5 +1,5 @@
 import type { Identifier, IoCContainer } from '@kurdel/ioc';
-import type { AppConfig } from '../config.js';
+import type { AppConfig } from '../../api/config.js';
 /**
  * ProviderConfig
  *

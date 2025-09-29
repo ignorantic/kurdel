@@ -1,8 +1,8 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { AppModule, ProviderConfig } from './app-module.js';
+import { AppModule, ProviderConfig } from '../../api/app-module.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
 import { Router } from '../router.js';
-import { ControllerConfig } from '../http/interfaces.js';
+import { ControllerConfig } from '../../api/interfaces.js';
 export declare const CONTROLLER_CONFIGS: unique symbol;
 /**
  * ControllerModule

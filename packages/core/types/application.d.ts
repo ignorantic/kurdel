@@ -1,5 +1,5 @@
 import { IoCContainer } from '@kurdel/ioc';
-import type { AppConfig } from './config.js';
+import type { AppConfig } from 'src/config.js';
 /**
  * Application
  *

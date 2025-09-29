@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import http from 'http';
 import request from 'supertest';
-import { Application } from '../../../src/application.js';
-import { Controller } from '../../../src/controller.js';
-import { route } from '../../../src/routing.js';
-import { Ok } from '../../../src/http-results.js';
-import { HttpContext, HttpModule, IServerAdapter } from '../../../src/index.js';
+import { Application } from '../../../src/api/application.js';
+import { Controller } from '../../../src/api/controller.js';
+import { route } from '../../../src/api/routing.js';
+import { Ok } from '../../../src/api/http-results.js';
+import { HttpContext } from '../../../src/api/types.js';
+import { HttpModule } from '../../../src/api/http-module.js';
+import { IServerAdapter } from '../../../src/api/interfaces.js';
 
 class RootController extends Controller {
   readonly routes = {

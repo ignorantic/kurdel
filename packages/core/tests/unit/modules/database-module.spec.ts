@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { IDatabase } from '@kurdel/db';
-import { DatabaseModule, NoopDatabase } from 'src/modules/database-module.js';
+import { DatabaseModule, NoopDatabase } from 'src/runtime/modules/database-module.js';
 
 describe('DatabaseModule', () => {
   it('should register fake DB when disabled', async () => {

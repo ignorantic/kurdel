@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import http from 'http';
 import request from 'supertest';
-import { Application, IServerAdapter } from '@kurdel/core';
+import { IServerAdapter } from '../../../src/api/interfaces.js';
+import { Application } from '../../../src/api/application.js';
 import { UserModule } from './user-module.js';
 
 let server: http.Server;

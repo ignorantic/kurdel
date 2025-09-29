@@ -1,6 +1,8 @@
-import { Controller, route, Ok, Created, BadRequest } from '@kurdel/core';
-import type { HttpContext } from '@kurdel/core';
+import { Controller } from '../../../src/api/controller.js';
+import { route } from '../../../src/api/routing.js';
+import { BadRequest, Ok, Created } from '../../../src/api/http-results.js';
 import { UserService } from './user-service.js';
+import { HttpContext } from '../../../src/api/types.js';
 
 type Deps = { userService: UserService };
 

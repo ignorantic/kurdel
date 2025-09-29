@@ -1,10 +1,10 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { DatabaseModule } from './modules/database-module.js';
-import { ModelModule } from './modules/model-module.js';
-import { MiddlewareModule } from './modules/middleware-module.js';
-import { ControllerModule } from './modules/controller-module.js';
-import { ServerModule } from './modules/server-module.js';
-import { IServerAdapter } from './http/interfaces.js';
+import { DatabaseModule } from 'src/modules/database-module.js';
+import { ModelModule } from 'src/modules/model-module.js';
+import { MiddlewareModule } from 'src/modules/middleware-module.js';
+import { ControllerModule } from 'src/modules/controller-module.js';
+import { ServerModule } from 'src/modules/server-module.js';
+import { IServerAdapter } from './api/interfaces.js';
 /**
  * Application
  *

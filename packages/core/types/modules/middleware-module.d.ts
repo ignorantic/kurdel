@@ -1,7 +1,7 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { AppModule } from './app-module.js';
+import { AppModule } from '../../api/app-module.js';
 import { MiddlewareRegistry } from '../middleware-registry.js';
-import { Middleware } from '../types.js';
+import { Middleware } from '../../api/types.js';
 /**
  * MiddlewareModule
  *

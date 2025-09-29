@@ -1,7 +1,7 @@
-import { AppModule, ProviderConfig } from './app-module.js';
+import { AppModule, ProviderConfig } from '../../api/app-module.js';
 import { IoCContainer } from '@kurdel/ioc';
 import { Router } from '../router.js';
-import { AppConfig } from '../config.js';
+import { AppConfig } from '../../api/config.js';
 /**
  * ServerModule
  *

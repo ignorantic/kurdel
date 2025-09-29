@@ -1,4 +1,4 @@
-import type { Middleware } from '../types.js';
+import type { Middleware } from '../api/types.js';
 /**
  * Parses JSON request body and assigns it to ctx.body.
  *

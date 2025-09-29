@@ -1,4 +1,4 @@
-import { HttpError } from './http-error.js';
+import { HttpError } from './api/http-error.js';
 // success
 export const Ok = (body = { message: 'OK' }) => ({
     kind: 'json',
