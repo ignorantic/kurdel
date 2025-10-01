@@ -1,2 +1,2 @@
-export const IServerAdapter = Symbol('IServerAdapter');
+export const ServerAdapter = Symbol('ServerAdapter');
 //# sourceMappingURL=interfaces.js.map

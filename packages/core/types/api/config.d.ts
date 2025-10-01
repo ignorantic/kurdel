@@ -1,11 +1,11 @@
 import { Newable } from '@kurdel/common';
-import { IServerAdapter } from 'src/api/interfaces.js';
+import { ServerAdapter } from 'src/api/interfaces.js';
 import { Model } from 'src/api/model.js';
 import { AppModule } from 'src/api/app-module.js';
 import { HttpModule } from 'src/api/http-module.js';
 export declare const CONTROLLER_CLASSES: unique symbol;
 export interface AppConfig {
-    server?: Newable<IServerAdapter>;
+    server?: Newable<ServerAdapter>;
     db?: boolean;
     models?: Newable<Model>[];
     modules?: (AppModule | HttpModule)[];

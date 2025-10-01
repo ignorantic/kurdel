@@ -10,7 +10,7 @@ import { ModelList } from 'src/api/interfaces.js';
 import type { HttpModule } from 'src/api/http-module.js';
 import type { Middleware } from 'src/api/types.js';
 import { ControllerConfig } from 'src/api/interfaces.js';
-import { IServerAdapter } from './interfaces.js';
+import { ServerAdapter } from './interfaces.js';
 
 /**
  * Application
@@ -143,7 +143,7 @@ export class Application {
    * Start listening on a given port using the configured server adapter.
    */
   public listen(port: number, callback: () => void) {
-    const server = this.ioc.get<IServerAdapter>(IServerAdapter);
+    const server = this.ioc.get<ServerAdapter>(ServerAdapter);
     server.listen(port, callback);
   }
 

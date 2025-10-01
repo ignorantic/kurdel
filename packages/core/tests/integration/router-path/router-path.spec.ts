@@ -7,7 +7,7 @@ import { route } from '../../../src/api/routing.js';
 import { Ok } from '../../../src/api/http-results.js';
 import { HttpContext } from '../../../src/api/types.js';
 import { HttpModule } from '../../../src/api/http-module.js';
-import { IServerAdapter } from '../../../src/api/interfaces.js';
+import { ServerAdapter } from '../../../src/api/interfaces.js';
 
 class RootController extends Controller {
   readonly routes = {
@@ -71,7 +71,7 @@ describe('Router path edge cases', () => {
       db: false,
     });
 
-    const adapter = app.getContainer().get(IServerAdapter);
+    const adapter = app.getContainer().get(ServerAdapter);
     server = adapter.getHttpServer();
     app.listen(0, () => {});
   });

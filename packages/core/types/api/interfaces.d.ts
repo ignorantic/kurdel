@@ -3,8 +3,8 @@ import { Identifier } from '@kurdel/ioc';
 import { Controller } from 'src/api/controller.js';
 import { Model } from 'src/api/model.js';
 import { Middleware } from 'src/api/types.js';
-export declare const IServerAdapter: unique symbol;
-export interface IServerAdapter {
+export declare const ServerAdapter: unique symbol;
+export interface ServerAdapter {
     listen(port: number, callback: Function): void;
     getHttpServer(): import('http').Server;
 }

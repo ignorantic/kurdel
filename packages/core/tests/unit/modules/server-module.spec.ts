@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { ServerModule } from '../../../src/runtime/modules/server-module.js';
-import { IServerAdapter } from '../../../src/api/interfaces.js';
+import { ServerAdapter } from '../../../src/api/interfaces.js';
 
 describe('ServerModule', () => {
   it('should provide IServerAdapter with default server', () => {
     const module = new ServerModule({});
 
     const hasServerProvider = module.providers.some(
-      (p) => 'provide' in p && p.provide === IServerAdapter
+      (p) => 'provide' in p && p.provide === ServerAdapter
     );
 
     expect(hasServerProvider).toBe(true);

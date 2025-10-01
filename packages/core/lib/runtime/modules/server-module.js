@@ -1,6 +1,6 @@
 import { NativeHttpServerAdapter } from 'src/adapters/native-http-server-adapter.js';
 import { Router } from 'src/runtime/router.js';
-import { IServerAdapter } from '../../api/interfaces.js';
+import { ServerAdapter } from '../../api/interfaces.js';
 /**
  * ServerModule
  *
@@ -11,11 +11,11 @@ import { IServerAdapter } from '../../api/interfaces.js';
 export class ServerModule {
     constructor(config) {
         this.imports = { router: Router };
-        this.exports = { server: IServerAdapter };
+        this.exports = { server: ServerAdapter };
         const { server = NativeHttpServerAdapter } = config;
         this.providers = [
             {
-                provide: IServerAdapter,
+                provide: ServerAdapter,
                 useClass: server,
                 deps: { router: Router },
                 isSingleton: true,

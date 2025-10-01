@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import http from 'http';
 import request from 'supertest';
-import { IServerAdapter } from '../../../src/api/interfaces.js';
+import { ServerAdapter } from '../../../src/api/interfaces.js';
 import { Application } from '../../../src/api/application.js';
 import { UserModule } from './user-module.js';
 
@@ -14,7 +14,7 @@ describe('UserModule integration', () => {
       db: false,
     });
 
-    const adapter = app.getContainer().get(IServerAdapter);
+    const adapter = app.getContainer().get(ServerAdapter);
     server = adapter.getHttpServer();
     app.listen(0, () => {});
   });

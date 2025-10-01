@@ -4,7 +4,7 @@ import { ModelModule } from 'src/runtime/modules/model-module.js';
 import { MiddlewareModule } from 'src/runtime/modules/middleware-module.js';
 import { ControllerModule } from 'src/runtime/modules/controller-module.js';
 import { ServerModule } from 'src/runtime/modules/server-module.js';
-import { IServerAdapter } from './interfaces.js';
+import { ServerAdapter } from './interfaces.js';
 /**
  * Application
  *
@@ -111,7 +111,7 @@ export class Application {
      * Start listening on a given port using the configured server adapter.
      */
     listen(port, callback) {
-        const server = this.ioc.get(IServerAdapter);
+        const server = this.ioc.get(ServerAdapter);
         server.listen(port, callback);
     }
     /**

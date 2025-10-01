@@ -1,10 +1,10 @@
 import { Server } from 'http';
 import { Router } from '../runtime/router.js';
-import { IServerAdapter } from '../api/interfaces.js';
+import { ServerAdapter } from '../api/interfaces.js';
 type Deps = {
     router: Router;
 };
-export declare class NativeHttpServerAdapter implements IServerAdapter {
+export declare class NativeHttpServerAdapter implements ServerAdapter {
     private deps;
     private server;
     constructor(deps: Deps);
