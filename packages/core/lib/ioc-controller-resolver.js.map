@@ -1,1 +1,0 @@
-{"version":3,"file":"ioc-controller-resolver.js","sourceRoot":"","sources":["../src/ioc-controller-resolver.ts"],"names":[],"mappings":"AAIA,MAAM,OAAO,qBAAqB;IAGhC,YAAY,SAAuB;QACjC,IAAI,CAAC,SAAS,GAAG,SAAS,CAAC;IAC7B,CAAC;IAED,GAAG,CAAI,GAAe;QACpB,OAAO,IAAI,CAAC,SAAS,CAAC,GAAG,CAAI,GAAG,CAAC,CAAC;IACpC,CAAC;CACF"}

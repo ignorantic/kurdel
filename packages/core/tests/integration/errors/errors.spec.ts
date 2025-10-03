@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import http from 'http';
 import { Application } from '../../../src/api/application.js';
-import { ServerAdapter } from '../../../src/api/interfaces.js';
 import { ErrorModule } from './error-module.js';
+import { TOKENS } from 'src/api/tokens.js';
 
 let server: http.Server;
 
@@ -16,7 +16,7 @@ describe('Centralized error handling', () => {
       modules: [new ErrorModule()],
       db: false,
     });
-    const adapter = app.getContainer().get(ServerAdapter);
+    const adapter = app.getContainer().get(TOKENS.ServerAdapter);
     server = adapter.getHttpServer();
     app.listen(0, () => {});
   });

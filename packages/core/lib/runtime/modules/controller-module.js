@@ -1,7 +1,7 @@
-import { IoCControllerResolver } from 'src/runtime/ioc-controller-resolver.js';
-import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
-import { Router } from 'src/runtime/router.js';
-export const CONTROLLER_CONFIGS = Symbol('CONTROLLER_CONFIGS');
+import { IoCControllerResolver } from '../../runtime/ioc-controller-resolver.js';
+import { MiddlewareRegistry } from '../../runtime/middleware-registry.js';
+import { Router } from '../../runtime/router.js';
+import { TOKENS } from '../../api/tokens.js';
 /**
  * ControllerModule
  *
@@ -14,7 +14,7 @@ export class ControllerModule {
         this.controllers = controllers;
         this.imports = { registry: MiddlewareRegistry };
         this.exports = {
-            controllerConfigs: CONTROLLER_CONFIGS,
+            controllerConfigs: TOKENS.ControllerConfigs,
             router: Router,
         };
         this.providers = [
@@ -28,7 +28,7 @@ export class ControllerModule {
                 useClass: Router,
                 deps: {
                     resolver: IoCControllerResolver,
-                    controllerConfigs: CONTROLLER_CONFIGS,
+                    controllerConfigs: TOKENS.ControllerConfigs,
                     registry: MiddlewareRegistry,
                 },
             },
@@ -38,7 +38,7 @@ export class ControllerModule {
                 deps: c.deps,
             })),
             {
-                provide: CONTROLLER_CONFIGS,
+                provide: TOKENS.ControllerConfigs,
                 useInstance: controllers,
             },
         ];

@@ -12,5 +12,7 @@ export class UserModule implements HttpModule<AppConfig> {
       prefix: '/users',
     },
   ];
+
+  async register() {}
 }
 

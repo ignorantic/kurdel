@@ -3,7 +3,7 @@ import { AppModule, ProviderConfig } from 'src/api/app-module.js';
 import { NativeHttpServerAdapter } from 'src/adapters/native-http-server-adapter.js';
 import { Router } from 'src/runtime/router.js';
 import { AppConfig } from 'src/api/config.js';
-import { ServerAdapter } from '../../api/interfaces.js';
+import { TOKENS } from 'src/api/tokens.js';
 
 /**
  * ServerModule
@@ -14,7 +14,7 @@ import { ServerAdapter } from '../../api/interfaces.js';
  */
 export class ServerModule implements AppModule<AppConfig> {
   readonly imports = { router: Router };
-  readonly exports = { server: ServerAdapter };
+  readonly exports = { server: TOKENS.ServerAdapter };
 
   readonly providers: ProviderConfig[];
 
@@ -23,7 +23,7 @@ export class ServerModule implements AppModule<AppConfig> {
 
     this.providers = [
       {
-        provide: ServerAdapter,
+        provide: TOKENS.ServerAdapter,
         useClass: server,
         deps: { router: Router },
         isSingleton: true,

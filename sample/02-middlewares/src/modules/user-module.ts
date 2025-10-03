@@ -2,6 +2,7 @@ import { AppConfig, HttpModule } from '@kurdel/core';
 import { UserController } from '../controllers/user-controller.js';
 import { UserService } from '../services/user-service.js';
 import { authMiddleware } from '../middlewares/auth.js';
+import { IoCContainer } from '@kurdel/ioc';
 
 export class UserModule implements HttpModule<AppConfig> {
   readonly providers = [
@@ -20,5 +21,7 @@ export class UserModule implements HttpModule<AppConfig> {
       prefix: '/users',
     },
   ];
+
+  async register() {}
 }
 

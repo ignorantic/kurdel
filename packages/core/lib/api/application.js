@@ -1,10 +1,10 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { DatabaseModule } from 'src/runtime/modules/database-module.js';
-import { ModelModule } from 'src/runtime/modules/model-module.js';
-import { MiddlewareModule } from 'src/runtime/modules/middleware-module.js';
-import { ControllerModule } from 'src/runtime/modules/controller-module.js';
-import { ServerModule } from 'src/runtime/modules/server-module.js';
-import { ServerAdapter } from './interfaces.js';
+import { TOKENS } from '../api/tokens.js';
+import { ControllerModule } from '../runtime/modules/controller-module.js';
+import { DatabaseModule } from '../runtime/modules/database-module.js';
+import { MiddlewareModule } from '../runtime/modules/middleware-module.js';
+import { ModelModule } from '../runtime/modules/model-module.js';
+import { ServerModule } from '../runtime/modules/server-module.js';
 /**
  * Application
  *
@@ -111,7 +111,7 @@ export class Application {
      * Start listening on a given port using the configured server adapter.
      */
     listen(port, callback) {
-        const server = this.ioc.get(ServerAdapter);
+        const server = this.ioc.get(TOKENS.ServerAdapter);
         server.listen(port, callback);
     }
     /**

@@ -2,20 +2,20 @@
   "name": "@kurdel/core",
   "version": "1.0.0",
   "description": "framework",
-  "main": "lib/index.js",
   "type": "module",
-  "files": [
-    "lib",
-    "types"
-  ],
-  "types": "types/index.d.ts",
+    "exports": {
+    ".": "./lib/index.js"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "files": [ "lib" ],
   "scripts": {
     "test": "vitest run",
     "test:ui": "vitest",
     "test:watch": "vitest --watch",
     "coverage": "vitest run --coverage",
-    "clean": "rimraf lib types",
-    "build": "tsc -p tsconfig.build.json"
+    "clean": "rimraf lib",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json"
   },
   "keywords": [
     "framework"
@@ -27,7 +27,8 @@
     "@types/supertest": "^6.0.3",
     "@vitest/coverage-v8": "^3.2.4",
     "rimraf": "^6.0.1",
-    "supertest": "^7.1.4"
+    "supertest": "^7.1.4",
+    "tsc-alias": "^1.8.16"
   },
   "dependencies": {
     "@kurdel/db": "^1.0.0",

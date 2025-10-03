@@ -1,16 +1,17 @@
 import { IoCContainer } from '@kurdel/ioc';
-import type { AppConfig } from 'src/api/config.js';
+
 import type { AppModule, ProviderConfig } from 'src/api/app-module.js';
-import { DatabaseModule } from 'src/runtime/modules/database-module.js';
-import { ModelModule } from 'src/runtime/modules/model-module.js';
-import { MiddlewareModule } from 'src/runtime/modules/middleware-module.js';
-import { ControllerModule } from 'src/runtime/modules/controller-module.js';
-import { ServerModule } from 'src/runtime/modules/server-module.js';
-import { ModelList } from 'src/api/interfaces.js';
+import type { AppConfig } from 'src/api/config.js';
 import type { HttpModule } from 'src/api/http-module.js';
+import { ControllerConfig, ModelList, ServerAdapter } from 'src/api/interfaces.js';
+import { TOKENS } from 'src/api/tokens.js';
 import type { Middleware } from 'src/api/types.js';
-import { ControllerConfig } from 'src/api/interfaces.js';
-import { ServerAdapter } from './interfaces.js';
+
+import { ControllerModule } from 'src/runtime/modules/controller-module.js';
+import { DatabaseModule } from 'src/runtime/modules/database-module.js';
+import { MiddlewareModule } from 'src/runtime/modules/middleware-module.js';
+import { ModelModule } from 'src/runtime/modules/model-module.js';
+import { ServerModule } from 'src/runtime/modules/server-module.js';
 
 /**
  * Application
@@ -143,7 +144,7 @@ export class Application {
    * Start listening on a given port using the configured server adapter.
    */
   public listen(port: number, callback: () => void) {
-    const server = this.ioc.get<ServerAdapter>(ServerAdapter);
+    const server = this.ioc.get<ServerAdapter>(TOKENS.ServerAdapter)
     server.listen(port, callback);
   }
 

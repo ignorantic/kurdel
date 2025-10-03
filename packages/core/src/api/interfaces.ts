@@ -4,8 +4,6 @@ import { Controller } from 'src/api/controller.js';
 import { Model } from 'src/api/model.js';
 import { Middleware } from 'src/api/types.js';
 
-export const ServerAdapter = Symbol('ServerAdapter');
-
 export interface ServerAdapter {
   listen(port: number, callback: Function): void;
   getHttpServer(): import('http').Server;

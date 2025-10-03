@@ -1,6 +1,6 @@
-import { NativeHttpServerAdapter } from 'src/adapters/native-http-server-adapter.js';
-import { Router } from 'src/runtime/router.js';
-import { ServerAdapter } from '../../api/interfaces.js';
+import { NativeHttpServerAdapter } from '../../adapters/native-http-server-adapter.js';
+import { Router } from '../../runtime/router.js';
+import { TOKENS } from '../../api/tokens.js';
 /**
  * ServerModule
  *
@@ -11,11 +11,11 @@ import { ServerAdapter } from '../../api/interfaces.js';
 export class ServerModule {
     constructor(config) {
         this.imports = { router: Router };
-        this.exports = { server: ServerAdapter };
+        this.exports = { server: TOKENS.ServerAdapter };
         const { server = NativeHttpServerAdapter } = config;
         this.providers = [
             {
-                provide: ServerAdapter,
+                provide: TOKENS.ServerAdapter,
                 useClass: server,
                 deps: { router: Router },
                 isSingleton: true,

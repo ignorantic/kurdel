@@ -1,2 +1,2 @@
-export const CONTROLLER_CLASSES = Symbol('CONTROLLER_CLASSES');
+export {};
 //# sourceMappingURL=config.js.map

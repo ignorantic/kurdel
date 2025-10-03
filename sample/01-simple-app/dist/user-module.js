@@ -9,4 +9,5 @@ export class UserModule {
             prefix: '/users',
         },
     ];
+    async register() { }
 }

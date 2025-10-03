@@ -8,6 +8,7 @@ import { Ok } from '../../../src/api/http-results.js';
 import { HttpContext } from '../../../src/api/types.js';
 import { HttpModule } from '../../../src/api/http-module.js';
 import { ServerAdapter } from '../../../src/api/interfaces.js';
+import { TOKENS } from 'src/api/tokens.js';
 
 class RootController extends Controller {
   readonly routes = {
@@ -71,7 +72,7 @@ describe('Router path edge cases', () => {
       db: false,
     });
 
-    const adapter = app.getContainer().get(ServerAdapter);
+    const adapter = app.getContainer().get(TOKENS.ServerAdapter);
     server = adapter.getHttpServer();
     app.listen(0, () => {});
   });

@@ -1,6 +1,6 @@
-import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
-import { errorHandler } from 'src/runtime/http/middlewares/error-handle.js';
-import { jsonBodyParser } from 'src/runtime/http/middlewares/json-body-parser.js';
+import { MiddlewareRegistry } from '../../runtime/middleware-registry.js';
+import { errorHandler } from '../../runtime/http/middlewares/error-handle.js';
+import { jsonBodyParser } from '../../runtime/http/middlewares/json-body-parser.js';
 /**
  * MiddlewareModule
  *

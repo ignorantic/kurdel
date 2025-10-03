@@ -1,12 +1,16 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "nodenext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "rootDir": "src",
     "outDir": "lib",
     "declaration": true,
-    "declarationMap": true,
-    "declarationDir": "types",
+    "declarationMap": false,
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"]
+    },
     "emitDeclarationOnly": false,
     "composite": true,
     "noEmit": false,

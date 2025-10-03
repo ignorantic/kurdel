@@ -15,4 +15,5 @@ export class PostModule {
             prefix: '/posts',
         },
     ];
+    async register() { }
 }

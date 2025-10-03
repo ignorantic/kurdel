@@ -4,8 +4,7 @@ import { IoCControllerResolver } from 'src/runtime/ioc-controller-resolver.js';
 import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
 import { Router } from 'src/runtime/router.js';
 import { ControllerConfig } from 'src/api/interfaces.js';
-
-export const CONTROLLER_CONFIGS = Symbol('CONTROLLER_CONFIGS');
+import { TOKENS } from 'src/api/tokens.js';
 
 /**
  * ControllerModule
@@ -17,7 +16,7 @@ export const CONTROLLER_CONFIGS = Symbol('CONTROLLER_CONFIGS');
 export class ControllerModule implements AppModule {
   readonly imports = { registry: MiddlewareRegistry };
   readonly exports = {
-    controllerConfigs: CONTROLLER_CONFIGS,
+    controllerConfigs: TOKENS.ControllerConfigs,
     router: Router,
   };
 
@@ -35,7 +34,7 @@ export class ControllerModule implements AppModule {
         useClass: Router,
         deps: {
           resolver: IoCControllerResolver,
-          controllerConfigs: CONTROLLER_CONFIGS,
+          controllerConfigs: TOKENS.ControllerConfigs,
           registry: MiddlewareRegistry,
         },
       },
@@ -45,7 +44,7 @@ export class ControllerModule implements AppModule {
         deps: c.deps,
       })),
       {
-        provide: CONTROLLER_CONFIGS,
+        provide: TOKENS.ControllerConfigs,
         useInstance: controllers,
       },
     ];

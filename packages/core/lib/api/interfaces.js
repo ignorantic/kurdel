@@ -1,2 +1,2 @@
-export const ServerAdapter = Symbol('ServerAdapter');
+export {};
 //# sourceMappingURL=interfaces.js.map

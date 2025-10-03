@@ -18,5 +18,7 @@ export class PostModule implements HttpModule<AppConfig> {
       prefix: '/posts',
     },
   ];
+
+  async register() {}
 }
 

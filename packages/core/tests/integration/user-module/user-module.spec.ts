@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import http from 'http';
 import request from 'supertest';
-import { ServerAdapter } from '../../../src/api/interfaces.js';
 import { Application } from '../../../src/api/application.js';
 import { UserModule } from './user-module.js';
+import { TOKENS } from 'src/api/tokens.js';
 
 let server: http.Server;
 
@@ -14,7 +14,7 @@ describe('UserModule integration', () => {
       db: false,
     });
 
-    const adapter = app.getContainer().get(ServerAdapter);
+    const adapter = app.getContainer().get(TOKENS.ServerAdapter);
     server = adapter.getHttpServer();
     app.listen(0, () => {});
   });
