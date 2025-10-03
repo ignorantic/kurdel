@@ -1,7 +1,7 @@
-import { ActionResult } from '../../../src/api/types.js';
-import { Controller } from '../../../src/api/controller.js';
-import { route } from '../../../src/api/routing.js';
 import {
+  Controller,
+  route,
+  ActionResult,
   BadRequest,
   Conflict, 
   Forbidden,
@@ -9,7 +9,7 @@ import {
   NotImplemented,
   ServiceUnavailable,
   Unauthorized,
-} from '../../../src/api/http-results.js';
+} from '@kurdel/core';
 
 export class ErrorController extends Controller {
   readonly routes = {

@@ -1,4 +1,4 @@
-import { HttpModule } from '../../../src/api/http-module.js';
+import { HttpModule } from '@kurdel/core';
 import { ErrorController } from './error-controller.js';
 
 export class ErrorModule implements HttpModule {

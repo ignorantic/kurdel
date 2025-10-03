@@ -5,7 +5,7 @@ import {
   NoContent,
   Redirect,
   Json,
-} from 'src/api/http-results.js';
+} from '@kurdel/core';
 
 describe('http-results success helpers', () => {
   it('Ok should wrap value with status 200', () => {

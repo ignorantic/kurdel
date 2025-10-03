@@ -1,4 +1,3 @@
-import { IoCContainer } from '@kurdel/ioc';
 import type { AppConfig } from '../api/config.js';
 /**
  * Application
@@ -43,8 +42,4 @@ export declare class Application {
      * Start listening on a given port using the configured server adapter.
      */
     listen(port: number, callback: () => void): void;
-    /**
-     * Expose underlying IoC container for advanced use cases.
-     */
-    getContainer(): IoCContainer;
 }

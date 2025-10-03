@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { IDatabase } from '@kurdel/db';
-import { Model } from 'src/api/model.js';
+import { Model } from '@kurdel/core';
 
 // fake child model
 class UserModel extends Model {

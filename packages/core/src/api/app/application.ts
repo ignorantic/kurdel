@@ -1,5 +1,7 @@
-import type { IoCContainer } from '@kurdel/ioc';
-import type { AppModule } from 'src/api/app-module.js';
+import { IoCContainer } from '@kurdel/ioc';
+
+import { AppModule } from '../app-module.js';
+import { RunningServer } from '../interfaces.js';
 
 /**
  * Public application contract.
@@ -14,10 +16,10 @@ export interface Application {
   use(...modules: AppModule[]): void;
 
   /**
-   * Start the HTTP server.
-   * Signature kept for backward compatibility with existing apps.
+   * Start the server and get a handle for tests and shutdown.
+   * Kept compatible with previous signature by making callback optional.
    */
-  listen(port: number, callback?: () => void): void;
+  listen(port: number, callback?: () => void): RunningServer;
 
   /**
    * Expose underlying IoC container for advanced use cases.

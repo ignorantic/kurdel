@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AppModule } from '@kurdel/core';
-import { createApplication } from 'src/index.js';
+import { AppModule, createApplication } from '@kurdel/core';
 
 const TOKEN_A = Symbol('A');
 const TOKEN_B = Symbol('B');

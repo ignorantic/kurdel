@@ -8,8 +8,8 @@ import {
   InternalServerError,
   NotImplemented,
   ServiceUnavailable,
-} from 'src/api/http-results.js';
-import { HttpError } from '../../../src/api/http-error.js';
+  HttpError,
+} from '@kurdel/core';
 
 describe('http-results (HttpError factories)', () => {
   it.each([

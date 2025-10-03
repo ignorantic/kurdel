@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import http from 'http';
+import { Server } from 'http';
 import request from 'supertest';
-import { Application } from '../../../src/api/application.js';
-import { Controller } from '../../../src/api/controller.js';
-import { route } from '../../../src/api/routing.js';
-import { Ok } from '../../../src/api/http-results.js';
-import { HttpContext } from '../../../src/api/types.js';
-import { HttpModule } from '../../../src/api/http-module.js';
-import { TOKENS } from 'src/api/tokens.js';
-import { createApplication } from 'src/index.js';
+
+import {
+  Controller,
+  Ok,
+  HttpContext,
+  HttpModule,
+  createApplication,
+  route,
+} from '@kurdel/core';
 
 class RootController extends Controller {
   readonly routes = {
@@ -63,7 +64,7 @@ class TestHttpModule implements HttpModule {
   async register() {}
 }
 
-let server: http.Server;
+let server: Server;
 
 describe('Router path edge cases', () => {
   beforeAll(async () => {
@@ -72,9 +73,9 @@ describe('Router path edge cases', () => {
       db: false,
     });
 
-    const adapter = app.getContainer().get(TOKENS.ServerAdapter);
-    server = adapter.getHttpServer();
-    app.listen(0, () => {});
+    const runningServer = app.listen(0, () => {});
+    if (!runningServer.raw) throw new Error('Node server not available for this adapter');
+    server = runningServer.raw() as Server;
   });
 
   afterAll(async () => {

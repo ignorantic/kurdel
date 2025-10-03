@@ -114,11 +114,5 @@ export class Application {
         const server = this.ioc.get(TOKENS.ServerAdapter);
         server.listen(port, callback);
     }
-    /**
-     * Expose underlying IoC container for advanced use cases.
-     */
-    getContainer() {
-        return this.ioc;
-    }
 }
 //# sourceMappingURL=application.js.map

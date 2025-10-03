@@ -4,15 +4,20 @@ import type { Application } from 'src/api/app/application.js';
 import type { AppModule, ProviderConfig } from 'src/api/app-module.js';
 import type { AppConfig } from 'src/api/config.js';
 import type { HttpModule } from 'src/api/http-module.js';
-import { ControllerConfig, ModelList, ServerAdapter } from 'src/api/interfaces.js';
+import {
+  ControllerConfig,
+  ModelList,
+  RunningServer,
+  ServerAdapter,
+} from 'src/api/interfaces.js';
 import { TOKENS } from 'src/api/tokens.js';
 import type { Middleware } from 'src/api/types.js';
 
-import { ControllerModule } from 'src/runtime/modules/controller-module.js';
-import { DatabaseModule } from 'src/runtime/modules/database-module.js';
-import { MiddlewareModule } from 'src/runtime/modules/middleware-module.js';
-import { ModelModule } from 'src/runtime/modules/model-module.js';
-import { ServerModule } from 'src/runtime/modules/server-module.js';
+import { ControllerModule } from '../modules/controller-module.js';
+import { DatabaseModule } from '../modules/database-module.js';
+import { MiddlewareModule } from '../modules/middleware-module.js';
+import { ModelModule } from '../modules/model-module.js';
+import { ServerModule } from '../modules/server-module.js';
 
 /**
  * Internal application implementation.
@@ -114,10 +119,29 @@ export class ApplicationImpl implements Application {
     }
   }
 
-  /** Start the server using the registered ServerAdapter. */
-  listen(port: number, callback?: () => void): void {
-    const server = this.iocImpl.get<ServerAdapter>(TOKENS.ServerAdapter);
-    server.listen(port, callback ?? (() => {}));
+  /** Start the server using the registered ServerAdapter, and get it. */
+  listen(port: number, callback?: () => void): RunningServer {
+    const adapter = this.iocImpl.get<ServerAdapter>(TOKENS.ServerAdapter);
+    adapter.listen(port, callback ?? (() => {}));
+
+    // If your Node adapter exposes a raw server, surface it via raw()
+    const raw = ('getHttpServer' in (adapter as any))
+      ? () => (adapter as any).getHttpServer()
+      : undefined;
+
+    const close = async () => {
+      if ('close' in adapter && typeof (adapter as any).close === 'function') {
+        await (adapter as any).close();
+      };
+    };
+
+    return {
+      url: typeof (adapter as any).url === 'function'
+        ? (adapter as any).url()
+        : undefined,
+      close,
+      raw
+    };
   }
 
   /** Internal bootstrap, called by the factory. */

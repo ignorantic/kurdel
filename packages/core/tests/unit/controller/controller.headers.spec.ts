@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import http from 'http';
-import { Controller } from 'src/api/controller.js';
-import { route } from 'src/api/routing.js';
-import { Ok } from 'src/api/http-results.js';
+
+import {
+  Controller,
+  route,
+  Ok,
+} from '@kurdel/core';
 
 class ErrorAfterSendController extends Controller {
   readonly routes = {

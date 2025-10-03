@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import http from 'http';
+import { Server } from 'http';
 import request from 'supertest';
-import { UserModule } from './user-module.js';
-import { TOKENS } from 'src/api/tokens.js';
-import { createApplication } from 'src/index.js';
 
-let server: http.Server;
+import { createApplication } from '@kurdel/core';
+
+import { UserModule } from './user-module.js';
+
+let server: Server;
 
 describe('UserModule integration', () => {
   beforeAll(async () => {
@@ -14,9 +15,9 @@ describe('UserModule integration', () => {
       db: false,
     });
 
-    const adapter = app.getContainer().get(TOKENS.ServerAdapter);
-    server = adapter.getHttpServer();
-    app.listen(0, () => {});
+    const runningServer = app.listen(0, () => {});
+    if (!runningServer.raw) throw new Error('Node server not available for this adapter');
+    server = runningServer.raw() as Server;
   });
 
   afterAll(async () => {

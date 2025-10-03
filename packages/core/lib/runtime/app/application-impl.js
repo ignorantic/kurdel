@@ -1,10 +1,10 @@
 import { IoCContainer } from '@kurdel/ioc';
 import { TOKENS } from '../../api/tokens.js';
-import { ControllerModule } from '../../runtime/modules/controller-module.js';
-import { DatabaseModule } from '../../runtime/modules/database-module.js';
-import { MiddlewareModule } from '../../runtime/modules/middleware-module.js';
-import { ModelModule } from '../../runtime/modules/model-module.js';
-import { ServerModule } from '../../runtime/modules/server-module.js';
+import { ControllerModule } from '../modules/controller-module.js';
+import { DatabaseModule } from '../modules/database-module.js';
+import { MiddlewareModule } from '../modules/middleware-module.js';
+import { ModelModule } from '../modules/model-module.js';
+import { ServerModule } from '../modules/server-module.js';
 /**
  * Internal application implementation.
  * Orchestrates module loading, provider registration and server startup.
@@ -89,14 +89,37 @@ export class ApplicationImpl {
             }
         }
     }
-    /** Start the server using the registered ServerAdapter. */
+    /** Start the server using the registered ServerAdapter, and get it. */
     listen(port, callback) {
-        const server = this.iocImpl.get(TOKENS.ServerAdapter);
-        server.listen(port, callback ?? (() => { }));
+        const adapter = this.iocImpl.get(TOKENS.ServerAdapter);
+        adapter.listen(port, callback ?? (() => { }));
+        // If your Node adapter exposes a raw server, surface it via raw()
+        const raw = ('getHttpServer' in adapter)
+            ? () => adapter.getHttpServer()
+            : undefined;
+        const close = async () => {
+            if ('close' in adapter && typeof adapter.close === 'function') {
+                await adapter.close();
+            }
+            ;
+        };
+        return {
+            url: typeof adapter.url === 'function'
+                ? adapter.url()
+                : undefined,
+            close,
+            raw
+        };
     }
     /** Internal bootstrap, called by the factory. */
     async bootstrap() {
         await this.init();
+    }
+    /**
+     * Expose underlying IoC container for advanced use cases.
+     */
+    getContainer() {
+        return this.container;
     }
 }
 //# sourceMappingURL=application-impl.js.map
