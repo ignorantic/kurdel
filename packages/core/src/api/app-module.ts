@@ -1,4 +1,4 @@
-import type { Identifier, IoCContainer } from '@kurdel/ioc';
+import type { Identifier, Container } from '@kurdel/ioc';
 import type { AppConfig } from '../api/config.js';
 
 /**
@@ -14,7 +14,7 @@ export type ProviderConfig<T = any> =
   | {
       provide: Identifier<T>;
       useClass: new (...args: any[]) => T;
-      deps?: Record<string, Identifier>;
+      deps?: Record<string, Identifier<T>>;
       isSingleton?: boolean;
     }
   | {
@@ -23,7 +23,7 @@ export type ProviderConfig<T = any> =
     }
   | {
       provide: Identifier<T>;
-      useFactory: (ioc: IoCContainer) => T;
+      useFactory: (ioc: Container) => T;
       isSingleton?: boolean;
     };
     
@@ -52,5 +52,5 @@ export interface AppModule<TConfig = AppConfig> {
    * Called by Application during initialization.
    * Even if module uses only providers, this method must exist.
    */
-  register(ioc: IoCContainer, config: TConfig): Promise<void> | void;
+  register(ioc: Container, config: TConfig): Promise<void> | void;
 }

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { IoCContainer } from '../src/container.js';
+import { IoCContainer } from '../src/runtime/ioc-container.js';
 
 describe('IoCContainer', () => {
   let iocContainer: IoCContainer;

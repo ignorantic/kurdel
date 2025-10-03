@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { Binding } from '../src/binding.js';
-import { BindingToContract } from '../src/bindingToContract.js';
-import { BindingWithContract } from '../src/bindingWithContract.js';
-import { BindingWithInContract } from '../src/bindingWithInContract.js';
+import { Binding } from '../src/runtime/binding.js';
+import { BindingToContractImpl } from '../src/runtime/binding-to-contract-impl.js';
+import { BindingWithContract } from '../src/runtime/binding-with-contract.js';
+import { BindingWithInContractImpl } from '../src/runtime/binding-with-in-contract-impl.js';
 
 describe('Binding', () => {
   it('should initialize with default values', () => {
@@ -19,19 +19,19 @@ describe('BindingToContract', () => {
   it('should bind a class via .to()', () => {
     class TestClass {}
     const binding = new Binding<TestClass>();
-    const contract = new BindingToContract(binding);
+    const contract = new BindingToContractImpl(binding);
 
     const result = contract.to(TestClass);
 
     expect(binding.boundEntity).toBe(TestClass);
-    expect(result).toBeInstanceOf(BindingWithInContract);
+    expect(result).toBeInstanceOf(BindingWithInContractImpl);
   });
 
   it('should bind an instance via .toInstance()', () => {
     class TestClass {}
     const instance = new TestClass();
     const binding = new Binding<TestClass>();
-    const contract = new BindingToContract(binding);
+    const contract = new BindingToContractImpl(binding);
 
     contract.toInstance(instance);
 
@@ -60,7 +60,7 @@ describe('BindingWithContract', () => {
 describe('BindingWithInContract', () => {
   it('should set scope to Singleton with .inSingletonScope()', () => {
     const binding = new Binding<any>();
-    const contract = new BindingWithInContract(binding);
+    const contract = new BindingWithInContractImpl(binding);
 
     contract.inSingletonScope();
 
@@ -70,7 +70,7 @@ describe('BindingWithInContract', () => {
   it('should delegate .with() to BindingWithContract', () => {
     class Dep {}
     const binding = new Binding<any>();
-    const contract = new BindingWithInContract(binding);
+    const contract = new BindingWithInContractImpl(binding);
 
     const deps = { dep: Dep };
     contract.with(deps);

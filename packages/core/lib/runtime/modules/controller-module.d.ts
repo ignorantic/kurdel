@@ -1,4 +1,4 @@
-import { IoCContainer } from '@kurdel/ioc';
+import { Container } from '@kurdel/ioc';
 import { AppModule, ProviderConfig } from '../../api/app-module.js';
 import { MiddlewareRegistry } from '../../runtime/middleware-registry.js';
 import { Router } from '../../runtime/router.js';
@@ -21,5 +21,5 @@ export declare class ControllerModule implements AppModule {
     };
     readonly providers: ProviderConfig[];
     constructor(controllers: ControllerConfig[]);
-    register(ioc: IoCContainer): Promise<void>;
+    register(ioc: Container): Promise<void>;
 }

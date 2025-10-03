@@ -1,4 +1,4 @@
-import { IoCContainer } from '@kurdel/ioc';
+import { Container } from '@kurdel/ioc';
 import type { Application } from '../../api/app/application.js';
 import type { AppModule } from '../../api/app-module.js';
 import type { AppConfig } from '../../api/config.js';
@@ -9,10 +9,10 @@ import { RunningServer } from '../../api/interfaces.js';
  */
 export declare class ApplicationImpl implements Application {
     private readonly config;
-    private readonly iocImpl;
+    private readonly ioc;
     private readonly modules;
     /** Expose the container using the public IoC interface. */
-    get container(): IoCContainer;
+    get container(): Container;
     constructor(config: AppConfig);
     /** Allow adding modules programmatically before bootstrap. */
     use(...modules: AppModule[]): void;
@@ -27,5 +27,5 @@ export declare class ApplicationImpl implements Application {
     /**
      * Expose underlying IoC container for advanced use cases.
      */
-    getContainer(): IoCContainer;
+    getContainer(): Container;
 }

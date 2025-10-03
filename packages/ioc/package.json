@@ -2,20 +2,22 @@
   "name": "@kurdel/ioc",
   "version": "1.0.0",
   "description": "framework",
-  "main": "lib/index.js",
   "type": "module",
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "files": [
-    "lib",
-    "types"
+    "lib"
   ],
-  "types": "types/index.d.ts",
   "scripts": {
     "test": "vitest run",
     "test:ui": "vitest",
     "test:watch": "vitest --watch",
     "coverage": "vitest run --coverage",
-    "clean": "rimraf lib types",
-    "build": "tsc -p tsconfig.build.json"
+    "clean": "rimraf lib",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json"
   },
   "keywords": [
     "ioc"
@@ -24,7 +26,8 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.9.0",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "tsc-alias": "^1.8.16"
   },
   "dependencies": {
     "@kurdel/common": "^1.0.0"

@@ -1,4 +1,4 @@
-import { IoCContainer } from '@kurdel/ioc';
+import { Container, IoCContainer } from '@kurdel/ioc';
 
 import type { Application } from 'src/api/app/application.js';
 import type { AppModule, ProviderConfig } from 'src/api/app-module.js';
@@ -25,17 +25,17 @@ import { ServerModule } from '../modules/server-module.js';
  */
 export class ApplicationImpl implements Application {
   private readonly config: AppConfig;
-  private readonly iocImpl: IoCContainer;
+  private readonly ioc: Container;
   private readonly modules: AppModule[];
 
   /** Expose the container using the public IoC interface. */
-  get container(): IoCContainer {
-    return this.iocImpl as unknown as IoCContainer;
+  get container(): Container {
+    return this.ioc as unknown as Container;
   }
 
   constructor(config: AppConfig) {
     this.config = config;
-    this.iocImpl = new IoCContainer();
+    this.ioc = new IoCContainer();
 
     // Aggregate HTTP artifacts from HttpModules
     const httpModules = (config.modules ?? []).filter(
@@ -68,7 +68,7 @@ export class ApplicationImpl implements Application {
       // Validate imports
       if (module.imports) {
         for (const dep of Object.values(module.imports)) {
-          if (!this.iocImpl.has(dep)) {
+          if (!this.ioc.has(dep)) {
             throw new Error(`Missing dependency: ${String(dep)}`);
           }
         }
@@ -82,12 +82,12 @@ export class ApplicationImpl implements Application {
       }
 
       // Custom module hook
-      await module.register?.(this.iocImpl as unknown as IoCContainer, this.config);
+      await module.register?.(this.ioc as unknown as Container, this.config);
 
       // Validate expected exports
       if (module.exports) {
         for (const token of Object.values(module.exports)) {
-          if (!this.iocImpl.has(token)) {
+          if (!this.ioc.has(token)) {
             throw new Error(`Module did not register expected export: ${String(token)}`);
           }
         }
@@ -98,30 +98,30 @@ export class ApplicationImpl implements Application {
   /** Register a provider using the current IoC container semantics. */
   private registerProvider<T>(provider: ProviderConfig<T>) {
     if ('useClass' in provider) {
-      const binding = this.iocImpl.bind<T>(provider.provide).to(provider.useClass);
+      const binding = this.ioc.bind<T>(provider.provide).to(provider.useClass);
       if (provider.deps) binding.with(provider.deps);
       if (provider.isSingleton) binding.inSingletonScope();
       return;
     }
 
     if ('useInstance' in provider) {
-      this.iocImpl.bind<T>(provider.provide).toInstance(provider.useInstance);
+      this.ioc.bind<T>(provider.provide).toInstance(provider.useInstance);
       return;
     }
 
     if ('useFactory' in provider) {
       if (provider.isSingleton) {
-        const instance = provider.useFactory(this.iocImpl);
-        this.iocImpl.bind<T>(provider.provide).toInstance(instance);
+        const instance = provider.useFactory(this.ioc);
+        this.ioc.bind<T>(provider.provide).toInstance(instance);
       } else {
-        this.iocImpl.toFactory(provider.provide, () => provider.useFactory(this.iocImpl));
+        this.ioc.toFactory(provider.provide, () => provider.useFactory(this.ioc));
       }
     }
   }
 
   /** Start the server using the registered ServerAdapter, and get it. */
   listen(port: number, callback?: () => void): RunningServer {
-    const adapter = this.iocImpl.get<ServerAdapter>(TOKENS.ServerAdapter);
+    const adapter = this.ioc.get<ServerAdapter>(TOKENS.ServerAdapter);
     adapter.listen(port, callback ?? (() => {}));
 
     // If your Node adapter exposes a raw server, surface it via raw()
@@ -152,7 +152,7 @@ export class ApplicationImpl implements Application {
   /**
    * Expose underlying IoC container for advanced use cases.
    */
-  public getContainer(): IoCContainer {
+  public getContainer(): Container {
     return this.container;
   }
 }

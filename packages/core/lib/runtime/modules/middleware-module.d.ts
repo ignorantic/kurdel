@@ -1,4 +1,4 @@
-import { IoCContainer } from '@kurdel/ioc';
+import { Container } from '@kurdel/ioc';
 import { AppModule } from '../../api/app-module.js';
 import { MiddlewareRegistry } from '../../runtime/middleware-registry.js';
 import { Middleware } from '../../api/types.js';
@@ -18,5 +18,5 @@ export declare class MiddlewareModule implements AppModule {
         isSingleton: boolean;
     }[];
     constructor(middlewares: Middleware[]);
-    register(ioc: IoCContainer): Promise<void>;
+    register(ioc: Container): Promise<void>;
 }

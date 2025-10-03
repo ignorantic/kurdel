@@ -12,11 +12,11 @@ import { ServerModule } from '../modules/server-module.js';
 export class ApplicationImpl {
     /** Expose the container using the public IoC interface. */
     get container() {
-        return this.iocImpl;
+        return this.ioc;
     }
     constructor(config) {
         this.config = config;
-        this.iocImpl = new IoCContainer();
+        this.ioc = new IoCContainer();
         // Aggregate HTTP artifacts from HttpModules
         const httpModules = (config.modules ?? []).filter((m) => 'models' in m || 'controllers' in m || 'middlewares' in m);
         const allModels = httpModules.flatMap((m) => m.models ?? []);
@@ -42,7 +42,7 @@ export class ApplicationImpl {
             // Validate imports
             if (module.imports) {
                 for (const dep of Object.values(module.imports)) {
-                    if (!this.iocImpl.has(dep)) {
+                    if (!this.ioc.has(dep)) {
                         throw new Error(`Missing dependency: ${String(dep)}`);
                     }
                 }
@@ -54,11 +54,11 @@ export class ApplicationImpl {
                 }
             }
             // Custom module hook
-            await module.register?.(this.iocImpl, this.config);
+            await module.register?.(this.ioc, this.config);
             // Validate expected exports
             if (module.exports) {
                 for (const token of Object.values(module.exports)) {
-                    if (!this.iocImpl.has(token)) {
+                    if (!this.ioc.has(token)) {
                         throw new Error(`Module did not register expected export: ${String(token)}`);
                     }
                 }
@@ -68,7 +68,7 @@ export class ApplicationImpl {
     /** Register a provider using the current IoC container semantics. */
     registerProvider(provider) {
         if ('useClass' in provider) {
-            const binding = this.iocImpl.bind(provider.provide).to(provider.useClass);
+            const binding = this.ioc.bind(provider.provide).to(provider.useClass);
             if (provider.deps)
                 binding.with(provider.deps);
             if (provider.isSingleton)
@@ -76,22 +76,22 @@ export class ApplicationImpl {
             return;
         }
         if ('useInstance' in provider) {
-            this.iocImpl.bind(provider.provide).toInstance(provider.useInstance);
+            this.ioc.bind(provider.provide).toInstance(provider.useInstance);
             return;
         }
         if ('useFactory' in provider) {
             if (provider.isSingleton) {
-                const instance = provider.useFactory(this.iocImpl);
-                this.iocImpl.bind(provider.provide).toInstance(instance);
+                const instance = provider.useFactory(this.ioc);
+                this.ioc.bind(provider.provide).toInstance(instance);
             }
             else {
-                this.iocImpl.toFactory(provider.provide, () => provider.useFactory(this.iocImpl));
+                this.ioc.toFactory(provider.provide, () => provider.useFactory(this.ioc));
             }
         }
     }
     /** Start the server using the registered ServerAdapter, and get it. */
     listen(port, callback) {
-        const adapter = this.iocImpl.get(TOKENS.ServerAdapter);
+        const adapter = this.ioc.get(TOKENS.ServerAdapter);
         adapter.listen(port, callback ?? (() => { }));
         // If your Node adapter exposes a raw server, surface it via raw()
         const raw = ('getHttpServer' in adapter)

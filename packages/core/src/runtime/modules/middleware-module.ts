@@ -1,4 +1,4 @@
-import { IoCContainer } from '@kurdel/ioc';
+import { Container } from '@kurdel/ioc';
 import { AppModule } from 'src/api/app-module.js';
 import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
 import { Middleware } from 'src/api/types.js';
@@ -18,7 +18,7 @@ export class MiddlewareModule implements AppModule {
 
   constructor(private middlewares: Middleware[]) {}
 
-  async register(ioc: IoCContainer): Promise<void> {
+  async register(ioc: Container): Promise<void> {
     const registry = ioc.get(MiddlewareRegistry);
     
     this.middlewares.forEach((mw) => registry.use(mw));

@@ -1,5 +1,5 @@
-import { Identifier } from './types.js';
-import { Binding } from './binding.js';
+import { Identifier } from '../types.js';
+import { Binding } from './runtime/binding.ts';
 /**
  * Fluent contract returned from IoCContainer.put() when configuring dependencies.
  *

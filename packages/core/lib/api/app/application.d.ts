@@ -1,4 +1,4 @@
-import { IoCContainer } from '@kurdel/ioc';
+import { Container } from '@kurdel/ioc';
 import { AppModule } from '../app-module.js';
 import { RunningServer } from '../interfaces.js';
 /**
@@ -8,7 +8,7 @@ import { RunningServer } from '../interfaces.js';
  */
 export interface Application {
     /** DI container exposed by interface type (implementation is hidden). */
-    readonly container: IoCContainer;
+    readonly container: Container;
     /** Register additional modules before startup. */
     use(...modules: AppModule[]): void;
     /**
@@ -19,5 +19,5 @@ export interface Application {
     /**
      * Expose underlying IoC container for advanced use cases.
      */
-    getContainer(): IoCContainer;
+    getContainer(): Container;
 }

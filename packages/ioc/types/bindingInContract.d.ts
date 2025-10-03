@@ -1,4 +1,4 @@
-import { Binding } from './binding.js';
+import { Binding } from './runtime/binding.ts';
 /**
  * Fluent contract returned after `.to()` or `.toInstance()`.
  *

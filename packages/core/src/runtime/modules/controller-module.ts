@@ -1,4 +1,5 @@
-import { IoCContainer } from '@kurdel/ioc';
+import { Container } from '@kurdel/ioc';
+
 import { AppModule, ProviderConfig } from 'src/api/app-module.js';
 import { IoCControllerResolver } from 'src/runtime/ioc-controller-resolver.js';
 import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
@@ -26,7 +27,7 @@ export class ControllerModule implements AppModule {
     this.providers = [
       {
         provide: IoCControllerResolver,
-        useFactory: (ioc: IoCContainer) => new IoCControllerResolver(ioc),
+        useFactory: (ioc: Container) => new IoCControllerResolver(ioc),
         isSingleton: true,
       },
       {
@@ -50,7 +51,7 @@ export class ControllerModule implements AppModule {
     ];
   }
 
-  async register(ioc: IoCContainer): Promise<void> {
+  async register(ioc: Container): Promise<void> {
     const registry = ioc.get(MiddlewareRegistry);
 
     this.controllers.forEach((c) => {

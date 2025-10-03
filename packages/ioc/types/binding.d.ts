@@ -1,5 +1,5 @@
 import { Newable } from '@kurdel/common';
-import { Identifier, ScopeType } from './types.js';
+import { Identifier, ScopeType } from '../types.js';
 /**
  * Binding
  *

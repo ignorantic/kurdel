@@ -1,7 +1,7 @@
 import { Newable } from '@kurdel/common';
 import { Identifier } from './types.js';
-import { BindingToContract } from './bindingToContract.js';
-import { BindingWithInContract } from './bindingWithInContract.js';
+import { BindingToContract } from './runtime/bindingToContract.ts';
+import { BindingWithInContract } from './runtime/bindingWithInContract.ts';
 /**
  * Simple Inversion of Control (IoC) container.
  *

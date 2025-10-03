@@ -1,6 +1,6 @@
 import { Newable } from '@kurdel/common';
-import { Binding } from './binding.js';
-import { BindingWithInContract } from './bindingWithInContract.js';
+import { Binding } from './runtime/binding.ts';
+import { BindingWithInContract } from '../bindingWithInContract.js';
 /**
  * Contract returned by `IoCContainer.bind`.
  *
