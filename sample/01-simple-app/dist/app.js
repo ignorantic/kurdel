@@ -1,6 +1,6 @@
-import { Application } from '@kurdel/core';
+import { createApplication } from '@kurdel/core';
 import { UserModule } from './user-module.js';
-const app = await Application.create({
+const app = await createApplication({
     modules: [new UserModule()]
 });
 app.listen(3000, () => {

@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import http from 'http';
 import request from 'supertest';
-import { Application } from '../../../src/api/application.js';
 import { UserModule } from './user-module.js';
 import { TOKENS } from 'src/api/tokens.js';
+import { createApplication } from 'src/index.js';
 
 let server: http.Server;
 
 describe('UserModule integration', () => {
   beforeAll(async () => {
-    const app = await Application.create({
+    const app = await createApplication({
       modules: [new UserModule()],
       db: false,
     });

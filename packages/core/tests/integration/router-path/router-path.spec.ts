@@ -7,8 +7,8 @@ import { route } from '../../../src/api/routing.js';
 import { Ok } from '../../../src/api/http-results.js';
 import { HttpContext } from '../../../src/api/types.js';
 import { HttpModule } from '../../../src/api/http-module.js';
-import { ServerAdapter } from '../../../src/api/interfaces.js';
 import { TOKENS } from 'src/api/tokens.js';
+import { createApplication } from 'src/index.js';
 
 class RootController extends Controller {
   readonly routes = {
@@ -67,7 +67,7 @@ let server: http.Server;
 
 describe('Router path edge cases', () => {
   beforeAll(async () => {
-    const app = await Application.create({
+    const app = await createApplication({
       modules: [new TestHttpModule()],
       db: false,
     });

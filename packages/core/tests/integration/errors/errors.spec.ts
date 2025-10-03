@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import http from 'http';
-import { Application } from '../../../src/api/application.js';
-import { ErrorModule } from './error-module.js';
+
 import { TOKENS } from 'src/api/tokens.js';
+import { createApplication } from 'src/index.js';
+
+import { ErrorModule } from './error-module.js';
 
 let server: http.Server;
 
@@ -12,7 +14,7 @@ describe('Centralized error handling', () => {
     // silence console.error for clean test output
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const app = await Application.create({
+    const app = await createApplication({
       modules: [new ErrorModule()],
       db: false,
     });

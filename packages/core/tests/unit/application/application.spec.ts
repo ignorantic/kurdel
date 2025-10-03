@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Application, AppModule } from '@kurdel/core';
+import { AppModule } from '@kurdel/core';
+import { createApplication } from 'src/index.js';
 
 const TOKEN_A = Symbol('A');
 const TOKEN_B = Symbol('B');
@@ -15,7 +16,7 @@ describe('Application', () => {
 
     // no module provides TOKEN_A
     await expect(() =>
-      Application.create({ db: false, modules: [new ImportingModule()] })
+      createApplication({ db: false, modules: [new ImportingModule()] })
     ).rejects.toThrow(/Missing dependency/);
   });
 
@@ -26,7 +27,7 @@ describe('Application', () => {
     }
 
     await expect(() =>
-      Application.create({ db: false, modules: [new BadModule()] })
+      createApplication({ db: false, modules: [new BadModule()] })
     ).rejects.toThrow(/Module did not register expected export/);
   });
 
@@ -44,7 +45,7 @@ describe('Application', () => {
       async register() {}
     }
 
-    const app = await Application.create({ db: false, modules: [new FactoryModule()] });
+    const app = await createApplication({ db: false, modules: [new FactoryModule()] });
     const ioc = app.getContainer();
     const first = ioc.get<{ n: number }>(TOKEN_FACTORY);
     const second = ioc.get<{ n: number }>(TOKEN_FACTORY);
@@ -65,7 +66,7 @@ describe('Application', () => {
       async register() {}
     }
 
-    const app = await Application.create({ db: false, modules: [new FactoryModule()] });
+    const app = await createApplication({ db: false, modules: [new FactoryModule()] });
     const ioc = app.getContainer();
     const first = ioc.get<{ n: number }>(TOKEN_SINGLETON);
     const second = ioc.get<{ n: number }>(TOKEN_SINGLETON);

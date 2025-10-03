@@ -147,12 +147,5 @@ export class Application {
     const server = this.ioc.get<ServerAdapter>(TOKENS.ServerAdapter)
     server.listen(port, callback);
   }
-
-  /**
-   * Expose underlying IoC container for advanced use cases.
-   */
-  public getContainer(): IoCContainer {
-    return this.ioc;
-  }
 }
 

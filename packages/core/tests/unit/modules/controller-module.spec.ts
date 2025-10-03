@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { Controller } from 'src/api/controller.js';
 import { ControllerModule } from 'src/runtime/modules/controller-module.js';
 import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
-import { CONTROLLER_CLASSES } from 'src/api/config.js';
+import { TOKENS } from 'src/api/tokens.js';
 
 describe('ControllerModule', () => {
   it('should provide Router and CONTROLLER_CLASSES', () => {
@@ -14,7 +14,7 @@ describe('ControllerModule', () => {
 
     const routerProvider = module.providers.find((p) => 'provide' in p);
     const controllersProvider = module.providers.find(
-      (p) => 'provide' in p && p.provide === CONTROLLER_CLASSES
+      (p) => 'provide' in p && p.provide === TOKENS.ControllerClasses
     );
 
     expect(routerProvider).toBeDefined();
