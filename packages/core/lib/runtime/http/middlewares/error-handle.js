@@ -1,4 +1,4 @@
-import { HttpError } from '../../../api/http-error.js';
+import { HttpError } from '../../../api/http/http-error.js';
 export const errorHandler = async (ctx, next) => {
     try {
         return await next();

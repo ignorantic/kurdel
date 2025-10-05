@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Controller } from 'src/api/controller.js';
+import { Controller } from 'src/api/http/controller.js';
 import { ControllerModule } from 'src/runtime/modules/controller-module.js';
-import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
-import { TOKENS } from 'src/api/tokens.js';
+import { MiddlewareRegistry } from 'src/runtime/app/middleware-registry.js';
+import { TOKENS } from 'src/api/app/tokens.js';
 
 describe('ControllerModule', () => {
   it('should provide Router and CONTROLLER_CLASSES', () => {

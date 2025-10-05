@@ -2,12 +2,12 @@ import {
   Ok,
   Created,
   BadRequest,
-} from 'src/api/http-results.js';
+} from 'src/api/http/http-results.js';
 
 import { HttpContext } from 'src/api/http/types.js';
-import { Controller } from 'src/api/controller.js';
+import { Controller } from 'src/api/http/controller.js';
 
-import { route } from 'src/api/routing.js';
+import { route } from 'src/api/http/routing.js';
 
 import { UserService } from './user-service.js';
 

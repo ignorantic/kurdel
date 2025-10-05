@@ -1,8 +1,8 @@
 import { Newable } from '@kurdel/common';
 import { ServerAdapter } from '../../api/http/interfaces.js';
-import { Model } from '../../api/model.js';
+import { Model } from '../../api/db/model.js';
 import { AppModule } from '../../api/app/app-module.js';
-import { HttpModule } from '../../api/http-module.js';
+import { HttpModule } from '../../api/http/http-module.js';
 export interface AppConfig {
     server?: Newable<ServerAdapter>;
     db?: boolean;

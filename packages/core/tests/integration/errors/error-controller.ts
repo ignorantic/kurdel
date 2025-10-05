@@ -6,12 +6,12 @@ import {
   NotImplemented,
   ServiceUnavailable,
   Unauthorized,
-} from 'src/api/http-results.js';
+} from 'src/api/http/http-results.js';
 
-import { Controller } from 'src/api/controller.js';
+import { Controller } from 'src/api/http/controller.js';
 import { ActionResult } from 'src/api/http/types.js';
 
-import { route } from 'src/api/routing.js';
+import { route } from 'src/api/http/routing.js';
 
 export class ErrorController extends Controller {
   readonly routes = {

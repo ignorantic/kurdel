@@ -1,6 +1,6 @@
-import { TOKENS } from '../../api/tokens.js';
-import { IoCControllerResolver } from '../ioc-controller-resolver.js';
-import { RouterImpl } from '../router.js';
+import { TOKENS } from '../../api/app/tokens.js';
+import { IoCControllerResolver } from '../app/ioc-controller-resolver.js';
+import { RouterImpl } from '../http/router.js';
 /**
  * ControllerModule
  *

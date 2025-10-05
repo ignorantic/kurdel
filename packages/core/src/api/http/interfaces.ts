@@ -1,8 +1,14 @@
 import { Newable } from '@kurdel/common';
 import { Identifier } from '@kurdel/ioc';
-import { Controller } from 'src/api/controller.js';
-import { Model } from 'src/api/model.js';
-import { Middleware } from 'src/api/http/types.js';
+
+import {
+  HttpRequest,
+  HttpResponse,
+  Middleware,
+  Method,
+} from 'src/api/http/types.js';
+import { Controller } from 'src/api/http/controller.js';
+import { Model } from 'src/api/db/model.js';
 
 export interface RequestLike { method?: string; url?: string }
 export interface ResponseLike { statusCode?: number; end?(body?: unknown): void }
@@ -46,4 +52,27 @@ export interface ModelConfig {
   deps?: Record<string, Identifier>;
 }
 
-export type ModelList = (Newable<Model> | ModelConfig)[]
+export interface RouterDeps {
+  resolver: ControllerResolver;
+  controllerConfigs: ControllerConfig[];
+  middlewares: Middleware[];
+}
+
+export interface ControllerResolver {
+  get<T>(cls: Newable<T>): T;
+}
+
+export interface Router {
+  /** Prepare routes (called once at bootstrap) */
+  init(deps: RouterDeps): void;
+
+  /**
+   * Find a handler for method+url; returns a callable or null
+   * adapter вызовет его как handler(req, res)
+   */
+  resolve(
+    method: Method,
+    url: string
+  ): ((req: HttpRequest, res: HttpResponse) => Promise<void> | void) | null;
+}
+

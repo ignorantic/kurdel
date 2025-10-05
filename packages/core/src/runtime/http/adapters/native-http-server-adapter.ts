@@ -1,5 +1,5 @@
 import http, { IncomingMessage, Server, ServerResponse } from 'http';
-import { ServerAdapter } from '../interfaces.js';
+import { ServerAdapter } from 'src/api/http/interfaces.js';
 
 export class NativeHttpServerAdapter implements ServerAdapter<IncomingMessage, ServerResponse> {
   private server = http.createServer();

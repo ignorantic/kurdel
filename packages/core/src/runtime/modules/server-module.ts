@@ -1,14 +1,19 @@
 import { Container } from '@kurdel/ioc';
 
 import { Method } from 'src/api/http/types.js';
-import { ControllerConfig, RequestLike, ResponseLike, ServerAdapter } from 'src/api/http/interfaces.js';
-import { TOKENS } from 'src/api/tokens.js';
+import {
+  ControllerConfig,
+  RequestLike,
+  ResponseLike,
+  ServerAdapter,
+  Router,
+} from 'src/api/http/interfaces.js';
+import { TOKENS } from 'src/api/app/tokens.js';
 import { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
-import { NativeHttpServerAdapter } from 'src/api/http/adapters/native-http-server-adapter.js';
+import { NativeHttpServerAdapter } from 'src/runtime/http/adapters/native-http-server-adapter.js';
 import { AppConfig } from 'src/api/app/config.js';
-import { Router } from 'src/api/http/router.js';
 
-import { MiddlewareRegistry } from '../middleware-registry.js';
+import { MiddlewareRegistry } from '../app/middleware-registry.js';
 
 /**
  * ServerModule

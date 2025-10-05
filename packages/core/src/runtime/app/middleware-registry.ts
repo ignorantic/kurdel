@@ -1,6 +1,7 @@
 import { Newable } from '@kurdel/common';
+
 import type { Middleware } from 'src/api/http/types.js';
-import { Controller } from 'src/api/controller.js';
+import { Controller } from 'src/api/http/controller.js';
 
 export class MiddlewareRegistry {
   private readonly global: Middleware[] = [];

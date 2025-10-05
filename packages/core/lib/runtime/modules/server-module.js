@@ -1,5 +1,5 @@
-import { TOKENS } from '../../api/tokens.js';
-import { NativeHttpServerAdapter } from '../../api/http/adapters/native-http-server-adapter.js';
+import { TOKENS } from '../../api/app/tokens.js';
+import { NativeHttpServerAdapter } from '../../runtime/http/adapters/native-http-server-adapter.js';
 /**
  * ServerModule
  *

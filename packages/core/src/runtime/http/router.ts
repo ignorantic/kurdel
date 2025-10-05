@@ -1,8 +1,12 @@
-import { Controller } from 'src/api/controller.js';
-import { ROUTE_META, type RouteMeta } from 'src/api/routing.js';
-import type { Method, ControllerResolver, Middleware } from 'src/api/http/types.js';
-import { ControllerConfig } from 'src/api/http/interfaces.js';
-import { HttpRequest, HttpResponse, Router } from 'src/api/http/router.js';
+import type {
+  Method,
+  Middleware,
+  HttpRequest,
+  HttpResponse,
+} from 'src/api/http/types.js';
+import { ControllerConfig, Router, ControllerResolver } from 'src/api/http/interfaces.js';
+import { Controller } from 'src/api/http/controller.js';
+import { ROUTE_META, type RouteMeta } from 'src/api/http/routing.js';
 
 type Entry = {
   method: Method;

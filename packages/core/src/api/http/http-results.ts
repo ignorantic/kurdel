@@ -1,5 +1,5 @@
-import { ActionResult, JsonValue } from './http/types.js';
-import { HttpError } from './http-error.js';
+import { HttpError } from 'src/api/http/http-error.js';
+import { ActionResult, JsonValue } from './types.js';
 
 // success
 export const Ok = (body: JsonValue = { message: 'OK' }): ActionResult => ({

@@ -1,5 +1,5 @@
 import { IoCContainer } from '@kurdel/ioc';
-import { TOKENS } from '../../api/tokens.js';
+import { TOKENS } from '../../api/app/tokens.js';
 import { ControllerModule } from '../modules/controller-module.js';
 import { DatabaseModule } from '../modules/database-module.js';
 import { MiddlewareModule } from '../modules/middleware-module.js';

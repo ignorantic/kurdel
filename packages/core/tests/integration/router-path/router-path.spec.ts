@@ -2,12 +2,12 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Server } from 'http';
 import request from 'supertest';
 
-import { Ok } from 'src/api/http-results.js';
-import { Controller } from 'src/api/controller.js';
+import { Ok } from 'src/api/http/http-results.js';
+import { Controller } from 'src/api/http/controller.js';
 import { HttpContext } from 'src/api/http/types.js';
-import { HttpModule } from 'src/api/http-module.js';
+import { HttpModule } from 'src/api/http/http-module.js';
 
-import { route } from 'src/api/routing.js';
+import { route } from 'src/api/http/routing.js';
 
 import { createApplication } from 'src/facade/create-application.js';
 

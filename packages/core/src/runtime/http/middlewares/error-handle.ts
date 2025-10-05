@@ -1,5 +1,5 @@
-import type { Middleware } from '../../../api/http/types.js';
-import { HttpError } from '../../../api/http-error.js';
+import type { Middleware } from 'src/api/http/types.js';
+import { HttpError } from 'src/api/http/http-error.js';
 
 export const errorHandler: Middleware = async (ctx, next) => {
   try {

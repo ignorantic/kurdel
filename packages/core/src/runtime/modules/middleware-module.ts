@@ -1,12 +1,12 @@
 import { Container } from '@kurdel/ioc';
 
-import { TOKENS } from 'src/api/tokens.js';
+import { TOKENS } from 'src/api/app/tokens.js';
 import { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
 import { Middleware } from 'src/api/http/types.js';
 
 import { errorHandler } from '../http/middlewares/error-handle.js';
 import { jsonBodyParser } from '../http/middlewares/json-body-parser.js';
-import { MiddlewareRegistry } from '../middleware-registry.js';
+import { MiddlewareRegistry } from '../app/middleware-registry.js';
 
 /**
  * MiddlewareModule

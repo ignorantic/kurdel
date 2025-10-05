@@ -1,4 +1,4 @@
-import { BadRequest } from '../../../api/http-results.js';
+import { BadRequest } from '../../../api/http/http-results.js';
 /**
  * Parses JSON request body and assigns it to ctx.body.
  *

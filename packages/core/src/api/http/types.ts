@@ -1,11 +1,18 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { Newable } from '@kurdel/common';
 
+import { Model } from 'src/api/db/model.js';
+import { ModelConfig } from './interfaces.js';
+
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
 export type Route = { method: Method, path: string, handler: Function };
 
 export type Query = Readonly<Record<string, string | string[]>>;
+
+export type HttpRequest = unknown;
+
+export type HttpResponse = unknown;
 
 export type JsonValue =
   | string
@@ -38,11 +45,9 @@ export type RouteConfig<TDeps> = {
   [key: string]: RouteHandler<TDeps, any>;
 };
 
-export interface ControllerResolver {
-  get<T>(cls: Newable<T>): T;
-}
-
 export type Middleware<TDeps = unknown, TBody = unknown> = (
   ctx: HttpContext<TDeps, TBody>,
   next: () => Promise<ActionResult>
 ) => Promise<ActionResult>;
+
+export type ModelList = (Newable<Model> | ModelConfig)[]

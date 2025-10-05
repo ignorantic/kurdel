@@ -1,8 +1,7 @@
-import type { AppModule } from 'src/api/app/app-module.js';
-import type { Middleware } from 'src/api/http/types.js';
-import type { AppConfig } from 'src/api/app/config.js';
-import { ControllerConfig, ModelList } from 'src/api/http/interfaces.js';
-
+import type { Middleware, ModelList } from '../../api/http/types.js';
+import { ControllerConfig } from '../../api/http/interfaces.js';
+import type { AppModule } from '../app/app-module.js';
+import type { AppConfig } from '../app/config.js';
 /**
  * HttpModule
  *
@@ -32,22 +31,19 @@ import { ControllerConfig, ModelList } from 'src/api/http/interfaces.js';
  * ```
  */
 export interface HttpModule<TConfig = AppConfig> extends AppModule<TConfig> {
-  /**
-   * Models that should be registered
-   * through the ModelModule
-   */
-  readonly models?: ModelList;
-  
-  /**
-   * Controllers that should be registered
-   * through the ControllerModule
-   */
-  readonly controllers?: ControllerConfig[];
-
-  /**
-   * Middleware that should be registered
-   * through the MiddlewareModule
-   */
-  readonly middlewares?: Middleware[];
+    /**
+     * Models that should be registered
+     * through the ModelModule
+     */
+    readonly models?: ModelList;
+    /**
+     * Controllers that should be registered
+     * through the ControllerModule
+     */
+    readonly controllers?: ControllerConfig[];
+    /**
+     * Middleware that should be registered
+     * through the MiddlewareModule
+     */
+    readonly middlewares?: Middleware[];
 }
-

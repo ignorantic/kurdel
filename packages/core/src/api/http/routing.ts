@@ -1,4 +1,4 @@
-import { Method } from 'src/api/http/types.js';
+import { Method } from './types.js';
 
 export const ROUTE_META = Symbol('route:meta');
 
