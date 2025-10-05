@@ -1,4 +1,4 @@
-export class IoCControllerResolver {
+export class ControllerResolverImpl {
     constructor(container) {
         this.container = container;
     }
@@ -6,4 +6,4 @@ export class IoCControllerResolver {
         return this.container.get(cls);
     }
 }
-//# sourceMappingURL=ioc-controller-resolver.js.map
+//# sourceMappingURL=controller-resolver-impl.js.map

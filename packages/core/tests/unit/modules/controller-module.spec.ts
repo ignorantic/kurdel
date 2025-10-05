@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Controller } from 'src/api/http/controller.js';
 import { ControllerModule } from 'src/runtime/modules/controller-module.js';
-import { MiddlewareRegistry } from 'src/runtime/app/middleware-registry.js';
+import { MiddlewareRegistry } from 'src/runtime/app/middleware-registry-impl.js';
 import { TOKENS } from 'src/api/app/tokens.js';
 
 describe('ControllerModule', () => {

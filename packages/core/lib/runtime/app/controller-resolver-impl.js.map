@@ -1,0 +1,1 @@
+{"version":3,"file":"controller-resolver-impl.js","sourceRoot":"","sources":["../../../src/runtime/app/controller-resolver-impl.ts"],"names":[],"mappings":"AAKA,MAAM,OAAO,sBAAsB;IAGjC,YAAY,SAAoB;QAC9B,IAAI,CAAC,SAAS,GAAG,SAAS,CAAC;IAC7B,CAAC;IAED,GAAG,CAAI,GAAe;QACpB,OAAO,IAAI,CAAC,SAAS,CAAC,GAAG,CAAI,GAAG,CAAC,CAAC;IACpC,CAAC;CACF"}

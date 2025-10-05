@@ -2,8 +2,9 @@ import { Newable } from '@kurdel/common';
 
 import type { Middleware } from 'src/api/http/types.js';
 import { Controller } from 'src/api/http/controller.js';
+import { MiddlewareRegistry } from 'src/api/http/middleware-registry.js';
 
-export class MiddlewareRegistry {
+export class MiddlewareRegistryImpl implements MiddlewareRegistry {
   private readonly global: Middleware[] = [];
   private readonly perController = new Map<Newable<{}>, Middleware[]>();
 

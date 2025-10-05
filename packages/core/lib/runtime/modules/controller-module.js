@@ -1,5 +1,5 @@
 import { TOKENS } from '../../api/app/tokens.js';
-import { IoCControllerResolver } from '../app/ioc-controller-resolver.js';
+import { ControllerResolverImpl } from '../app/controller-resolver-impl.js';
 import { RouterImpl } from '../http/router.js';
 /**
  * ControllerModule
@@ -17,7 +17,7 @@ export class ControllerModule {
         this.providers = [
             {
                 provide: TOKENS.ControllerResolver,
-                useFactory: (ioc) => new IoCControllerResolver(ioc),
+                useFactory: (ioc) => new ControllerResolverImpl(ioc),
                 isSingleton: true,
             },
             {

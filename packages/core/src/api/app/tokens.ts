@@ -1,5 +1,6 @@
 import { createGlobalToken } from '@kurdel/ioc';
-import { ServerAdapter, Router } from '../http/interfaces.js';
+import { ServerAdapter } from '../http/interfaces.js';
+import { Router } from '../http/router.js';
 
 export const TOKENS = {
   ServerAdapter: createGlobalToken<ServerAdapter>('SERVER_ADAPTER'),

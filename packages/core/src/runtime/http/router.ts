@@ -4,7 +4,9 @@ import type {
   HttpRequest,
   HttpResponse,
 } from 'src/api/http/types.js';
-import { ControllerConfig, Router, ControllerResolver } from 'src/api/http/interfaces.js';
+import { ControllerConfig } from 'src/api/http/interfaces.js';
+import { Router } from 'src/api/http/router.js';
+import { ControllerResolver } from 'src/api/http/controller-resolver.js';
 import { Controller } from 'src/api/http/controller.js';
 import { ROUTE_META, type RouteMeta } from 'src/api/http/routing.js';
 

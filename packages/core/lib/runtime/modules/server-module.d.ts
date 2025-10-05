@@ -1,7 +1,8 @@
 import { Container } from '@kurdel/ioc';
-import { RequestLike, ResponseLike, ServerAdapter, Router } from '../../api/http/interfaces.js';
+import { RequestLike, ResponseLike, ServerAdapter } from '../../api/http/interfaces.js';
 import { AppModule, ProviderConfig } from '../../api/app/app-module.js';
 import { AppConfig } from '../../api/app/config.js';
+import { Router } from '../../api/http/router.js';
 /**
  * ServerModule
  *

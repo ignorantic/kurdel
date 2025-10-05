@@ -1,5 +1,7 @@
 import type { Method, Middleware, HttpRequest, HttpResponse } from '../../api/http/types.js';
-import { ControllerConfig, Router, ControllerResolver } from '../../api/http/interfaces.js';
+import { ControllerConfig } from '../../api/http/interfaces.js';
+import { Router } from '../../api/http/router.js';
+import { ControllerResolver } from '../../api/http/controller-resolver.js';
 interface RouterDeps {
     resolver: ControllerResolver;
     controllerConfigs: ControllerConfig[];

@@ -1,11 +1,12 @@
 import { Container } from '@kurdel/ioc';
 
-import { ControllerConfig, Router } from 'src/api/http/interfaces.js';
+import { ControllerConfig } from 'src/api/http/interfaces.js';
+import { Router } from 'src/api/http/router.js';
 import { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
+import { MiddlewareRegistry } from 'src/api/http/middleware-registry.js';
 import { TOKENS } from 'src/api/app/tokens.js';
 
-import { IoCControllerResolver } from '../app/ioc-controller-resolver.js';
-import { MiddlewareRegistry } from '../app/middleware-registry.js';
+import { ControllerResolverImpl } from '../app/controller-resolver-impl.js';
 import { RouterImpl } from '../http/router.js';
 
 /**
@@ -26,7 +27,7 @@ export class ControllerModule implements AppModule {
     this.providers = [
       {
         provide: TOKENS.ControllerResolver,
-        useFactory: (ioc: Container) => new IoCControllerResolver(ioc),
+        useFactory: (ioc: Container) => new ControllerResolverImpl(ioc),
         isSingleton: true,
       },
       {

@@ -1,9 +1,9 @@
 import { Newable } from '@kurdel/common';
 import { Container } from '@kurdel/ioc';
 
-import { ControllerResolver } from 'src/api/http/interfaces.js';
+import { ControllerResolver } from 'src/api/http/controller-resolver.js';
 
-export class IoCControllerResolver implements ControllerResolver {
+export class ControllerResolverImpl implements ControllerResolver {
   private readonly container: Container;
 
   constructor(container: Container) {

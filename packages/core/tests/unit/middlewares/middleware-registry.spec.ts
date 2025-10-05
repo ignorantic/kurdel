@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { MiddlewareRegistry } from 'src/runtime/app/middleware-registry.js';
+import { MiddlewareRegistry } from 'src/runtime/app/middleware-registry-impl.js';
 import type { Middleware } from 'src/api/http/types.js';
 import { Controller } from 'src/api/http/controller.js';
 

@@ -1,16 +1,12 @@
 import { Newable } from '@kurdel/common';
 import { Identifier } from '@kurdel/ioc';
 
-import {
-  HttpRequest,
-  HttpResponse,
-  Middleware,
-  Method,
-} from 'src/api/http/types.js';
+import { Middleware } from 'src/api/http/types.js';
 import { Controller } from 'src/api/http/controller.js';
 import { Model } from 'src/api/db/model.js';
 
 export interface RequestLike { method?: string; url?: string }
+
 export interface ResponseLike { statusCode?: number; end?(body?: unknown): void }
 
 export interface ServerAdapter<R = RequestLike, S = ResponseLike> {
@@ -50,29 +46,5 @@ export interface ModelConfig {
 
   /** Dependencies to be injected from IoC */
   deps?: Record<string, Identifier>;
-}
-
-export interface RouterDeps {
-  resolver: ControllerResolver;
-  controllerConfigs: ControllerConfig[];
-  middlewares: Middleware[];
-}
-
-export interface ControllerResolver {
-  get<T>(cls: Newable<T>): T;
-}
-
-export interface Router {
-  /** Prepare routes (called once at bootstrap) */
-  init(deps: RouterDeps): void;
-
-  /**
-   * Find a handler for method+url; returns a callable or null
-   * adapter вызовет его как handler(req, res)
-   */
-  resolve(
-    method: Method,
-    url: string
-  ): ((req: HttpRequest, res: HttpResponse) => Promise<void> | void) | null;
 }
 

@@ -6,14 +6,14 @@ import {
   RequestLike,
   ResponseLike,
   ServerAdapter,
-  Router,
 } from 'src/api/http/interfaces.js';
 import { TOKENS } from 'src/api/app/tokens.js';
 import { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
 import { NativeHttpServerAdapter } from 'src/runtime/http/adapters/native-http-server-adapter.js';
 import { AppConfig } from 'src/api/app/config.js';
 
-import { MiddlewareRegistry } from '../app/middleware-registry.js';
+import { Router } from 'src/api/http/router.js';
+import { MiddlewareRegistry } from 'src/api/http/middleware-registry.js';
 
 /**
  * ServerModule
