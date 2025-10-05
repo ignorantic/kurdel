@@ -1,4 +1,4 @@
-import { Middleware } from "@kurdel/core";
+import { Middleware } from "@kurdel/core/http";
 
 export const loggerMiddleware: Middleware = async (ctx, next) => {
   const start = Date.now();

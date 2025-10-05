@@ -8,7 +8,7 @@ import {
   NotFound,
   Ok,
   Created,
-} from '@kurdel/core';
+} from '@kurdel/core/http';
 import { UserModel } from './user-model.js';
 
 type Deps = {

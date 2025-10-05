@@ -1,4 +1,4 @@
-import { Controller, route, BadRequest, NotFound, Ok, } from '@kurdel/core';
+import { Controller, route, BadRequest, NotFound, Ok, } from '@kurdel/core/http';
 export class PostController extends Controller {
     routes = {
         getOne: route({ method: 'GET', path: '/:id' })(this.getOne),

@@ -1,4 +1,4 @@
-import { Model } from '@kurdel/core';
+import { Model } from '@kurdel/core/db';
 export class UserModel extends Model {
     table = 'users';
     async createUser(name, role) {

@@ -7,7 +7,7 @@ import {
   BadRequest,
   NotFound,
   Ok,
-} from '@kurdel/core';
+} from '@kurdel/core/http';
 import { PostService } from 'services/post-service.js';
 
 type Deps = {

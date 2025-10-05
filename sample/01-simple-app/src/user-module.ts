@@ -1,4 +1,6 @@
-import { AppConfig, HttpModule } from '@kurdel/core';
+import { AppConfig } from '@kurdel/core/app';
+import { HttpModule } from '@kurdel/core/http';
+
 import { UserController } from './user-controller.js';
 import { UserModel } from './user-model.js';
 
@@ -13,6 +15,6 @@ export class UserModule implements HttpModule<AppConfig> {
     },
   ];
 
-  async register() {}
+  register() {}
 }
 

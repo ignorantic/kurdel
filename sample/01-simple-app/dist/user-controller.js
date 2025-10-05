@@ -1,4 +1,4 @@
-import { Controller, route, BadRequest, NotFound, Ok, Created, } from '@kurdel/core';
+import { Controller, route, BadRequest, NotFound, Ok, Created, } from '@kurdel/core/http';
 export class UserController extends Controller {
     routes = {
         create: route({ method: 'POST', path: '/' })(this.create),

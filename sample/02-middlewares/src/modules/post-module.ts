@@ -1,4 +1,6 @@
-import { AppConfig, HttpModule } from '@kurdel/core';
+import { AppConfig } from '@kurdel/core/app';
+import { HttpModule } from '@kurdel/core/http';
+
 import { PostController } from '../controllers/post-controller.js';
 import { PostService } from '../services/post-service.js';
 
