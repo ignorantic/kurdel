@@ -1,8 +1,8 @@
 import { IoCContainer } from '@kurdel/ioc';
 import { IDatabase } from '@kurdel/db';
-import { AppModule } from 'src/api/app-module.js';
-import { AppConfig } from 'src/api/config.js';
-import { ModelList } from 'src/api/interfaces.js';
+import { AppModule } from 'src/api/app/app-module.js';
+import { AppConfig } from 'src/api/app/config.js';
+import { ModelList } from 'src/api/http/interfaces.js';
 
 /**
  * ModelModule

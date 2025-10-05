@@ -1,4 +1,6 @@
-import { HttpModule, ControllerConfig, AppConfig } from '@kurdel/core';
+import { AppConfig } from 'src/api/app/config.js';
+import { HttpModule } from 'src/api/http-module.js';
+import { ControllerConfig } from 'src/api/http/interfaces.js';
 
 import { UserService } from './user-service.js';
 import { UserController } from './user-controller.js';

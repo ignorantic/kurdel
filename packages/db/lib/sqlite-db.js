@@ -1,6 +1,5 @@
 import sqlite3 from 'sqlite3';
 export class SQLiteDB {
-    db;
     constructor(path) {
         this.db = new sqlite3.Database(path, (err) => {
             if (err) {
@@ -57,3 +56,4 @@ export class SQLiteDB {
         });
     }
 }
+//# sourceMappingURL=sqlite-db.js.map

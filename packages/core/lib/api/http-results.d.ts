@@ -1,4 +1,4 @@
-import { ActionResult, JsonValue } from './types.js';
+import { ActionResult, JsonValue } from './http/types.js';
 import { HttpError } from './http-error.js';
 export declare const Ok: (body?: JsonValue) => ActionResult;
 export declare const Created: (body?: JsonValue) => ActionResult;

@@ -1,6 +1,6 @@
 export class DatabaseDriver {
-    config;
     constructor(config) {
         this.config = config;
     }
 }
+//# sourceMappingURL=database-driver.js.map

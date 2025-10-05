@@ -1,4 +1,4 @@
-import { Method } from '../api/types.js';
+import { Method } from '../api/http/types.js';
 export declare const ROUTE_META: unique symbol;
 export type RouteMeta = {
     method: Method;

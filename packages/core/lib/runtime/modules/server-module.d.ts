@@ -1,22 +1,26 @@
-import { IoCContainer } from '@kurdel/ioc';
-import { AppModule, ProviderConfig } from '../../api/app-module.js';
-import { Router } from '../../runtime/router.js';
-import { AppConfig } from '../../api/config.js';
+import { Container } from '@kurdel/ioc';
+import { RequestLike, ResponseLike, ServerAdapter } from '../../api/http/interfaces.js';
+import { AppModule, ProviderConfig } from '../../api/app/app-module.js';
+import { AppConfig } from '../../api/app/config.js';
+import { Router } from '../../api/http/router.js';
 /**
  * ServerModule
  *
- * - Registers HTTP server adapter
- * - Depends on Router
- * - Exports IServerAdapter
+ * - Provides HTTP ServerAdapter implementation
+ * - Wires adapter with Router via adapter.on(handler)
+ * - Initializes Router with controller configs and middlewares
  */
 export declare class ServerModule implements AppModule<AppConfig> {
     readonly imports: {
-        router: typeof Router;
+        router: import("@kurdel/ioc").InjectionToken<Router>;
+        registry: import("@kurdel/ioc").InjectionToken<unknown>;
+        controllerConfigs: import("@kurdel/ioc").InjectionToken<unknown>;
+        controllerResolver: import("@kurdel/ioc").InjectionToken<unknown>;
     };
     readonly exports: {
-        server: import("@kurdel/ioc").InjectionToken<import("../../index.js").ServerAdapter>;
+        server: import("@kurdel/ioc").InjectionToken<ServerAdapter<RequestLike, ResponseLike>>;
     };
     readonly providers: ProviderConfig[];
     constructor(config: AppConfig);
-    register(_ioc: IoCContainer): Promise<void>;
+    register(ioc: Container): Promise<void>;
 }

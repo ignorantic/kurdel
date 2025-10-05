@@ -12,3 +12,4 @@ export class JSONLoader {
         }
     }
 }
+//# sourceMappingURL=json-loader.js.map

@@ -2,17 +2,19 @@
   "name": "@kurdel/db",
   "version": "1.0.0",
   "description": "framework",
-  "main": "lib/index.js",
   "type": "module",
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "files": [
-    "lib",
-    "types"
+    "lib"
   ],
-  "types": "types/index.d.ts",
   "scripts": {
     "test": "echo \"No tests yet\"",
-    "clean": "rimraf lib types",
-    "build": "tsc"
+    "clean": "rimraf lib",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json"
   },
   "keywords": [
     "framework",
@@ -21,7 +23,9 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.9.0"
+    "@types/node": "^20.9.0",
+    "rimraf": "^3.0.2",
+    "tsc-alias": "^1.8.16"
   },
   "peerDependencies": {
     "sqlite3": "^5.1.6"

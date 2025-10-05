@@ -1,4 +1,4 @@
-import { ActionResult, JsonValue } from './types.js';
+import { ActionResult, JsonValue } from './http/types.js';
 import { HttpError } from './http-error.js';
 
 // success

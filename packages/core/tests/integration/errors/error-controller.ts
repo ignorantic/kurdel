@@ -1,7 +1,4 @@
 import {
-  Controller,
-  route,
-  ActionResult,
   BadRequest,
   Conflict, 
   Forbidden,
@@ -9,7 +6,12 @@ import {
   NotImplemented,
   ServiceUnavailable,
   Unauthorized,
-} from '@kurdel/core';
+} from 'src/api/http-results.js';
+
+import { Controller } from 'src/api/controller.js';
+import { ActionResult } from 'src/api/http/types.js';
+
+import { route } from 'src/api/routing.js';
 
 export class ErrorController extends Controller {
   readonly routes = {

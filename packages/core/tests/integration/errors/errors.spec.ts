@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { Server } from 'http';
 
-import { createApplication } from '@kurdel/core';
+import { createApplication } from 'src/facade/create-application.js';
 
 import { ErrorModule } from './error-module.js';
 

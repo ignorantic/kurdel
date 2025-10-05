@@ -1,4 +1,4 @@
-import type { AppConfig } from '../api/config.js';
+import type { AppConfig } from '../api/app/config.js';
 import type { Application } from '../api/app/application.js';
 /**
  * Runtime façade that constructs and bootstraps the application,

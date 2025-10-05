@@ -1,8 +1,8 @@
 import { Container } from '@kurdel/ioc';
 import type { Application } from '../../api/app/application.js';
-import type { AppModule } from '../../api/app-module.js';
-import type { AppConfig } from '../../api/config.js';
-import { RunningServer } from '../../api/interfaces.js';
+import type { AppModule } from '../../api/app/app-module.js';
+import type { AppConfig } from '../../api/app/config.js';
+import { RunningServer } from '../../api/http/interfaces.js';
 /**
  * Internal application implementation.
  * Orchestrates module loading, provider registration and server startup.

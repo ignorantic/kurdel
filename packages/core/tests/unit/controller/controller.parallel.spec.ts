@@ -1,11 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import {
-  Controller,
-  RouteConfig,
-  HttpContext,
-  ActionResult,
-} from '@kurdel/core';
+import { Controller } from 'src/api/controller.js';
+import { ActionResult, HttpContext, RouteConfig } from 'src/api/http/types.js';
+
 import { createReqRes } from '../utils/http.js';
 
 // simple deferred helper

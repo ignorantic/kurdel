@@ -1,30 +1,38 @@
 import { Container } from '@kurdel/ioc';
-import { AppModule } from 'src/api/app-module.js';
-import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
-import { Middleware } from 'src/api/types.js';
-import { errorHandler } from 'src/runtime/http/middlewares/error-handle.js';
-import { jsonBodyParser } from 'src/runtime/http/middlewares/json-body-parser.js';
+
+import { TOKENS } from 'src/api/tokens.js';
+import { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
+import { Middleware } from 'src/api/http/types.js';
+
+import { errorHandler } from '../http/middlewares/error-handle.js';
+import { jsonBodyParser } from '../http/middlewares/json-body-parser.js';
+import { MiddlewareRegistry } from '../middleware-registry.js';
 
 /**
  * MiddlewareModule
  *
- * - Registers global middlewares from all HttpModules
+ * - Provides a singleton MiddlewareRegistry
+ * - Registers default global middlewares and app-provided ones
  */
 export class MiddlewareModule implements AppModule {
-  readonly exports = { registry: MiddlewareRegistry };
-  readonly providers = [
-    { provide: MiddlewareRegistry, useClass: MiddlewareRegistry, isSingleton: true },
+  readonly exports = { registry: TOKENS.MiddlewareRegistry };
+  readonly providers: ProviderConfig[] = [
+    {
+      provide: TOKENS.MiddlewareRegistry,
+      useClass: MiddlewareRegistry,
+      isSingleton: true,
+    },
   ];
 
   constructor(private middlewares: Middleware[]) {}
 
   async register(ioc: Container): Promise<void> {
-    const registry = ioc.get(MiddlewareRegistry);
-    
-    this.middlewares.forEach((mw) => registry.use(mw));
+    const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry); 
 
-    // Always include default error handler and body parser
+    // Recommended order:
+    // 1) parsers (json) → 2) user middlewares → 3) error handler (last)
     registry.use(errorHandler);
+    this.middlewares.forEach((mw) => registry.use(mw));
     registry.use(jsonBodyParser);
   }
 }

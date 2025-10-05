@@ -2,7 +2,6 @@ import { JSONLoader } from '@kurdel/common';
 import { DB_CONFIG_FILENAME } from './consts.js';
 import { DatabaseFactory } from './database-factory.js';
 export class DBConnector {
-    jsonLoader;
     constructor() {
         this.jsonLoader = new JSONLoader();
     }
@@ -24,3 +23,4 @@ export class DBConnector {
         return driver.connection;
     }
 }
+//# sourceMappingURL=db-connector.js.map

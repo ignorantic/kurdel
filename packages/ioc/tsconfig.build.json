@@ -1,11 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "rootDir": "src",
     "outDir": "lib",
     "declaration": true,
+    "declarationDir": "lib",
     "declarationMap": false,
     "baseUrl": ".",
     "paths": {
@@ -15,7 +14,7 @@
     "composite": true,
     "noEmit": false,
     "incremental": true,
-    "tsBuildInfoFile": "../../.cache/tsconfig.core.build.tsbuildinfo"
+    "tsBuildInfoFile": "../../.cache/tsconfig.ioc.build.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts", "tests/**", "vitest.config.ts"]

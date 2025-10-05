@@ -1,9 +1,8 @@
-import { IncomingMessage, ServerResponse } from 'http';
 import { Controller } from 'src/api/controller.js';
-import { ROUTE_META, type RouteMeta } from '../api/routing.js';
-import type { Method, ControllerResolver, Middleware } from 'src/api/types.js';
-import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
-import { ControllerConfig } from 'src/api/interfaces.js';
+import { ROUTE_META, type RouteMeta } from 'src/api/routing.js';
+import type { Method, ControllerResolver, Middleware } from 'src/api/http/types.js';
+import { ControllerConfig } from 'src/api/http/interfaces.js';
+import { HttpRequest, HttpResponse, Router } from 'src/api/http/router.js';
 
 type Entry = {
   method: Method;
@@ -38,21 +37,19 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
 interface RouterDeps {
   resolver: ControllerResolver;
   controllerConfigs: ControllerConfig[];
-  registry: MiddlewareRegistry;
+  middlewares: Middleware[];
 }
 
-export class Router {
+export class RouterImpl implements Router {
   private entries: Entry[] = [];
   private middlewares: Middleware[] = [];
 
-  constructor({ resolver, controllerConfigs, registry }: RouterDeps) {
-    this.middlewares = registry.all();
-    
+  init({ resolver, controllerConfigs, middlewares }: RouterDeps): void {
+    this.middlewares = [...middlewares];
+
     controllerConfigs.forEach((cfg) => {
       const instance = resolver.get(cfg.use);
-
       cfg.middlewares?.forEach((mw) => instance.use(mw));
-
       this.useController(instance, cfg.prefix ?? '');
     });
   }
@@ -90,10 +87,9 @@ export class Router {
         params[key] = match[i + 1];
       });
 
-      return (req: IncomingMessage, res: ServerResponse) => {
-        // enrich ctx.params via monkey-patch
+      return (req: HttpRequest, res: HttpResponse) => {
         (req as any).__params = params;
-        entry.controller.execute(req, res, entry.action, this.middlewares);
+        entry.controller.execute(req as any, res as any, entry.action, this.middlewares);
       };
     }
 

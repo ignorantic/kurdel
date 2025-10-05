@@ -17,11 +17,13 @@ function compilePath(path) {
         .join('/');
     return { regex: new RegExp(`^/${pattern}/?$`), keys };
 }
-export class Router {
-    constructor({ resolver, controllerConfigs, registry }) {
+export class RouterImpl {
+    constructor() {
         this.entries = [];
         this.middlewares = [];
-        this.middlewares = registry.all();
+    }
+    init({ resolver, controllerConfigs, middlewares }) {
+        this.middlewares = [...middlewares];
         controllerConfigs.forEach((cfg) => {
             const instance = resolver.get(cfg.use);
             cfg.middlewares?.forEach((mw) => instance.use(mw));
@@ -58,7 +60,6 @@ export class Router {
                 params[key] = match[i + 1];
             });
             return (req, res) => {
-                // enrich ctx.params via monkey-patch
                 req.__params = params;
                 entry.controller.execute(req, res, entry.action, this.middlewares);
             };

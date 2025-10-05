@@ -1,1 +1,0 @@
-{"version":3,"file":"bindingInContract.d.ts","sourceRoot":"","sources":["../src/bindingInContract.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,MAAM,cAAc,CAAC;AAEvC;;;;;;GAMG;AACH,qBAAa,iBAAiB,CAAC,CAAC;IAC9B,OAAO,CAAC,OAAO,CAAa;gBAEhB,OAAO,EAAE,OAAO,CAAC,CAAC,CAAC;IAI/B;;;;;;;OAOG;IACH,gBAAgB,IAAI,IAAI;CAIzB"}

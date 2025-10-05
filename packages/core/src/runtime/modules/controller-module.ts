@@ -1,11 +1,13 @@
 import { Container } from '@kurdel/ioc';
 
-import { AppModule, ProviderConfig } from 'src/api/app-module.js';
-import { IoCControllerResolver } from 'src/runtime/ioc-controller-resolver.js';
-import { MiddlewareRegistry } from 'src/runtime/middleware-registry.js';
-import { Router } from 'src/runtime/router.js';
-import { ControllerConfig } from 'src/api/interfaces.js';
+import { ControllerConfig } from 'src/api/http/interfaces.js';
+import { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
+import { Router } from 'src/api/http/router.js';
 import { TOKENS } from 'src/api/tokens.js';
+
+import { IoCControllerResolver } from '../ioc-controller-resolver.js';
+import { MiddlewareRegistry } from '../middleware-registry.js';
+import { RouterImpl } from '../router.js';
 
 /**
  * ControllerModule
@@ -15,10 +17,8 @@ import { TOKENS } from 'src/api/tokens.js';
  * - Supports controller-level middlewares and prefix metadata
  */
 export class ControllerModule implements AppModule {
-  readonly imports = { registry: MiddlewareRegistry };
   readonly exports = {
     controllerConfigs: TOKENS.ControllerConfigs,
-    router: Router,
   };
 
   readonly providers: ProviderConfig[];
@@ -26,17 +26,18 @@ export class ControllerModule implements AppModule {
   constructor(private controllers: ControllerConfig[]) {
     this.providers = [
       {
-        provide: IoCControllerResolver,
+        provide: TOKENS.ControllerResolver,
         useFactory: (ioc: Container) => new IoCControllerResolver(ioc),
         isSingleton: true,
       },
       {
-        provide: Router,
-        useClass: Router,
+        provide: TOKENS.Router,
+        useClass: RouterImpl as unknown as new (...a:any[]) => Router,
+        isSingleton: true,
         deps: {
-          resolver: IoCControllerResolver,
+          resolver: TOKENS.ControllerResolver,
           controllerConfigs: TOKENS.ControllerConfigs,
-          registry: MiddlewareRegistry,
+          registry: TOKENS.MiddlewareRegistry,
         },
       },
       ...controllers.map((c) => ({
@@ -52,7 +53,7 @@ export class ControllerModule implements AppModule {
   }
 
   async register(ioc: Container): Promise<void> {
-    const registry = ioc.get(MiddlewareRegistry);
+    const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
 
     this.controllers.forEach((c) => {
       c.middlewares?.forEach((mw) => registry.useFor(c.use, mw));

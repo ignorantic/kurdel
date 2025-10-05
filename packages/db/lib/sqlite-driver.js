@@ -1,7 +1,6 @@
 import { DatabaseDriver } from './database-driver.js';
 import { SQLiteDB } from './sqlite-db.js';
 export class SQLiteDriver extends DatabaseDriver {
-    db;
     constructor(config) {
         super(config);
     }
@@ -34,3 +33,4 @@ export class SQLiteDriver extends DatabaseDriver {
         return this.db;
     }
 }
+//# sourceMappingURL=sqlite-driver.js.map

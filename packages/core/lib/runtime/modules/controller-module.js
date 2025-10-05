@@ -1,7 +1,6 @@
-import { IoCControllerResolver } from '../../runtime/ioc-controller-resolver.js';
-import { MiddlewareRegistry } from '../../runtime/middleware-registry.js';
-import { Router } from '../../runtime/router.js';
 import { TOKENS } from '../../api/tokens.js';
+import { IoCControllerResolver } from '../ioc-controller-resolver.js';
+import { RouterImpl } from '../router.js';
 /**
  * ControllerModule
  *
@@ -12,24 +11,23 @@ import { TOKENS } from '../../api/tokens.js';
 export class ControllerModule {
     constructor(controllers) {
         this.controllers = controllers;
-        this.imports = { registry: MiddlewareRegistry };
         this.exports = {
             controllerConfigs: TOKENS.ControllerConfigs,
-            router: Router,
         };
         this.providers = [
             {
-                provide: IoCControllerResolver,
+                provide: TOKENS.ControllerResolver,
                 useFactory: (ioc) => new IoCControllerResolver(ioc),
                 isSingleton: true,
             },
             {
-                provide: Router,
-                useClass: Router,
+                provide: TOKENS.Router,
+                useClass: RouterImpl,
+                isSingleton: true,
                 deps: {
-                    resolver: IoCControllerResolver,
+                    resolver: TOKENS.ControllerResolver,
                     controllerConfigs: TOKENS.ControllerConfigs,
-                    registry: MiddlewareRegistry,
+                    registry: TOKENS.MiddlewareRegistry,
                 },
             },
             ...controllers.map((c) => ({
@@ -44,7 +42,7 @@ export class ControllerModule {
         ];
     }
     async register(ioc) {
-        const registry = ioc.get(MiddlewareRegistry);
+        const registry = ioc.get(TOKENS.MiddlewareRegistry);
         this.controllers.forEach((c) => {
             c.middlewares?.forEach((mw) => registry.useFor(c.use, mw));
         });

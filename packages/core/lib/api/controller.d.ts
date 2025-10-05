@@ -1,5 +1,5 @@
 import { ServerResponse, IncomingMessage } from 'http';
-import type { ActionResult, Middleware, RouteConfig } from './types.js';
+import type { ActionResult, Middleware, RouteConfig } from './http/types.js';
 export declare abstract class Controller<TDeps = unknown> {
     protected readonly deps: TDeps;
     constructor(deps: TDeps);

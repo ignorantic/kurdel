@@ -1,4 +1,4 @@
-import type { AppConfig } from 'src/api/config.js';
+import type { AppConfig } from 'src/api/app/config.js';
 import type { Application } from 'src/api/app/application.js';
 import { ApplicationImpl } from 'src/runtime/app/application-impl.js';
 

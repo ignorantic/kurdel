@@ -1,17 +1,17 @@
 import { Container, IoCContainer } from '@kurdel/ioc';
 
 import type { Application } from 'src/api/app/application.js';
-import type { AppModule, ProviderConfig } from 'src/api/app-module.js';
-import type { AppConfig } from 'src/api/config.js';
+import type { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
+import type { AppConfig } from 'src/api/app/config.js';
 import type { HttpModule } from 'src/api/http-module.js';
 import {
   ControllerConfig,
   ModelList,
   RunningServer,
   ServerAdapter,
-} from 'src/api/interfaces.js';
+} from 'src/api/http/interfaces.js';
 import { TOKENS } from 'src/api/tokens.js';
-import type { Middleware } from 'src/api/types.js';
+import type { Middleware } from 'src/api/http/types.js';
 
 import { ControllerModule } from '../modules/controller-module.js';
 import { DatabaseModule } from '../modules/database-module.js';

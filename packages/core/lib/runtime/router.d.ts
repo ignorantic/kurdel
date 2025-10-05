@@ -1,19 +1,18 @@
-import { IncomingMessage, ServerResponse } from 'http';
-import type { Method, ControllerResolver, Middleware } from '../api/types.js';
-import { MiddlewareRegistry } from '../runtime/middleware-registry.js';
-import { ControllerConfig } from '../api/interfaces.js';
+import type { Method, ControllerResolver, Middleware } from '../api/http/types.js';
+import { ControllerConfig } from '../api/http/interfaces.js';
+import { HttpRequest, HttpResponse, Router } from '../api/http/router.js';
 interface RouterDeps {
     resolver: ControllerResolver;
     controllerConfigs: ControllerConfig[];
-    registry: MiddlewareRegistry;
+    middlewares: Middleware[];
 }
-export declare class Router {
+export declare class RouterImpl implements Router {
     private entries;
     private middlewares;
-    constructor({ resolver, controllerConfigs, registry }: RouterDeps);
+    init({ resolver, controllerConfigs, middlewares }: RouterDeps): void;
     private useController;
     private add;
     use(mw: Middleware): void;
-    resolve(method: Method, url: string): ((req: IncomingMessage, res: ServerResponse) => void) | null;
+    resolve(method: Method, url: string): ((req: HttpRequest, res: HttpResponse) => void) | null;
 }
 export {};

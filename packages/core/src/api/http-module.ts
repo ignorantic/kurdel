@@ -1,7 +1,7 @@
-import type { AppModule } from 'src/api/app-module.js';
-import type { Middleware } from 'src/api/types.js';
-import type { AppConfig } from 'src/api/config.js';
-import { ControllerConfig, ModelList } from 'src/api/interfaces.js';
+import type { AppModule } from 'src/api/app/app-module.js';
+import type { Middleware } from 'src/api/http/types.js';
+import type { AppConfig } from 'src/api/app/config.js';
+import { ControllerConfig, ModelList } from 'src/api/http/interfaces.js';
 
 /**
  * HttpModule

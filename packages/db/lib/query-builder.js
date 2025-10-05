@@ -1,6 +1,8 @@
 export class QueryBuilder {
-    sql = '';
-    params = [];
+    constructor() {
+        this.sql = '';
+        this.params = [];
+    }
     select(fields, options = {}) {
         if (options.fn) {
             this.sql = `SELECT ${options.fn}(${fields}) `;
@@ -45,3 +47,4 @@ export class QueryBuilder {
         return result;
     }
 }
+//# sourceMappingURL=query-builder.js.map

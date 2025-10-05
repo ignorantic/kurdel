@@ -1,7 +1,7 @@
 import { IoCContainer } from '@kurdel/ioc';
 import { IDatabase } from '@kurdel/db';
-import { AppModule } from '../../api/app-module.js';
-import { AppConfig } from '../../api/config.js';
+import { AppModule } from '../../api/app/app-module.js';
+import { AppConfig } from '../../api/app/config.js';
 export declare class NoopDatabase implements IDatabase {
     query: () => Promise<void>;
     get: () => Promise<void>;

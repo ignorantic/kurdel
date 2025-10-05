@@ -1,22 +1,18 @@
 import { Container } from '@kurdel/ioc';
-import { AppModule } from '../../api/app-module.js';
-import { MiddlewareRegistry } from '../../runtime/middleware-registry.js';
-import { Middleware } from '../../api/types.js';
+import { AppModule, ProviderConfig } from '../../api/app/app-module.js';
+import { Middleware } from '../../api/http/types.js';
 /**
  * MiddlewareModule
  *
- * - Registers global middlewares from all HttpModules
+ * - Provides a singleton MiddlewareRegistry
+ * - Registers default global middlewares and app-provided ones
  */
 export declare class MiddlewareModule implements AppModule {
     private middlewares;
     readonly exports: {
-        registry: typeof MiddlewareRegistry;
+        registry: import("@kurdel/ioc").InjectionToken<unknown>;
     };
-    readonly providers: {
-        provide: typeof MiddlewareRegistry;
-        useClass: typeof MiddlewareRegistry;
-        isSingleton: boolean;
-    }[];
+    readonly providers: ProviderConfig[];
     constructor(middlewares: Middleware[]);
     register(ioc: Container): Promise<void>;
 }

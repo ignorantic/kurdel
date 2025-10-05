@@ -1,8 +1,6 @@
 import { Container } from '@kurdel/ioc';
-import { AppModule, ProviderConfig } from '../../api/app-module.js';
-import { MiddlewareRegistry } from '../../runtime/middleware-registry.js';
-import { Router } from '../../runtime/router.js';
-import { ControllerConfig } from '../../api/interfaces.js';
+import { ControllerConfig } from '../../api/http/interfaces.js';
+import { AppModule, ProviderConfig } from '../../api/app/app-module.js';
 /**
  * ControllerModule
  *
@@ -12,12 +10,8 @@ import { ControllerConfig } from '../../api/interfaces.js';
  */
 export declare class ControllerModule implements AppModule {
     private controllers;
-    readonly imports: {
-        registry: typeof MiddlewareRegistry;
-    };
     readonly exports: {
         controllerConfigs: import("@kurdel/ioc").InjectionToken<unknown>;
-        router: typeof Router;
     };
     readonly providers: ProviderConfig[];
     constructor(controllers: ControllerConfig[]);

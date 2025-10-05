@@ -1,4 +1,4 @@
-import type { Middleware } from '../../../api/types.js';
+import type { Middleware } from '../../../api/http/types.js';
 import { BadRequest } from '../../../api/http-results.js';
 
 /**

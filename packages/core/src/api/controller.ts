@@ -1,6 +1,6 @@
 import { ServerResponse, IncomingMessage } from 'http';
 import { buildURL, toQuery } from '../runtime/utils/url.js';
-import type { ActionResult, HttpContext, Middleware, RouteConfig } from './types.js';
+import type { ActionResult, HttpContext, Middleware, RouteConfig } from './http/types.js';
 
 export abstract class Controller<TDeps = unknown> {
   constructor(protected readonly deps: TDeps) {}

@@ -1,4 +1,4 @@
-import type { Query } from 'src/api/types.js';
+import type { Query } from 'src/api/http/types.js';
 import { IncomingMessage } from 'http';
 
 const INTERNAL_BASE = 'http://internal';
