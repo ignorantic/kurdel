@@ -4,7 +4,6 @@
     "rootDir": "src",
     "outDir": "lib",
     "declaration": true,
-    "declarationDir": "lib",
     "declarationMap": false,
     "baseUrl": ".",
     "paths": {

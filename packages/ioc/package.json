@@ -16,8 +16,9 @@
     "test:ui": "vitest",
     "test:watch": "vitest --watch",
     "coverage": "vitest run --coverage",
-    "clean": "rimraf lib types",
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json"
+    "clean": "rimraf lib ../../.cache/tsconfig.ioc.build.tsbuildinfo",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"
   },
   "keywords": [
     "ioc"

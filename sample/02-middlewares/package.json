@@ -6,8 +6,9 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"No tests yet\"",
-    "clean": "rimraf build",
+    "clean": "rimraf dist ../../.cache/tsconfig.sample.02.build.tsbuildinfo",
     "build": "tsc",
+    "build:force": "npm run clean && tsc --force",
     "dev": "node dist/app.js"
   },
   "author": "Andrii Sorokin",

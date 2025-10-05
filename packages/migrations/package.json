@@ -11,8 +11,9 @@
   "types": "types/index.d.ts",
   "scripts": {
     "test": "echo \"No tests yet\"",
-    "clean": "rimraf lib types",
-    "build": "tsc"
+    "clean": "rimraf lib types ../../.cache/tsconfig.migrations.build.tsbuildinfo",
+    "build": "tsc",
+    "build:force": "npm run clean && tsc --force"
   },
   "keywords": [
     "framework"
