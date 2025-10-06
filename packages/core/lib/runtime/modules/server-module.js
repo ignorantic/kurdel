@@ -36,6 +36,8 @@ export class ServerModule {
             middlewares: registry.all()
         });
         adapter.on(async (req, res) => {
+            const scope = ioc.createScope?.() ?? ioc;
+            req.__ioc = scope;
             const method = req.method ?? 'GET';
             const url = req.url ?? '/';
             const handler = router.resolve(method, url);

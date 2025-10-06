@@ -12,8 +12,26 @@ import { BindingWithInContractImpl } from './binding-with-in-contract-impl.js';
  * and singleton scope.
  */
 export class IoCContainer {
-    constructor() {
+    constructor(parent) {
         this.dictionary = new Map();
+        this.parent = parent;
+    }
+    /**
+     * Creates a new **request-scoped** child container.
+     *
+     * The child delegates lookups to this container (its parent) when a binding
+     * is not found locally. Singleton bindings registered in the parent remain
+     * shared; bindings added to the child are isolated to the child’s lifetime.
+     *
+     * @returns A new `IoCContainer` whose parent is this container.
+     *
+     * @example
+     * const root = new IoCContainer();
+     * const scope = root.createScope(); // per-request container
+     * // scope.get(...) will fall back to root if not found locally
+     */
+    createScope() {
+        return new IoCContainer(this);
     }
     /**
      * Bind an identifier (interface or symbol) to an implementation.
@@ -62,45 +80,105 @@ export class IoCContainer {
         this.dictionary.set(key, binding);
     }
     /**
-     * Resolve an instance from the container.
+     * Register a ready-made instance (value provider) for the identifier.
+     * Subsequent `get()` calls will return the same instance.
      *
-     * If the binding has a dependency map, those dependencies will
-     * be resolved recursively and injected into the constructor.
+     * @throws Error if the identifier is already registered in this container.
+     */
+    set(key, value) {
+        if (this.dictionary.has(key)) {
+            throw new Error(`Dependency ${String(key)} already registered.`);
+        }
+        const b = new Binding();
+        b.boundEntity = value;
+        b.scope = 'Singleton';
+        b.activated = true;
+        b.cache = value;
+        this.dictionary.set(key, b);
+    }
+    /**
+     * Resolve an instance bound to the given identifier.
+     *
+     * Resolution rules:
+     * 1) If the binding is not present locally, delegate to the parent container
+     *    (if any). If still missing, throw.
+     * 2) If the binding has a `toFactory`, invoke it:
+     *    - `scope === 'Singleton'`: lazily create and cache once per container.
+     *    - otherwise: create a new instance on each call.
+     * 3) If the binding has a concrete `boundEntity`:
+     *    - if it is a non-function value → return the value as-is;
+     *    - if it is a class constructor → resolve `depsMap` recursively and `new` it;
+     *      for singletons, cache the constructed instance.
+     *
+     * Notes:
+     * - Parent/child containers form a hierarchy: lookups fall back to the parent.
+     * - Singleton caching is per-container (shared with parent only if the binding
+     *   was registered in the parent).
+     *
+     * @typeParam T - Resolved instance type.
+     * @param key - Identifier (token/class) to resolve.
+     * @returns The resolved instance of type `T`.
+     * @throws Error if no binding was found in this container hierarchy.
      *
      * @example
-     * ```ts
-     * const userService = container.get(UserService);
-     * const userController = container.get(UserController); // deps injected automatically
-     * ```
+     * // token-based binding
+     * container.bind<IDb>(DBToken).to(SqliteDb).inSingletonScope();
+     * const db = container.get<IDb>(DBToken);
+     *
+     * // factory-based singleton (lazy)
+     * container.toFactorySingleton?.(CfgToken, () => loadConfig());
+     * const cfg = container.get(CfgToken);
      */
     get(key) {
-        const target = this.dictionary.get(key);
-        if (!target) {
-            throw new Error(`No dependency found for ${key.toString()}`);
+        // is it local binding?
+        const local = this.dictionary.get(key);
+        if (!local) {
+            if (this.parent)
+                return this.parent.get(key);
+            throw new Error(`No dependency found for ${String(key)}`);
         }
-        if (target.toFactory) {
-            return target.toFactory();
+        // factory
+        if (local.toFactory) {
+            if (local.scope === 'Singleton') {
+                if (!local.activated) {
+                    local.cache = local.toFactory();
+                    local.activated = true;
+                }
+                return local.cache;
+            }
+            return local.toFactory();
         }
-        if (!target.boundEntity) {
-            throw new Error(`No dependency found for ${key.toString()}`);
+        if (!local.boundEntity) {
+            throw new Error(`No dependency found for ${String(key)}`);
         }
-        const { boundEntity, depsMap } = target;
+        const { boundEntity, depsMap } = local;
         if (typeof boundEntity !== 'function') {
             return boundEntity;
         }
-        const Constructor = boundEntity;
+        const Ctor = boundEntity;
         const resolvedDeps = depsMap
             ? Object.fromEntries(Object.entries(depsMap).map(([k, dep]) => [k, this.get(dep)]))
             : {};
-        if (target.scope === 'Singleton') {
-            if (!target.activated) {
-                target.cache = new Constructor(resolvedDeps);
-                target.activated = true;
+        if (local.scope === 'Singleton') {
+            if (!local.activated) {
+                local.cache = new Ctor(resolvedDeps);
+                local.activated = true;
             }
-            return target.cache;
+            return local.cache;
         }
-        return new Constructor(resolvedDeps);
+        return new Ctor(resolvedDeps);
     }
+    /**
+     * Check whether a binding exists for the given identifier
+     * **in this container**.
+     *
+     * Note: this implementation does not consult a parent container.
+     * If you use hierarchical scoping, prefer a version that also
+     * checks `parent.has(key)` to mirror `get()` fallback behavior.
+     *
+     * @param key - Identifier (token/class) to look up.
+     * @returns `true` if the identifier is bound in this container.
+     */
     has(key) {
         return this.dictionary.has(key);
     }

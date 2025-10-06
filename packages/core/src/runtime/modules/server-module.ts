@@ -14,6 +14,7 @@ import { AppConfig } from 'src/api/app/config.js';
 
 import { Router } from 'src/api/http/router.js';
 import { MiddlewareRegistry } from 'src/api/http/middleware-registry.js';
+import { on } from 'events';
 
 /**
  * ServerModule
@@ -59,6 +60,10 @@ export class ServerModule implements AppModule<AppConfig> {
     });
 
     adapter.on(async (req, res) => {
+      const scope = ioc.createScope?.() ?? ioc;
+
+      (req as any).__ioc = scope;
+
       const method = (req.method as Method) ?? 'GET';
       const url    = req.url ?? '/';
 
