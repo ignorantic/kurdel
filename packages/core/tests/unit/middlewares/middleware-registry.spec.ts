@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import { MiddlewareRegistry } from 'src/runtime/app/middleware-registry-impl.js';
 import type { Middleware } from 'src/api/http/types.js';
 import { Controller } from 'src/api/http/controller.js';
+import { MiddlewareRegistryImpl } from 'src/runtime/app/middleware-registry-impl.js';
 
 class DummyController extends Controller {
   routes = {};
@@ -10,7 +10,7 @@ class DummyController extends Controller {
 
 describe('MiddlewareRegistry', () => {
   it('should register and return global middleware', () => {
-    const registry = new MiddlewareRegistry();
+    const registry = new MiddlewareRegistryImpl();
     const mw: Middleware = async (_, next) => next();
 
     registry.use(mw);
@@ -19,7 +19,7 @@ describe('MiddlewareRegistry', () => {
   });
 
   it('should register and return controller-specific middleware', () => {
-    const registry = new MiddlewareRegistry();
+    const registry = new MiddlewareRegistryImpl();
     const mw1: Middleware = async (_, next) => next();
     const mw2: Middleware = async (_, next) => next();
 
@@ -34,7 +34,7 @@ describe('MiddlewareRegistry', () => {
   });
 
   it('should return empty array if no middleware registered for controller', () => {
-    const registry = new MiddlewareRegistry();
+    const registry = new MiddlewareRegistryImpl();
     expect(registry.for(DummyController)).toEqual([]);
   });
 });
