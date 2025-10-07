@@ -7,7 +7,7 @@ import { Controller } from 'src/api/http/controller.js';
 import { HttpContext } from 'src/api/http/types.js';
 import { HttpModule } from 'src/api/http/http-module.js';
 
-import { route } from 'src/api/http/routing.js';
+import { route } from 'src/api/http/route.js';
 
 import { createApplication } from 'src/facade/create-application.js';
 

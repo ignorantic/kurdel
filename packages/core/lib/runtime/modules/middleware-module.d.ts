@@ -1,6 +1,6 @@
 import { Container } from '@kurdel/ioc';
 import { AppModule, ProviderConfig } from '../../api/app/app-module.js';
-import { Middleware } from '../../api/http/types.js';
+import { Middleware } from '../../api/http/middleware.js';
 /**
  * MiddlewareModule
  *

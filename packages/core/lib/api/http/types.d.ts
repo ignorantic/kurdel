@@ -1,7 +1,3 @@
-import { IncomingMessage, ServerResponse } from 'http';
-import { Newable } from '@kurdel/common';
-import { Model } from '../../api/db/model.js';
-import { ModelConfig } from './interfaces.js';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 export type Route = {
     method: Method;
@@ -30,18 +26,3 @@ export type ActionResult = {
     status: number;
     location: string;
 };
-export type HttpContext<TDeps = unknown, TBody = unknown> = {
-    req: IncomingMessage;
-    res: ServerResponse;
-    url: URL;
-    query: Query;
-    params: Record<string, string>;
-    deps: TDeps;
-    body?: TBody;
-};
-export type RouteHandler<TDeps, TBody = unknown> = (ctx: HttpContext<TDeps, TBody>) => Promise<ActionResult>;
-export type RouteConfig<TDeps> = {
-    [key: string]: RouteHandler<TDeps, any>;
-};
-export type Middleware<TDeps = unknown, TBody = unknown> = (ctx: HttpContext<TDeps, TBody>, next: () => Promise<ActionResult>) => Promise<ActionResult>;
-export type ModelList = (Newable<Model> | ModelConfig)[];

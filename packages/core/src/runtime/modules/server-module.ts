@@ -1,5 +1,8 @@
 import { Container } from '@kurdel/ioc';
 
+import { TOKENS } from 'src/api/app/tokens.js';
+import { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
+import { AppConfig } from 'src/api/app/config.js';
 import { Method } from 'src/api/http/types.js';
 import {
   ControllerConfig,
@@ -7,22 +10,18 @@ import {
   ResponseLike,
   ServerAdapter,
 } from 'src/api/http/interfaces.js';
-import { TOKENS } from 'src/api/app/tokens.js';
-import { AppModule, ProviderConfig } from 'src/api/app/app-module.js';
-import { NativeHttpServerAdapter } from 'src/runtime/http/adapters/native-http-server-adapter.js';
-import { AppConfig } from 'src/api/app/config.js';
-
 import { Router } from 'src/api/http/router.js';
 import { MiddlewareRegistry } from 'src/api/http/middleware-registry.js';
-import { on } from 'events';
+
+import { NativeHttpServerAdapter } from '../http/adapters/native-http-server-adapter.js';
 
 /**
- * ServerModule
- *
- * - Provides HTTP ServerAdapter implementation
- * - Wires adapter with Router via adapter.on(handler)
- * - Initializes Router with controller configs and middlewares
- */
+* ServerModule: wires the HTTP ServerAdapter to the Router.
+* 
+* - Provides a singleton ServerAdapter implementation
+* - Injects the root Container and the Router into the adapter
+* - No global state; request-scope is created inside the adapter per request-scope
+*/
 export class ServerModule implements AppModule<AppConfig> {
   readonly imports = {
     router: TOKENS.Router,
@@ -67,7 +66,7 @@ export class ServerModule implements AppModule<AppConfig> {
       const method = (req.method as Method) ?? 'GET';
       const url    = req.url ?? '/';
 
-      const handler = router.resolve(method, url);
+      const handler = router.resolve(method, url, scope);
       if (!handler) {
         if (typeof res.statusCode === 'number') (res as any).statusCode = 404;
         (res as any).end?.();

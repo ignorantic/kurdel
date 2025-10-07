@@ -1,4 +1,4 @@
-import type { Middleware } from './types.js';
+import type { Middleware } from './middleware.js';
 
 export interface MiddlewareRegistry {
   use(mw: Middleware): void;

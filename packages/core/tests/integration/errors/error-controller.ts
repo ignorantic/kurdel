@@ -11,7 +11,7 @@ import {
 import { Controller } from 'src/api/http/controller.js';
 import { ActionResult } from 'src/api/http/types.js';
 
-import { route } from 'src/api/http/routing.js';
+import { route } from 'src/api/http/route.js';
 
 export class ErrorController extends Controller {
   readonly routes = {

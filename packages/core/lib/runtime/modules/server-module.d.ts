@@ -1,15 +1,15 @@
 import { Container } from '@kurdel/ioc';
-import { RequestLike, ResponseLike, ServerAdapter } from '../../api/http/interfaces.js';
 import { AppModule, ProviderConfig } from '../../api/app/app-module.js';
 import { AppConfig } from '../../api/app/config.js';
+import { RequestLike, ResponseLike, ServerAdapter } from '../../api/http/interfaces.js';
 import { Router } from '../../api/http/router.js';
 /**
- * ServerModule
- *
- * - Provides HTTP ServerAdapter implementation
- * - Wires adapter with Router via adapter.on(handler)
- * - Initializes Router with controller configs and middlewares
- */
+* ServerModule: wires the HTTP ServerAdapter to the Router.
+*
+* - Provides a singleton ServerAdapter implementation
+* - Injects the root Container and the Router into the adapter
+* - No global state; request-scope is created inside the adapter per request-scope
+*/
 export declare class ServerModule implements AppModule<AppConfig> {
     readonly imports: {
         router: import("@kurdel/ioc").InjectionToken<Router>;

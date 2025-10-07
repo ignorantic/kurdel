@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import type { Middleware } from 'src/api/http/types.js';
 import { Controller } from 'src/api/http/controller.js';
-import { MiddlewareRegistryImpl } from 'src/runtime/app/middleware-registry-impl.js';
+import { MiddlewareRegistryImpl } from 'src/runtime/http/middleware-registry-impl.js';
 
 class DummyController extends Controller {
   routes = {};

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { MiddlewareRegistryImpl } from 'src/runtime/app/middleware-registry-impl.js';
+import { MiddlewareRegistryImpl } from 'src/runtime/http/middleware-registry-impl.js';
 import { MiddlewareModule } from 'src/runtime/modules/middleware-module.js';
 
 describe('MiddlewareModule', () => {

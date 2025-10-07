@@ -1,6 +1,6 @@
 import { Newable } from '@kurdel/common';
 
-import type { Middleware } from 'src/api/http/types.js';
+import type { Middleware } from 'src/api/http/middleware.js';
 import { Controller } from 'src/api/http/controller.js';
 import { MiddlewareRegistry } from 'src/api/http/middleware-registry.js';
 

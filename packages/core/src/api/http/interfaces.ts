@@ -1,9 +1,8 @@
 import { Newable } from '@kurdel/common';
 import { Identifier } from '@kurdel/ioc';
 
-import { Middleware } from 'src/api/http/types.js';
+import { Middleware } from 'src/api/http/middleware.js';
 import { Controller } from 'src/api/http/controller.js';
-import { Model } from 'src/api/db/model.js';
 
 export interface RequestLike { method?: string; url?: string }
 
@@ -38,13 +37,5 @@ export interface ControllerConfig {
 
   /** Optional route prefix applied to all controller routes */
   prefix?: string;
-}
-
-export interface ModelConfig {
-  /** Controller class */
-  use: Newable<Model>;
-
-  /** Dependencies to be injected from IoC */
-  deps?: Record<string, Identifier>;
 }
 

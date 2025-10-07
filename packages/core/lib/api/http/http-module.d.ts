@@ -1,4 +1,5 @@
-import type { Middleware, ModelList } from '../../api/http/types.js';
+import type { ModelList } from '../../api/db/model.js';
+import type { Middleware } from '../../api/http/middleware.js';
 import { ControllerConfig } from '../../api/http/interfaces.js';
 import type { AppModule } from '../app/app-module.js';
 import type { AppConfig } from '../app/config.js';

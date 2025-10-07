@@ -7,7 +7,7 @@ import {
 import { HttpContext } from 'src/api/http/types.js';
 import { Controller } from 'src/api/http/controller.js';
 
-import { route } from 'src/api/http/routing.js';
+import { route } from 'src/api/http/route.js';
 
 import { UserService } from './user-service.js';
 

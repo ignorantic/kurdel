@@ -3,7 +3,7 @@ import { IDatabase } from '@kurdel/db';
 
 import { AppModule } from 'src/api/app/app-module.js';
 import { AppConfig } from 'src/api/app/config.js';
-import { ModelList } from 'src/api/http/types.js';
+import { ModelList } from 'src/api/db/model.js';
 
 /**
  * ModelModule

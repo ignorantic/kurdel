@@ -1,5 +1,5 @@
 import { TOKENS } from '../../api/app/tokens.js';
-import { MiddlewareRegistryImpl } from '../app/middleware-registry-impl.js';
+import { MiddlewareRegistryImpl } from '../http/middleware-registry-impl.js';
 import { errorHandler } from '../http/middlewares/error-handle.js';
 import { jsonBodyParser } from '../http/middlewares/json-body-parser.js';
 /**

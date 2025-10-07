@@ -1,4 +1,4 @@
-import { ROUTE_META } from '../../api/http/routing.js';
+import { ROUTE_META } from '../../api/http/route.js';
 function compilePath(path) {
     const keys = [];
     if (!path || path === '/') {

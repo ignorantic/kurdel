@@ -1,3 +1,5 @@
+import { Newable } from '@kurdel/common';
+import { Identifier } from '@kurdel/ioc';
 import { IDatabase, IQueryBuilder, QueryBuilder } from '@kurdel/db';
 
 interface ModelDeps {
@@ -26,3 +28,14 @@ export abstract class Model {
     return this.db.all(this.builder.select('*').from(this.table).build());
   }
 }
+
+export interface ModelConfig {
+  /** Controller class */
+  use: Newable<Model>;
+
+  /** Dependencies to be injected from IoC */
+  deps?: Record<string, Identifier>;
+}
+
+export type ModelList = (Newable<Model> | ModelConfig)[]
+

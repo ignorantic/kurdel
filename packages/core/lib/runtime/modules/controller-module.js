@@ -1,6 +1,6 @@
 import { TOKENS } from '../../api/app/tokens.js';
-import { ControllerResolverImpl } from '../app/controller-resolver-impl.js';
-import { RouterImpl } from '../http/router.js';
+import { ControllerResolverImpl } from '../http/controller-resolver-impl.js';
+import { RouterImpl } from '../http/router-impl.js';
 /**
  * ControllerModule
  *

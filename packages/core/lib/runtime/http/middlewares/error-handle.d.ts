@@ -1,2 +1,2 @@
-import type { Middleware } from '../../../api/http/types.js';
+import type { Middleware } from '../../../api/http/middleware.js';
 export declare const errorHandler: Middleware;
