@@ -1,4 +1,4 @@
-import { buildURL, toQuery } from '../../api/utils/url.js';
+import { buildURL, toQuery } from '../utils/url.js';
 export class Controller {
     constructor(deps) {
         this.deps = deps;
@@ -23,6 +23,18 @@ export class Controller {
             query: toQuery(url),
             params: req.__params ?? {},
             deps: this.deps,
+            json(status, body) {
+                return { kind: 'json', status, body };
+            },
+            text(status, body) {
+                return { kind: 'text', status, body };
+            },
+            redirect(status, location) {
+                return { kind: 'redirect', status, location };
+            },
+            noContent() {
+                return { kind: 'empty', status: 204 };
+            },
         };
         const pipeline = [...globalMiddlewares, ...this.middlewares];
         // last step = actual action

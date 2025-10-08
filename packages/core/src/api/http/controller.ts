@@ -1,8 +1,10 @@
 import { ServerResponse, IncomingMessage } from 'http';
-import { buildURL, toQuery } from 'src/api/utils/url.js';
-import type { ActionResult } from './types.js';
-import { HttpContext } from './http-context.js';
-import { Middleware } from './middleware.js';
+
+import type { ActionResult, JsonValue } from './types.js';
+import type { HttpContext } from './http-context.js';
+import type { Middleware } from './middleware.js';
+
+import { buildURL, toQuery } from '../utils/url.js';
 
 export type RouteHandler<TDeps, TBody = unknown> =
   (ctx: HttpContext<TDeps, TBody>) => Promise<ActionResult>;
@@ -45,6 +47,18 @@ export abstract class Controller<TDeps = unknown> {
       query: toQuery(url),
       params: (req as any).__params ?? {},
       deps: this.deps,
+      json(status: number, body: JsonValue): ActionResult {
+        return { kind: 'json', status, body };
+      },
+      text(status: number, body: string): ActionResult {
+        return { kind: 'text', status, body };
+      },
+      redirect(status: number, location: string): ActionResult {
+        return { kind: 'redirect', status, location };
+      },
+      noContent(): ActionResult {
+        return { kind: 'empty', status: 204 };
+      },
     };
 
     const pipeline = [...globalMiddlewares, ...this.middlewares];
