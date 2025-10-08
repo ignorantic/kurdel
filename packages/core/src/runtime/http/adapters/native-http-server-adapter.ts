@@ -1,19 +1,58 @@
-import http, { IncomingMessage, Server, ServerResponse } from 'http';
-import { ServerAdapter } from 'src/api/http/interfaces.js';
+import { createServer, type Server } from 'node:http';
 
-export class NativeHttpServerAdapter implements ServerAdapter<IncomingMessage, ServerResponse> {
-  private server = http.createServer();
+import type {
+  RequestLike,
+  ResponseLike,
+  ServerAdapter,
+} from 'src/api/http/interfaces.js';
 
-  on(h: (req: IncomingMessage, res: ServerResponse) => void | Promise<void>): void {
-    this.server.removeAllListeners('request');
-    this.server.on('request', (req, res) => { void Promise.resolve(h(req, res)); });
+export class NativeHttpServerAdapter implements ServerAdapter<RequestLike, ResponseLike> {
+  private readonly server: Server;
+  private handler?: (req: RequestLike, res: ResponseLike) => void | Promise<void>;
+
+  constructor() {
+    // The server delegates to the registered handler; if none, 404.
+    this.server = createServer((req, res) => {
+      const h = this.handler;
+      if (!h) {
+        (res as any).statusCode = 404;
+        (res as any).end?.();
+        return;
+      }
+      Promise.resolve(h(req as any, res as any)).catch(() => {
+        // Best-effort fallback in case upstream didn't handle the error.
+        if (!(res as any).headersSent) {
+          try {
+            (res as any).statusCode = 500;
+            (res as any).end?.();
+          } catch {}
+        }
+      });
+    });
   }
 
-  listen(port: number, callback: () => void) {
-    this.server.listen(port, callback);
+  on(cb: (req: RequestLike, res: ResponseLike) => void | Promise<void>) {
+    this.handler = cb;
   }
 
-  getHttpServer(): Server {
-    return this.server;
+  listen(port: number, hostOrCb?: string | (() => void), cb?: () => void): void {
+    const done = (typeof hostOrCb === 'function' ? hostOrCb : cb) ?? (() => {});
+    if (typeof hostOrCb === 'string') {
+      this.server.listen(port, hostOrCb, done);
+    } else {
+      this.server.listen(port, done);
+    }
+  }
+
+  async close(): Promise<void> {
+    await new Promise<void>((resolve, reject) =>
+      this.server.close((err?: Error) => (err ? reject(err) : resolve()))
+    );
+  }
+
+  /** Unified raw getter used by ApplicationImpl/RunningServer. */
+  raw<T = Server>(): T | undefined {
+    return this.server as unknown as T;
   }
 }
+

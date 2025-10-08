@@ -7,4 +7,6 @@ export declare const TOKENS: {
     ControllerConfigs: import("@kurdel/ioc").InjectionToken<unknown>;
     MiddlewareRegistry: import("@kurdel/ioc").InjectionToken<unknown>;
     ControllerResolver: import("@kurdel/ioc").InjectionToken<unknown>;
+    OnStart: import("@kurdel/ioc").InjectionToken<import("./lifecycle.js").LifecycleHook[]>;
+    OnShutdown: import("@kurdel/ioc").InjectionToken<import("./lifecycle.js").LifecycleHook[]>;
 };
