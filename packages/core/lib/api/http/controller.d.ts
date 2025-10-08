@@ -1,11 +1,7 @@
 import { ServerResponse, IncomingMessage } from 'http';
 import type { ActionResult } from './types.js';
-import type { HttpContext } from './http-context.js';
 import type { Middleware } from './middleware.js';
-export type RouteHandler<TDeps, TBody = unknown> = (ctx: HttpContext<TDeps, TBody>) => Promise<ActionResult>;
-export type RouteConfig<TDeps> = {
-    [key: string]: RouteHandler<TDeps, any>;
-};
+import type { RouteConfig } from './route.ts';
 export declare abstract class Controller<TDeps = unknown> {
     protected readonly deps: TDeps;
     constructor(deps: TDeps);

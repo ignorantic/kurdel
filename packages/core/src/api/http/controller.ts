@@ -3,15 +3,9 @@ import { ServerResponse, IncomingMessage } from 'http';
 import type { ActionResult, JsonValue } from './types.js';
 import type { HttpContext } from './http-context.js';
 import type { Middleware } from './middleware.js';
+import type { RouteConfig } from './route.ts';
 
 import { buildURL, toQuery } from '../utils/url.js';
-
-export type RouteHandler<TDeps, TBody = unknown> =
-  (ctx: HttpContext<TDeps, TBody>) => Promise<ActionResult>;
-
-export type RouteConfig<TDeps> = {
-  [key: string]: RouteHandler<TDeps, any>;
-};
 
 export abstract class Controller<TDeps = unknown> {
   constructor(protected readonly deps: TDeps) {}
