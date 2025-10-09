@@ -1,6 +1,6 @@
 import { TOKENS } from '@kurdel/core/app';
-import { ControllerResolverImpl } from '../http/controller-resolver-impl.js';
-import { RouterImpl } from '../http/router-impl.js';
+import { RuntimeControllerResolver } from '../http/runtime-controller-resolver.js';
+import { RuntimeRouter } from '../http/runtime-router.js';
 /**
  * ControllerModule
  *
@@ -17,12 +17,12 @@ export class ControllerModule {
         this.providers = [
             {
                 provide: TOKENS.ControllerResolver,
-                useFactory: (ioc) => new ControllerResolverImpl(ioc),
+                useFactory: (ioc) => new RuntimeControllerResolver(ioc),
                 isSingleton: true,
             },
             {
                 provide: TOKENS.Router,
-                useClass: RouterImpl,
+                useClass: RuntimeRouter,
                 isSingleton: true,
                 deps: {
                     resolver: TOKENS.ControllerResolver,

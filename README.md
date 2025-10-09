@@ -211,6 +211,17 @@ import { createApplication } from '@kurdel/facade';
 import { Controller, route, Ok } from '@kurdel/core/http';
 import type { AppModule } from '@kurdel/core/app';
 ```
+---
+
+## 🧩 Development & Contribution
+
+If you’re interested in how **kurdel** is structured or want to contribute:
+
+- 🏗️ [Architecture overview](./ARCHITECTURE.md) — explains the internal layers (`core`, `runtime`, `facade`) and naming conventions.
+- 🧑‍💻 [Contributing guide](./CONTRIBUTING.md) — details on development workflow, build setup, commit format, and testing.
+
+Both documents are meant for **contributors and maintainers**,  
+not for everyday users of the framework.
 
 ---
 

@@ -55,7 +55,7 @@ async function runHooks(kind: 'start' | 'shutdown', hooks: Array<() => void | Pr
  * - IoC first: every dependency is looked up via tokens and API interfaces.
  * - Request scope is created in ServerModule (per-request) — not here.
  */
-export class ApplicationImpl implements Application {
+export class RuntimeApplication implements Application {
   /** Immutable app configuration passed from the facade. */
   private readonly config: AppConfig;
   /** Root IoC container. Modules register providers here. */

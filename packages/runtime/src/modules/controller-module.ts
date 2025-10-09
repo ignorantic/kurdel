@@ -3,8 +3,8 @@ import type { ControllerConfig, Router, MiddlewareRegistry } from '@kurdel/core/
 import type { AppModule, ProviderConfig } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/app';
 
-import { ControllerResolverImpl } from 'src/http/controller-resolver-impl.js';
-import { RouterImpl } from 'src/http/router-impl.js';
+import { RuntimeControllerResolver } from 'src/http/runtime-controller-resolver.js';
+import { RuntimeRouter } from 'src/http/runtime-router.js';
 
 /**
  * ControllerModule
@@ -24,12 +24,12 @@ export class ControllerModule implements AppModule {
     this.providers = [
       {
         provide: TOKENS.ControllerResolver,
-        useFactory: (ioc: Container) => new ControllerResolverImpl(ioc),
+        useFactory: (ioc: Container) => new RuntimeControllerResolver(ioc),
         isSingleton: true,
       },
       {
         provide: TOKENS.Router,
-        useClass: RouterImpl as unknown as new (...a:any[]) => Router,
+        useClass: RuntimeRouter as unknown as new (...a:any[]) => Router,
         isSingleton: true,
         deps: {
           resolver: TOKENS.ControllerResolver,

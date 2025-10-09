@@ -8,7 +8,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { Method, ControllerConfig, Middleware } from '@kurdel/core/http';
 
-import { RouterImpl } from 'src/http/router-impl.js';
+import { RuntimeRouter } from 'src/http/runtime-router.js';
 
 import { FakeContainer } from './fake-container.js';
 import { FakeResolver } from './fake-resolver.js';
@@ -21,7 +21,7 @@ function makeRouter(configs: ControllerConfig[], mws: Middleware[] = []) {
   // Register a temp root instance so RouterImpl can read `routes` at init
   root.set(FakeController as any, new FakeController({ tag: 'root', calls: [] }));
 
-  const router = new RouterImpl();
+  const router = new RuntimeRouter();
   router.init({
     resolver,
     controllerConfigs: configs,

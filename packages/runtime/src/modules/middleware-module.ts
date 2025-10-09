@@ -4,7 +4,7 @@ import { TOKENS } from '@kurdel/core/app';
 import { AppModule, ProviderConfig } from '@kurdel/core/app';
 import { Middleware, MiddlewareRegistry } from '@kurdel/core/http';
 
-import { MiddlewareRegistryImpl } from 'src/http/middleware-registry-impl.js';
+import { RuntimeMiddlewareRegistry } from 'src/http/runtime-middleware-registry.js';
 import { errorHandler } from 'src/http/middlewares/error-handle.js';
 import { jsonBodyParser } from 'src/http/middlewares/json-body-parser.js';
 
@@ -19,7 +19,7 @@ export class MiddlewareModule implements AppModule {
   readonly providers: ProviderConfig[] = [
     {
       provide: TOKENS.MiddlewareRegistry,
-      useClass: MiddlewareRegistryImpl,
+      useClass: RuntimeMiddlewareRegistry,
       isSingleton: true,
     },
   ];

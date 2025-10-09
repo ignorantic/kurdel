@@ -2,7 +2,7 @@ import { Newable } from '@kurdel/common';
 import { Container } from '@kurdel/ioc';
 import { ControllerResolver } from '@kurdel/core/http';
 
-export class ControllerResolverImpl implements ControllerResolver {
+export class RuntimeControllerResolver implements ControllerResolver {
   constructor(private readonly root: Container) {}
 
   /**

@@ -1,5 +1,5 @@
 import { TOKENS } from '@kurdel/core/app';
-import { MiddlewareRegistryImpl } from '../http/middleware-registry-impl.js';
+import { RuntimeMiddlewareRegistry } from '../http/runtime-middleware-registry.js';
 import { errorHandler } from '../http/middlewares/error-handle.js';
 import { jsonBodyParser } from '../http/middlewares/json-body-parser.js';
 /**
@@ -15,7 +15,7 @@ export class MiddlewareModule {
         this.providers = [
             {
                 provide: TOKENS.MiddlewareRegistry,
-                useClass: MiddlewareRegistryImpl,
+                useClass: RuntimeMiddlewareRegistry,
                 isSingleton: true,
             },
         ];

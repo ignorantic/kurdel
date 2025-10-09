@@ -52,7 +52,7 @@ interface RouterDeps {
   middlewares: Middleware[];
 }
 
-export class RouterImpl implements Router {
+export class RuntimeRouter implements Router {
   private entries: Entry[] = [];
   private middlewares: Middleware[] = [];
   private resolver!: ControllerResolver;

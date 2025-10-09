@@ -1,4 +1,4 @@
-export class ControllerResolverImpl {
+export class RuntimeControllerResolver {
     constructor(root) {
         this.root = root;
     }
@@ -30,4 +30,4 @@ export class ControllerResolverImpl {
         return this.root.get(cls);
     }
 }
-//# sourceMappingURL=controller-resolver-impl.js.map
+//# sourceMappingURL=runtime-controller-resolver.js.map

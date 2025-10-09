@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { type AppConfig, TOKENS } from '@kurdel/core/app';
 import type { ServerAdapter } from '@kurdel/core/http';
 
-import { ApplicationImpl } from 'src/app/application-impl.js';
+import { RuntimeApplication } from 'src/app/runtime-application.js';
 import { LifecycleModule } from 'src/modules/lifecycle-module.js';
 
 /**
@@ -36,7 +36,7 @@ describe('Application lifecycle – order & wiring', () => {
       }
     }
 
-    const app = new ApplicationImpl({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
+    const app = new RuntimeApplication({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
 
     // Inject adapter instance into IoC before bootstrap
     await app.bootstrap();

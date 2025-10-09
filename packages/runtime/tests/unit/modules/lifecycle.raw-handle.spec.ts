@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { ServerAdapter } from '@kurdel/core/http';
 import type { AppConfig } from '@kurdel/core/app';
 
-import { ApplicationImpl } from 'src/app/application-impl.js';
+import { RuntimeApplication } from 'src/app/runtime-application.js';
 import { LifecycleModule } from 'src/modules/lifecycle-module.js';
 
 /**
@@ -31,7 +31,7 @@ describe('Application lifecycle – RunningServer.raw()', () => {
       }
     }
 
-    const app = new ApplicationImpl({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
+    const app = new RuntimeApplication({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
     await app.bootstrap();
 
     const running = app.listen(0, () => {});
@@ -56,7 +56,7 @@ describe('Application lifecycle – RunningServer.raw()', () => {
       }
     }
 
-    const app = new ApplicationImpl({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
+    const app = new RuntimeApplication({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
     await app.bootstrap();
 
     const running = app.listen(0, () => {});

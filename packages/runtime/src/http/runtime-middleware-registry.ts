@@ -1,7 +1,7 @@
 import { Newable } from '@kurdel/common';
 import { type Middleware, type MiddlewareRegistry, Controller } from '@kurdel/core/http';
 
-export class MiddlewareRegistryImpl implements MiddlewareRegistry {
+export class RuntimeMiddlewareRegistry implements MiddlewareRegistry {
   private readonly global: Middleware[] = [];
   private readonly perController = new Map<Newable<{}>, Middleware[]>();
 

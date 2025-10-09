@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { ControllerResolverImpl } from 'src/http/controller-resolver-impl.js';
+import { RuntimeControllerResolver } from 'src/http/runtime-controller-resolver.js';
 import { FakeContainer } from './fake-container.js';
 
 class Sample {
@@ -15,7 +15,7 @@ describe('ControllerResolverImpl', () => {
     root.set(Sample as any, new Sample('root'));
     (scope as any).set(Sample as any, new Sample('scope'));
 
-    const resolver = new ControllerResolverImpl(root as any);
+    const resolver = new RuntimeControllerResolver(root as any);
 
     const a = resolver.resolve(Sample as any, scope as any);
     expect(a.name).toBe('scope');

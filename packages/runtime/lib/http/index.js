@@ -1,2 +1,2 @@
-export * from './router-impl.js';
+export * from './runtime-router.js';
 //# sourceMappingURL=index.js.map

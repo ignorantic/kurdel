@@ -18,7 +18,7 @@ function compilePath(path) {
     // Note: allow optional trailing slash for convenience.
     return { regex: new RegExp(`^/${pattern}/?$`), keys };
 }
-export class RouterImpl {
+export class RuntimeRouter {
     constructor() {
         this.entries = [];
         this.middlewares = [];
@@ -95,4 +95,4 @@ export class RouterImpl {
         this.entries.push({ method, path, regex, keys, token, action, controllerMiddlewares });
     }
 }
-//# sourceMappingURL=router-impl.js.map
+//# sourceMappingURL=runtime-router.js.map

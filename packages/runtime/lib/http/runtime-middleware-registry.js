@@ -1,4 +1,4 @@
-export class MiddlewareRegistryImpl {
+export class RuntimeMiddlewareRegistry {
     constructor() {
         this.global = [];
         this.perController = new Map();
@@ -19,4 +19,4 @@ export class MiddlewareRegistryImpl {
         return this.perController.get(controller) ?? [];
     }
 }
-//# sourceMappingURL=middleware-registry-impl.js.map
+//# sourceMappingURL=runtime-middleware-registry.js.map

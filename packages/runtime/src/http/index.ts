@@ -1,1 +1,1 @@
-export * from './router-impl.js';
+export * from './runtime-router.js';

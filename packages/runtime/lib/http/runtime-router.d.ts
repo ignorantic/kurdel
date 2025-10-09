@@ -5,7 +5,7 @@ interface RouterDeps {
     controllerConfigs: ControllerConfig[];
     middlewares: Middleware[];
 }
-export declare class RouterImpl implements Router {
+export declare class RuntimeRouter implements Router {
     private entries;
     private middlewares;
     private resolver;

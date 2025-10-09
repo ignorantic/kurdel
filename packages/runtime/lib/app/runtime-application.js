@@ -40,7 +40,7 @@ async function runHooks(kind, hooks, logger) {
  * - IoC first: every dependency is looked up via tokens and API interfaces.
  * - Request scope is created in ServerModule (per-request) — not here.
  */
-export class ApplicationImpl {
+export class RuntimeApplication {
     /** Expose the container using the public IoC interface. (read-only accessor) */
     get container() {
         return this.ioc;
@@ -228,4 +228,4 @@ export class ApplicationImpl {
         return this.container;
     }
 }
-//# sourceMappingURL=application-impl.js.map
+//# sourceMappingURL=runtime-application.js.map

@@ -16,7 +16,7 @@ import type { RunningServer } from '@kurdel/core/http';
  * - IoC first: every dependency is looked up via tokens and API interfaces.
  * - Request scope is created in ServerModule (per-request) — not here.
  */
-export declare class ApplicationImpl implements Application {
+export declare class RuntimeApplication implements Application {
     /** Immutable app configuration passed from the facade. */
     private readonly config;
     /** Root IoC container. Modules register providers here. */
