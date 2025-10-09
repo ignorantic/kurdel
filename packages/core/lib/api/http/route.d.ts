@@ -20,5 +20,5 @@ export type RouteConfig<TDeps> = {
  * route(meta)(handler) preserves the handler and tags it with metadata.
  * Typing-wise, it narrows ctx.params for the handler from meta.path.
  */
-export declare function route<P extends string>(meta: RouteMeta<P>): <TDeps, TBody = unknown, TParams extends Record<string, string> = RouteParams<P>, THandler extends RouteHandler<TDeps, TBody, TParams> = RouteHandler<TDeps, TBody, TParams>>(fn: THandler) => THandler;
+export declare function route<const M extends RouteMeta>(meta: M): <TDeps, TBody = unknown>(fn: RouteHandler<TDeps, TBody, RouteParams<M["path"]>>) => typeof fn;
 export {};

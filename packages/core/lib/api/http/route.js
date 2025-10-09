@@ -1,15 +1,12 @@
-export const ROUTE_META = Symbol('route:meta');
+export const ROUTE_META = Symbol('@kurdel/core:route-meta');
 /**
  * route(meta)(handler) preserves the handler and tags it with metadata.
  * Typing-wise, it narrows ctx.params for the handler from meta.path.
  */
 export function route(meta) {
     return function (fn) {
-        const wrapped = function (...args) {
-            return fn.apply(this, args);
-        };
-        wrapped[ROUTE_META] = meta;
-        return wrapped;
+        fn[ROUTE_META] = meta;
+        return fn;
     };
 }
 //# sourceMappingURL=route.js.map

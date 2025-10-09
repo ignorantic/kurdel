@@ -7,6 +7,7 @@ import {
   BadRequest,
   NotFound,
   Ok,
+  RouteParams,
 } from '@kurdel/core/http';
 import { PostService } from 'services/post-service.js';
 
@@ -20,7 +21,7 @@ export class PostController extends Controller<Deps> {
     getAll: route({ method: 'GET', path: '/' })(this.getAll),
   };
 
-  async getOne(ctx: HttpContext<Deps>): Promise<ActionResult> {
+  async getOne(ctx: HttpContext<Deps, {}, RouteParams<'/:id'>>): Promise<ActionResult> {
     const { id } = ctx.params;
 
     if (typeof id !== 'string') {

@@ -8,6 +8,7 @@ import {
   NotFound,
   Ok,
   Created,
+  RouteParams,
 } from '@kurdel/core/http';
 import { UserModel } from './user-model.js';
 
@@ -22,7 +23,7 @@ export class UserController extends Controller<Deps> {
     getAll: route({ method: 'GET', path: '/' })(this.getAll),
   };
 
-  async create(ctx: HttpContext<Deps, { name: string, role: string }>): Promise<ActionResult> {
+  async create (ctx: HttpContext<Deps, { name: string, role: string }, {}>): Promise<ActionResult> {
     const { name, role } = ctx.body ?? {};
 
     if (typeof name !== 'string') {
@@ -37,7 +38,7 @@ export class UserController extends Controller<Deps> {
     return Created({ name, role });
   }
 
-  async getOne(ctx: HttpContext<Deps>): Promise<ActionResult> {
+  async getOne (ctx: HttpContext<Deps, {}, RouteParams<'/:id'>>): Promise<ActionResult> {
     const { id } = ctx.params;
 
     if (typeof id !== 'string') {
@@ -57,7 +58,7 @@ export class UserController extends Controller<Deps> {
     return Ok(record);
   }
 
-  async getAll(ctx: HttpContext<Deps>): Promise<ActionResult> {
+  async getAll (ctx: HttpContext<Deps>): Promise<ActionResult> {
     const records = await ctx.deps.model.getUsers();
     return Ok(records);
   }

@@ -1,7 +1,7 @@
 import { HttpContext } from './http-context.js';
 import { ActionResult, Method } from './types.js';
 
-export const ROUTE_META = Symbol('route:meta');
+export const ROUTE_META = Symbol('@kurdel/core:route-meta');
 
 export type RouteMeta<P extends string = string> = { method: Method; path: P }
 
@@ -34,17 +34,11 @@ export type RouteConfig<TDeps> = {
  * route(meta)(handler) preserves the handler and tags it with metadata.
  * Typing-wise, it narrows ctx.params for the handler from meta.path.
  */
-export function route<P extends string>(meta: RouteMeta<P>) {
-  return function <
-    TDeps,
-    TBody = unknown,
-    TParams extends Record<string, string> = RouteParams<P>,
-    THandler extends RouteHandler<TDeps, TBody, TParams> = RouteHandler<TDeps, TBody, TParams>
-  >(fn: THandler): THandler {
-    const wrapped = function (this: any, ...args: any[]) {
-      return (fn as any).apply(this, args);
-    } as THandler;
-    (wrapped as any)[ROUTE_META] = meta;
-    return wrapped;
+export function route<const M extends RouteMeta>(meta: M) {
+  return function <TDeps, TBody = unknown>(
+    fn: RouteHandler<TDeps, TBody, RouteParams<M['path']>>
+  ): typeof fn {
+    (fn as any)[ROUTE_META] = meta;
+    return fn;
   };
 }
