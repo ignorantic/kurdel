@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import { Controller } from 'src/api/http/controller.js';
-import { ActionResult, HttpContext, RouteConfig } from 'src/api/http/types.js';
+import { Controller } from 'src/http/controller.js';
+import { ActionResult, HttpContext, RouteConfig } from 'src/http/types.js';
 
 import { createReqRes } from '../utils/http.js';
 

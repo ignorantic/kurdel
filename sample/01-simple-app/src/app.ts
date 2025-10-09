@@ -1,4 +1,4 @@
-import { createApplication } from '@kurdel/core';
+import { createApplication } from '@kurdel/facade';
 import { UserModule } from './user-module.js';
 
 const app = await createApplication({

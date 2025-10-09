@@ -5,9 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./lib/index.js",
-    "./http": "./lib/api/http/index.js",
-    "./app": "./lib/api/app/index.js",
-    "./db": "./lib/api/db/index.js"
+    "./http": "./lib/http/index.js",
+    "./app": "./lib/app/index.js",
+    "./db": "./lib/db/index.js"
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

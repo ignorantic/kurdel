@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import {
   BadRequest,
   Unauthorized,
@@ -8,8 +9,8 @@ import {
   InternalServerError,
   NotImplemented,
   ServiceUnavailable,
-} from 'src/api/http/http-results.js';
-import { HttpError } from 'src/api/http/http-error.js';
+} from 'src/http/http-results.js';
+import { HttpError } from 'src/http/http-error.js';
 
 describe('http-results (HttpError factories)', () => {
   it.each([

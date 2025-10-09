@@ -1,1 +1,0 @@
-{"version":3,"file":"create-application.js","sourceRoot":"","sources":["../../src/facade/create-application.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,eAAe,EAAE,MAAM,qCAAqC,CAAC;AAEtE;;;GAGG;AACH,MAAM,CAAC,KAAK,UAAU,iBAAiB,CAAC,SAAoB,EAAE;IAC5D,MAAM,IAAI,GAAG,IAAI,eAAe,CAAC,MAAM,CAAC,CAAC;IACzC,MAAM,IAAI,CAAC,SAAS,EAAE,CAAC;IACvB,OAAO,IAAI,CAAC;AACd,CAAC"}

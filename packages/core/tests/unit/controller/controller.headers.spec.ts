@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import http from 'http';
-import { Controller } from 'src/api/http/controller.js';
-import { route } from 'src/api/http/route.js';
-import { Ok } from 'src/api/http/http-results.js';
+
+import { Controller } from 'src/http/controller.js';
+import { route } from 'src/http/route.js';
+import { Ok } from 'src/http/http-results.js';
 
 class ErrorAfterSendController extends Controller {
   readonly routes = {

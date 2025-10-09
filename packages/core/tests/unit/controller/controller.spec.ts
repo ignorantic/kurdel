@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
-import { Controller } from 'src/api/http/controller.js';
-import { ActionResult, HttpContext, RouteConfig } from 'src/api/http/types.js';
-import { route } from 'src/api/http/route.js';
+import { ActionResult } from 'src/http/types.js';
+import { Controller } from 'src/http/controller.js';
+import { HttpContext } from 'src/http/http-context.js';
+import { route, RouteConfig } from 'src/http/route.js';
 
 import { createReqRes } from '../utils/http.js';
 

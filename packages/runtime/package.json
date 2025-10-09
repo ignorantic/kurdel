@@ -1,0 +1,43 @@
+{
+  "name": "@kurdel/runtime",
+  "version": "1.0.0",
+  "description": "framework",
+  "type": "module",
+  "exports": {
+    ".": "./lib/index.js",
+    "./app": "./lib/app/index.js",
+    "./http": "./lib/http/index.js",
+    "./modules": "./lib/modules/index.js"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:ui": "vitest",
+    "test:watch": "vitest --watch",
+    "coverage": "vitest run --coverage",
+    "clean": "rimraf lib ../../.cache/tsconfig.runtime.build.tsbuildinfo",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"
+  },
+  "keywords": [
+    "framework"
+  ],
+  "author": "Andrii Sorokin",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^3.2.4",
+    "rimraf": "^6.0.1",
+    "supertest": "^7.1.4",
+    "tsc-alias": "^1.8.16"
+  },
+  "dependencies": {
+    "@kurdel/core": "^1.0.0",
+    "@kurdel/ioc": "^1.0.0"
+  }
+}

@@ -1,4 +1,4 @@
-import { createApplication } from '@kurdel/core';
+import { createApplication } from '@kurdel/facade';
 import { UserModule } from './modules/user-module.js';
 import { PostModule } from './modules/post-module.js';
 import { LoggerModule } from './modules/logger-module.js';
