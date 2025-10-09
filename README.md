@@ -3,32 +3,52 @@
 A tiny **TypeScript-first** web framework built on SOLID + IoC.
 Clear boundaries, **no decorators**, explicit modules & providers, typed results, and **request-scoped DI**.
 
-* **API vs Runtime vs Facade** — public **contracts** live in `api/`, implementations in `runtime/`, and a few entry points in `facade/`.
-* **IoC by contract** — depends on `@kurdel/ioc` interfaces; the default container lives in `@kurdel/ioc`.
-* **No decorators** — routes and middleware are declared explicitly via small helpers (no magic).
-* **Request scope** — the HTTP adapter creates a **per-request scope** and the router resolves controllers from it (no hidden globals).
-* **Testable by design** — `Application.listen()` returns a *RunningServer* handle (`close()`, `raw()`).
+---
+
+## 🧩 Architecture Overview
+
+Kurdel is now split into **three packages**, each with a clear role:
+
+| Package | Purpose |
+|----------|----------|
+| **`@kurdel/core`** | Framework **contracts**, types, and tokens — pure API definitions, no runtime code. |
+| **`@kurdel/runtime`** | Actual **implementations** — router, controller resolver, adapters, modules, lifecycle, etc. |
+| **`@kurdel/facade`** | The **entry point** for applications — exports `createApplication()` and hides internal structure. |
+
+This separation allows users to depend only on stable APIs (`@kurdel/core`), while internal logic lives in `@kurdel/runtime`.
 
 ---
 
-## Install
+## ✨ Features
+
+* **IoC by contract** — built on `@kurdel/ioc`, compatible with any IoC container.
+* **No decorators** — routes and middlewares are explicit (no reflection or metadata).
+* **Request scope** — controllers are resolved from a **per-request DI scope**.
+* **Lifecycle hooks** — modules can register startup/shutdown hooks.
+* **Typed routes** — compile-time validation for route parameters.
+* **Testable by design** — `Application.listen()` returns a typed `RunningServer` with `close()` and `raw()`.
+
+---
+
+## ⚙️ Installation
 
 ```bash
-npm i @kurdel/core @kurdel/ioc
-````
+npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/ioc
+```
 
-> Node ≥ 18, TypeScript ≥ 5. ESM (`"type": "module"`) + TS `module: "nodenext"` recommended.
+> Node ≥ 18, TypeScript ≥ 5.
+> Recommended: `"type": "module"`, `"module": "nodenext"` in `tsconfig.json`.
 
 ---
 
-## Quick start
+## 🚀 Quick start
 
 ```ts
 // app.ts
-import { createApplication } from '@kurdel/core';
+import { createApplication } from '@kurdel/facade';
 import { Controller, route, Ok, type HttpContext } from '@kurdel/core/http';
 
-// 1) Controller: explicit routes via route(...) helper (no decorators)
+// 1) Controller: explicit routes via the route() helper
 class HelloController extends Controller {
   readonly routes = {
     hello: route({ method: 'GET', path: '/hello' })(this.hello),
@@ -39,14 +59,9 @@ class HelloController extends Controller {
   }
 }
 
-// 2) Feature module: declare controllers/middlewares/models explicitly
+// 2) Feature module
 class HelloModule {
-  readonly controllers = [{ use: HelloController }]; // ControllerConfig[]
-  readonly middlewares = [];                          // optional global middlewares
-  readonly models = [];                               // optional models/db
-
-  // Optional hook:
-  // async register(ioc, config) { ... }
+  readonly controllers = [{ use: HelloController }];
 }
 
 // 3) Bootstrap
@@ -56,18 +71,24 @@ const server = app.listen(3000, () => console.log('http://localhost:3000'));
 
 ---
 
-## Concepts
+## 🧠 Concepts
 
-### Application (API)
+### Application (from `@kurdel/runtime`)
 
-A small façade exposing what you need:
+Encapsulates module registration and server startup.
 
-* `use(...modules)` – add modules before startup.
-* `listen(port)` → `RunningServer` – `{ address?, close(), raw?() }`.
+```ts
+import type { Application } from '@kurdel/core/app';
+```
+
+Main API:
+
+* `use(...modules)` – add additional modules before bootstrap.
+* `listen(port)` → returns `RunningServer` — `{ raw?(), close() }`.
 
 ### Modules
 
-Encapsulate feature declarations:
+Encapsulate feature logic (controllers, middlewares, models, lifecycle hooks):
 
 ```ts
 import type { AppModule } from '@kurdel/core/app';
@@ -77,57 +98,44 @@ export class UserModule implements AppModule {
   readonly controllers: ControllerConfig[] = [
     { use: UserController, prefix: '/api' },
   ];
-  readonly middlewares = [];
-  readonly models = [];
 
-  // Optional: async register(ioc, config) { /* custom wiring */ }
+  // optional lifecycle hook
+  async register(ioc, config) {
+    // custom wiring here
+  }
 }
 ```
 
 ### Controllers (no decorators)
 
-Base class + **whitelist of routes** using the `route(...)` helper that writes metadata under a shared `Symbol.for(...)`.
+Controllers declare routes using the `route()` helper.
 
 ```ts
 import { Controller, route, Ok, type HttpContext } from '@kurdel/core/http';
 
 export class UserController extends Controller {
   readonly routes = {
-    list:   route({ method: 'GET',    path: '/users'     })(this.list),
-    byId:   route({ method: 'GET',    path: '/users/:id' })(this.byId),
-    create: route({ method: 'POST',   path: '/users'     })(this.create),
+    list:   route({ method: 'GET',  path: '/users'     })(this.list),
+    byId:   route({ method: 'GET',  path: '/users/:id' })(this.byId),
+    create: route({ method: 'POST', path: '/users'     })(this.create),
   };
 
-  async list(_ctx: HttpContext) { return Ok([{ id: 1, name: 'Ada' }]); }
-  async byId(ctx: HttpContext)  { return Ok({ id: ctx.params.id }); }
-  async create(ctx: HttpContext<{},{ name: string }>) {
+  async list() { return Ok([{ id: 1, name: 'Ada' }]); }
+  async byId(ctx: HttpContext<{}, {}, { id: string }>) {
+    return Ok({ id: ctx.params.id });
+  }
+  async create(ctx: HttpContext<{}, { name: string }>) {
     return Ok({ id: 'new', name: ctx.body?.name ?? 'unknown' });
   }
 }
 ```
 
-### Results & errors
-
-Return structured **ActionResult** or throw **HttpError**. Helpers keep code concise:
-
-```ts
-import { Ok, NotFound } from '@kurdel/core/http';
-
-if (!user) throw NotFound('User not found');
-return Ok(user);
-```
-
 ---
 
-## Request-scoped DI (IoC)
+## 🔁 Request-scoped IoC
 
-kurdel relies on `@kurdel/ioc` and **resolves controllers from a per-request scope**:
-
-* The HTTP adapter creates `scope = container.createScope?.() ?? container` **per request**.
-* The router matches a route and resolves the controller **from that scope** (no `req.__ioc`, no globals).
-* You can still pass static `deps` to controllers, or access the scope from middleware if needed.
-
-Typed tokens are supported:
+Kurdel uses dependency injection from `@kurdel/ioc` under the hood.
+Each request creates a **child container scope**, isolating controller instances.
 
 ```ts
 import { createToken } from '@kurdel/ioc';
@@ -136,17 +144,35 @@ const UserRepoToken = createToken<UserRepo>('users/UserRepo');
 // container.bind(UserRepoToken).to(UserRepoImpl).inSingletonScope();
 ```
 
-Framework tokens (e.g. `Router`, `ServerAdapter`, `ControllerResolver`, …) are available under `TOKENS.*`.
+Framework-level tokens like `Router`, `ServerAdapter`, `ControllerResolver`, etc. are available via `TOKENS.*`.
 
 ---
 
-## Testing
+## 🧩 Lifecycle Hooks
 
-`listen()` returns a handle that works well with `supertest`:
+Modules can define lifecycle callbacks that run automatically:
+
+```ts
+import type { OnStartHook, OnShutdownHook } from '@kurdel/core/app/lifecycle';
+
+class MetricsModule {
+  readonly onStart: OnStartHook[] = [() => console.log('Started!')];
+  readonly onShutdown: OnShutdownHook[] = [() => console.log('Stopped!')];
+}
+```
+
+* `onStart` hooks run **before** the user `listen()` callback.
+* `onShutdown` hooks run **after** `server.close()` in reverse order.
+
+---
+
+## 🧪 Testing
+
+`listen()` returns a handle that integrates with `supertest`:
 
 ```ts
 import request from 'supertest';
-import { createApplication } from '@kurdel/core';
+import { createApplication } from '@kurdel/facade';
 import { Controller, route, Ok } from '@kurdel/core/http';
 
 class TController extends Controller {
@@ -168,28 +194,36 @@ await h.close();
 
 ---
 
-## Project layout (internal)
+## 📁 Project layout (monorepo)
 
 ```
-src/
-  api/       # public contracts (types, tokens, base classes, helpers)
-  runtime/   # implementations (router, middlewares, adapters, modules)
-  facade/    # public entry points (e.g., createApplication)
-  index.ts   # public root barrel (re-exports)
+packages/
+  core/      # Pure contracts (API types, interfaces, tokens)
+  runtime/   # Implementations (router, modules, adapters, lifecycle)
+  facade/    # Entry points (createApplication, CLI, helpers)
+  ioc/       # IoC container library used internally and externally
 ```
 
-Consumers import from package subpaths:
+Consumers import from subpaths, e.g.:
 
 ```ts
-import { createApplication } from '@kurdel/core';
+import { createApplication } from '@kurdel/facade';
 import { Controller, route, Ok } from '@kurdel/core/http';
 import type { AppModule } from '@kurdel/core/app';
 ```
 
 ---
 
-## Status
+## 🚧 Status
 
-Early-stage, evolving API. Feedback & PRs are welcome.
-Roadmap: richer `HttpContext` helpers, in-memory HTTP adapter for tests, route param constraints, lifecycle hooks, graceful shutdown.
+Early-stage and evolving API — feedback is welcome.
+Next steps:
 
+* In-memory HTTP adapter for tests
+* Route param constraints
+* Extended `HttpContext` utilities
+* CLI scaffolding
+
+---
+
+© Andrii Sorokin · MIT License
