@@ -1,4 +1,5 @@
-import { Container, IoCContainer } from '@kurdel/ioc';
+import type { Container} from '@kurdel/ioc';
+import { IoCContainer } from '@kurdel/ioc';
 import type { ModelList } from '@kurdel/core/db';
 import type {
   AppConfig,
@@ -29,12 +30,19 @@ import { LifecycleModule } from '../modules/lifecycle-module.js';
  * - If a hook throws, we log (if a logger is provided) and rethrow to fail fast.
  * - The caller decides direction (normal vs reversed order) by the array it passes.
  */
-async function runHooks(kind: 'start' | 'shutdown', hooks: Array<() => void | Promise<void>>, logger?: any) {
+async function runHooks(
+  kind: 'start' | 'shutdown',
+  hooks: Array<() => void | Promise<void>>,
+  logger?: any
+) {
   for (const fn of hooks) {
     try {
       await fn();
     } catch (e) {
-      try { logger?.error?.(`[lifecycle:${kind}]`, e); } catch {}
+      try {
+        logger?.error?.(`[lifecycle:${kind}]`, e);
+      // eslint-disable-next-line no-empty
+      } catch {}
       throw e;
     }
   }
@@ -79,14 +87,14 @@ export class RuntimeApplication implements Application {
     this.ioc = new IoCContainer();
 
     // Aggregate HTTP declarations from user-provided modules that implement HttpModule.
-  // We keep the API clean: only contracts/types from `api/` are referenced on this side.
+    // We keep the API clean: only contracts/types from `api/` are referenced on this side.
     const httpModules = (config.modules ?? []).filter(
       (m): m is HttpModule => 'models' in m || 'controllers' in m || 'middlewares' in m
     );
 
-    const allModels: ModelList = httpModules.flatMap((m) => m.models ?? []);
-    const allControllers: ControllerConfig[] = httpModules.flatMap((m) => m.controllers ?? []);
-    const allMiddlewares: Middleware[] = httpModules.flatMap((m) => m.middlewares ?? []);
+    const allModels: ModelList = httpModules.flatMap(m => m.models ?? []);
+    const allControllers: ControllerConfig[] = httpModules.flatMap(m => m.controllers ?? []);
+    const allMiddlewares: Middleware[] = httpModules.flatMap(m => m.middlewares ?? []);
 
     // Compose module pipeline:
     // 1) LifecycleModule provides OnStart/OnShutdown hook arrays (mutable singletons).
@@ -207,16 +215,23 @@ export class RuntimeApplication implements Application {
 
     // Obtain lifecycle hook arrays (empty when LifecycleModule is absent — still safe).
     const onStart: OnStartHook[] = this.ioc.has(TOKENS.OnStart) ? this.ioc.get(TOKENS.OnStart) : [];
-    const onShutdown: OnShutdownHook[] = this.ioc.has(TOKENS.OnShutdown) ? this.ioc.get(TOKENS.OnShutdown) : [];
+    const onShutdown: OnShutdownHook[] = this.ioc.has(TOKENS.OnShutdown)
+      ? this.ioc.get(TOKENS.OnShutdown)
+      : [];
 
     // Normalize final user callback from overloads.
-    const userDone = (typeof hostOrCb === 'function' ? hostOrCb : cb);
+    const userDone = typeof hostOrCb === 'function' ? hostOrCb : cb;
 
     // Readiness guard: run hooks first, then invoke user's callback.
     const onReady = () => {
       Promise.resolve()
         .then(() => runHooks('start', onStart /* optional logger */))
-        .then(() => { try { userDone?.(); } catch {} });
+        .then(() => {
+          try {
+            userDone?.();
+          // eslint-disable-next-line no-empty
+          } catch {}
+        });
     };
 
     // Start the server adapter; we do not leak Node types here.
@@ -229,9 +244,10 @@ export class RuntimeApplication implements Application {
     // Return an opaque handle with raw() and close().
     const running: RunningServer = {
       // Proxy raw() using the adapter contract (e.g., Native adapter returns http.Server)
-      raw: typeof adapter.raw === 'function'
-        ? (<T = unknown>() => adapter.raw?.() as T | undefined)
-        : undefined,
+      raw:
+        typeof adapter.raw === 'function'
+          ? <T = unknown>() => adapter.raw?.() as T | undefined
+          : undefined,
 
       // Graceful shutdown:
       // 1) stop the adapter (stop accepting new connections, close server)
@@ -266,4 +282,3 @@ export class RuntimeApplication implements Application {
     return this.container;
   }
 }
-

@@ -1,5 +1,5 @@
 import { DatabaseDriver } from './database-driver.js';
-import { IDatabaseConfig } from './interfaces.js';
+import type { IDatabaseConfig } from './interfaces.js';
 import { SQLiteDB } from './sqlite-db.js';
 
 export interface ISQLiteConfig extends IDatabaseConfig {
@@ -18,7 +18,7 @@ export class SQLiteDriver extends DatabaseDriver<ISQLiteConfig> {
       try {
         const db = new SQLiteDB(this.config.filename);
         return resolve(db);
-      } catch(err) {
+      } catch (err) {
         return reject(err);
       }
     });
@@ -30,7 +30,7 @@ export class SQLiteDriver extends DatabaseDriver<ISQLiteConfig> {
         try {
           this.db.close();
           this.db = undefined;
-        } catch(err) {
+        } catch (err) {
           return reject(err);
         }
       }
@@ -42,4 +42,3 @@ export class SQLiteDriver extends DatabaseDriver<ISQLiteConfig> {
     return this.db;
   }
 }
-

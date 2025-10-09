@@ -35,4 +35,3 @@ describe('http-results (HttpError factories)', () => {
     expect(err.details).toEqual({ field: 'name' });
   });
 });
-

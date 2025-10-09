@@ -31,7 +31,11 @@ describe('Application lifecycle – RunningServer.raw()', () => {
       }
     }
 
-    const app = new RuntimeApplication({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
+    const app = new RuntimeApplication({
+      modules: [new LifecycleModule()],
+      server: TestAdapter,
+      db: false,
+    } as AppConfig);
     await app.bootstrap();
 
     const running = app.listen(0, () => {});
@@ -56,7 +60,11 @@ describe('Application lifecycle – RunningServer.raw()', () => {
       }
     }
 
-    const app = new RuntimeApplication({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
+    const app = new RuntimeApplication({
+      modules: [new LifecycleModule()],
+      server: TestAdapter,
+      db: false,
+    } as AppConfig);
     await app.bootstrap();
 
     const running = app.listen(0, () => {});
@@ -65,4 +73,3 @@ describe('Application lifecycle – RunningServer.raw()', () => {
     await running.close();
   });
 });
-

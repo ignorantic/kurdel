@@ -10,4 +10,3 @@ export async function createApplication(config: AppConfig = {}): Promise<Applica
   await impl.bootstrap();
   return impl;
 }
-

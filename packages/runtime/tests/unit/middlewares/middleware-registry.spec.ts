@@ -37,4 +37,3 @@ describe('MiddlewareRegistry', () => {
     expect(registry.for(DummyController)).toEqual([]);
   });
 });
-

@@ -1,7 +1,7 @@
-import { IoCContainer } from '@kurdel/ioc';
+import type { IoCContainer } from '@kurdel/ioc';
 import { IDatabase } from '@kurdel/db';
-import { AppModule, AppConfig } from '@kurdel/core/app';
-import { ModelList } from '@kurdel/core/db';
+import type { AppModule, AppConfig } from '@kurdel/core/app';
+import type { ModelList } from '@kurdel/core/db';
 
 /**
  * ModelModule
@@ -15,7 +15,7 @@ export class ModelModule implements AppModule<AppConfig> {
   constructor(private models: ModelList) {}
 
   async register(ioc: IoCContainer): Promise<void> {
-    this.models.forEach((model) => {
+    this.models.forEach(model => {
       if ('use' in model) {
         ioc.put(model.use).with({ db: IDatabase, ...model.deps });
       } else {

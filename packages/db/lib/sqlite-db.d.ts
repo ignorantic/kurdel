@@ -1,4 +1,4 @@
-import { DatabaseQuery, IDatabase } from './interfaces.js';
+import type { DatabaseQuery, IDatabase } from './interfaces.js';
 export declare class SQLiteDB implements IDatabase {
     private db;
     constructor(path: string);

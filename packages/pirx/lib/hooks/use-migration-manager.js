@@ -3,7 +3,7 @@ import { MigrationManager } from '@kurdel/migrations';
 export default function useMigrationManager() {
     const [loader, setLoader] = useState(null);
     useEffect(() => {
-        MigrationManager.create().then((ml) => {
+        MigrationManager.create().then(ml => {
             setLoader(ml);
         });
     }, []);

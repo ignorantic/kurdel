@@ -26,11 +26,15 @@ export default function useMigrateRun(manager) {
         };
     }, []);
     useEffect(() => {
-        manager.run().then(() => {
+        manager
+            .run()
+            .then(() => {
             setDone(true);
-        }).catch((error) => {
+        })
+            .catch(error => {
             setError(error);
-        }).finally(() => {
+        })
+            .finally(() => {
             manager.close().then(() => exit());
         });
     }, []);

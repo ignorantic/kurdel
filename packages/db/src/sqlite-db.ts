@@ -1,11 +1,11 @@
 import sqlite3 from 'sqlite3';
-import { DatabaseQuery, IDatabase } from './interfaces.js';
+import type { DatabaseQuery, IDatabase } from './interfaces.js';
 
 export class SQLiteDB implements IDatabase {
   private db: sqlite3.Database;
 
   constructor(path: string) {
-    this.db = new sqlite3.Database(path, (err) => {
+    this.db = new sqlite3.Database(path, err => {
       if (err) {
         console.error('Could not connect to database', err);
       }
@@ -50,7 +50,7 @@ export class SQLiteDB implements IDatabase {
 
   public close(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.db.close((err) => {
+      this.db.close(err => {
         if (err) {
           reject(err);
         } else {
@@ -60,4 +60,3 @@ export class SQLiteDB implements IDatabase {
     });
   }
 }
-

@@ -15,6 +15,7 @@ export class NativeHttpServerAdapter {
                     try {
                         res.statusCode = 500;
                         res.end?.();
+                        // eslint-disable-next-line no-empty
                     }
                     catch { }
                 }

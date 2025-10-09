@@ -1,4 +1,4 @@
-import { IDatabase } from '@kurdel/db';
+import type { IDatabase } from '@kurdel/db';
 import { Blueprint } from './blueprint.js';
 type Configure = (table: Blueprint) => void;
 export declare class Schema {

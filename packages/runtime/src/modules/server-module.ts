@@ -1,7 +1,7 @@
-import { Container } from '@kurdel/ioc';
+import type { Container } from '@kurdel/ioc';
 import { TOKENS } from '@kurdel/core/app';
 import type { AppConfig, AppModule, ProviderConfig } from '@kurdel/core/app';
-import {
+import type {
   Method,
   ControllerConfig,
   RequestLike,
@@ -14,12 +14,12 @@ import {
 import { NativeHttpServerAdapter } from 'src/http/adapters/native-http-server-adapter.js';
 
 /**
-* ServerModule: wires the HTTP ServerAdapter to the Router.
-* 
-* - Provides a singleton ServerAdapter implementation
-* - Injects the root Container and the Router into the adapter
-* - No global state; request-scope is created inside the adapter per request-scope
-*/
+ * ServerModule: wires the HTTP ServerAdapter to the Router.
+ *
+ * - Provides a singleton ServerAdapter implementation
+ * - Injects the root Container and the Router into the adapter
+ * - No global state; request-scope is created inside the adapter per request-scope
+ */
 export class ServerModule implements AppModule<AppConfig> {
   readonly imports = {
     router: TOKENS.Router,
@@ -45,7 +45,7 @@ export class ServerModule implements AppModule<AppConfig> {
 
   async register(ioc: Container): Promise<void> {
     const adapter = ioc.get<ServerAdapter<RequestLike, ResponseLike>>(TOKENS.ServerAdapter);
-    const router  = ioc.get<Router>(TOKENS.Router);
+    const router = ioc.get<Router>(TOKENS.Router);
 
     const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
     const controllerConfigs = ioc.get<ControllerConfig[]>(TOKENS.ControllerConfigs);
@@ -53,7 +53,7 @@ export class ServerModule implements AppModule<AppConfig> {
     router.init({
       resolver: ioc.get(TOKENS.ControllerResolver),
       controllerConfigs,
-      middlewares: registry.all()
+      middlewares: registry.all(),
     });
 
     adapter.on(async (req, res) => {
@@ -62,7 +62,7 @@ export class ServerModule implements AppModule<AppConfig> {
       (req as any).__ioc = scope;
 
       const method = (req.method as Method) ?? 'GET';
-      const url    = req.url ?? '/';
+      const url = req.url ?? '/';
 
       const handler = router.resolve(method, url, scope);
       if (!handler) {

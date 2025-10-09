@@ -1,6 +1,6 @@
-import { IoCContainer } from '@kurdel/ioc';
-import { AppModule, AppConfig } from '@kurdel/core/app';
-import { ModelList } from '@kurdel/core/db';
+import type { IoCContainer } from '@kurdel/ioc';
+import type { AppModule, AppConfig } from '@kurdel/core/app';
+import type { ModelList } from '@kurdel/core/db';
 /**
  * ModelModule
  *

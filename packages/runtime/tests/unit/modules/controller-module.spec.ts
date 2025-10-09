@@ -6,15 +6,16 @@ import { ControllerModule } from 'src/modules/controller-module.js';
 
 describe('ControllerModule', () => {
   it('should provide Router and CONTROLLER_CLASSES', () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     class TestController extends Controller<{}> {
       readonly routes = {};
     }
 
     const module = new ControllerModule([{ use: TestController }]);
 
-    const routerProvider = module.providers.find((p) => 'provide' in p);
+    const routerProvider = module.providers.find(p => 'provide' in p);
     const controllersProvider = module.providers.find(
-      (p) => 'provide' in p && p.provide === TOKENS.ControllerClasses
+      p => 'provide' in p && p.provide === TOKENS.ControllerClasses
     );
 
     expect(routerProvider).toBeDefined();
@@ -23,6 +24,7 @@ describe('ControllerModule', () => {
 
   it('should register local middlewares', async () => {
     const mw = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     class TestController extends Controller<{}> {
       readonly routes = {};
     }

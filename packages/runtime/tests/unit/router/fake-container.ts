@@ -33,7 +33,8 @@ export class FakeContainer implements Container {
     const state: Partial<ClassBinding> = { kind: 'class' };
 
     const commitClass = () => {
-      if (!state.ctor) throw new Error('bind(...).to(Impl) must be called before inSingletonScope()/with()');
+      if (!state.ctor)
+        throw new Error('bind(...).to(Impl) must be called before inSingletonScope()/with()');
       this.registry.set(key, {
         kind: 'class',
         ctor: state.ctor,
@@ -74,7 +75,13 @@ export class FakeContainer implements Container {
 
   put<T>(ctor: Newable<T>) {
     // Register the class under its own constructor as the identifier
-    const binding: ClassBinding = { kind: 'class', ctor, deps: {}, singleton: false, cache: undefined };
+    const binding: ClassBinding = {
+      kind: 'class',
+      ctor,
+      deps: {},
+      singleton: false,
+      cache: undefined,
+    };
     this.registry.set(ctor, binding);
 
     const chain = {
@@ -92,7 +99,12 @@ export class FakeContainer implements Container {
   }
 
   toFactory<T>(key: Identifier<T>, factory: () => T): void {
-    this.registry.set(key, { kind: 'factory', factory: () => factory(), singleton: false, cache: undefined });
+    this.registry.set(key, {
+      kind: 'factory',
+      factory: () => factory(),
+      singleton: false,
+      cache: undefined,
+    });
   }
 
   set<T>(key: Identifier<T>, value: T): void {
@@ -145,7 +157,9 @@ export class FakeContainer implements Container {
     return new FakeContainer(this);
   }
 
-  private findBinding(key: Identifier<any> | Newable<any>): { owner: FakeContainer; binding: Binding } | null {
+  private findBinding(
+    key: Identifier<any> | Newable<any>
+  ): { owner: FakeContainer; binding: Binding } | null {
     if (this.registry.has(key)) {
       return { owner: this, binding: this.registry.get(key)! };
     }
@@ -174,4 +188,3 @@ type BindingWithInContractImpl<T> = {
   with(deps: Record<string, Identifier<any>>): BindingWithInContractImpl<T>;
   inSingletonScope(): BindingWithInContractImpl<T>;
 };
-

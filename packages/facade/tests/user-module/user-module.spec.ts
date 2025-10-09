@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { Server } from 'http';
+import type { Server } from 'node:http';
 import request from 'supertest';
 
 import { createApplication } from 'src/create-application.js';
@@ -38,4 +38,3 @@ describe('UserModule integration', () => {
     expect(res.body.name).toBe('Bob');
   });
 });
-

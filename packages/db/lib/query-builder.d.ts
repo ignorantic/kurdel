@@ -1,4 +1,4 @@
-import { DatabaseQuery, IQueryBuilder } from './interfaces.js';
+import type { DatabaseQuery, IQueryBuilder } from './interfaces.js';
 type SelectOptions = {
     fn?: 'MAX' | 'MIN' | 'COUNT';
     as?: string;

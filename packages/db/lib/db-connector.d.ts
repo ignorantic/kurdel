@@ -1,4 +1,4 @@
-import { IDatabase } from './interfaces.js';
+import type { IDatabase } from './interfaces.js';
 export declare class DBConnector {
     private jsonLoader;
     constructor();

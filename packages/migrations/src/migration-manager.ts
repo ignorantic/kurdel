@@ -1,6 +1,7 @@
 import EventEmitter from 'events';
-import { IDatabase, DBConnector } from '@kurdel/db';
-import { Migration } from './migration.js';
+import type { IDatabase} from '@kurdel/db';
+import { DBConnector } from '@kurdel/db';
+import type { Migration } from './migration.js';
 import { MigrationLoader } from './migration-loader.js';
 import { MigrationRegistry } from './migration-registry.js';
 
@@ -17,7 +18,7 @@ export class MigrationManager extends EventEmitter {
   }
 
   public static async create(): Promise<MigrationManager> {
-    const connection = await (new DBConnector()).run();
+    const connection = await new DBConnector().run();
     const registry = await MigrationRegistry.create(connection);
     return new MigrationManager(connection, registry);
   }
@@ -71,7 +72,7 @@ export class MigrationManager extends EventEmitter {
         await this.registry.add(name, batch);
         this.emit('up:success', name);
         continue;
-      } catch(error) {
+      } catch (error) {
         this.emit('up:failure', name, error);
         return false;
       }
@@ -87,7 +88,7 @@ export class MigrationManager extends EventEmitter {
         await this.registry.remove(name);
         this.emit('down:success', name);
         continue;
-      } catch(error) {
+      } catch (error) {
         this.emit('down:failure', name, error);
         return false;
       }

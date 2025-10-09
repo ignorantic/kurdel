@@ -5,9 +5,7 @@ import { UserService } from './user-service.js';
 import { UserController } from './user-controller.js';
 
 export class UserModule implements HttpModule<AppConfig> {
-  readonly providers = [
-    { provide: UserService, useClass: UserService, isSingleton: true },
-  ];
+  readonly providers = [{ provide: UserService, useClass: UserService, isSingleton: true }];
 
   readonly controllers: ControllerConfig[] = [
     {
@@ -21,4 +19,3 @@ export class UserModule implements HttpModule<AppConfig> {
 
   async register() {}
 }
-

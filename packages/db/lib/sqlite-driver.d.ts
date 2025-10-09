@@ -1,5 +1,5 @@
 import { DatabaseDriver } from './database-driver.js';
-import { IDatabaseConfig } from './interfaces.js';
+import type { IDatabaseConfig } from './interfaces.js';
 import { SQLiteDB } from './sqlite-db.js';
 export interface ISQLiteConfig extends IDatabaseConfig {
     filename: string;

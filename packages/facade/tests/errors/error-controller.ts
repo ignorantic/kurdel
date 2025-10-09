@@ -3,7 +3,7 @@ import {
   route,
   Controller,
   BadRequest,
-  Conflict, 
+  Conflict,
   Forbidden,
   NotFound,
   NotImplemented,
@@ -55,4 +55,3 @@ export class ErrorController extends Controller {
     throw ServiceUnavailable('Try later');
   }
 }
-

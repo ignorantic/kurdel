@@ -11,4 +11,3 @@ describe('public exports surface', () => {
     expectTypeOf<Model>().toBeConstructibleWith();
   });
 });
-

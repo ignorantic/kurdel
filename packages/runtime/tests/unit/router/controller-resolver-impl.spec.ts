@@ -25,4 +25,3 @@ describe('ControllerResolverImpl', () => {
     expect(b.name).toBe('root');
   });
 });
-

@@ -1,10 +1,10 @@
-import { Newable } from '@kurdel/common';
+import type { Newable } from '@kurdel/common';
 
-import { ServerAdapter } from 'src/http/interfaces.js';
-import { Model } from 'src/db/model.js';
-import { HttpModule } from 'src/http/http-module.js';
+import type { ServerAdapter } from 'src/http/interfaces.js';
+import type { Model } from 'src/db/model.js';
+import type { HttpModule } from 'src/http/http-module.js';
 
-import { AppModule } from './app-module.js';
+import type { AppModule } from './app-module.js';
 
 export interface AppConfig {
   server?: Newable<ServerAdapter>;
@@ -12,4 +12,3 @@ export interface AppConfig {
   models?: Newable<Model>[];
   modules?: (AppModule | HttpModule)[];
 }
-

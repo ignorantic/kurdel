@@ -1,12 +1,12 @@
 import { TOKENS } from '@kurdel/core/app';
 import { NativeHttpServerAdapter } from '../http/adapters/native-http-server-adapter.js';
 /**
-* ServerModule: wires the HTTP ServerAdapter to the Router.
-*
-* - Provides a singleton ServerAdapter implementation
-* - Injects the root Container and the Router into the adapter
-* - No global state; request-scope is created inside the adapter per request-scope
-*/
+ * ServerModule: wires the HTTP ServerAdapter to the Router.
+ *
+ * - Provides a singleton ServerAdapter implementation
+ * - Injects the root Container and the Router into the adapter
+ * - No global state; request-scope is created inside the adapter per request-scope
+ */
 export class ServerModule {
     constructor(config) {
         this.imports = {
@@ -33,7 +33,7 @@ export class ServerModule {
         router.init({
             resolver: ioc.get(TOKENS.ControllerResolver),
             controllerConfigs,
-            middlewares: registry.all()
+            middlewares: registry.all(),
         });
         adapter.on(async (req, res) => {
             const scope = ioc.createScope?.() ?? ioc;

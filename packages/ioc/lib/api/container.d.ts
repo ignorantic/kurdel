@@ -1,4 +1,4 @@
-import { Newable } from '@kurdel/common';
+import type { Newable } from '@kurdel/common';
 import type { Identifier } from './identifier.js';
 export interface BindingToContract<T> {
     to(impl: Newable<T>): BindingWithInContract<T>;

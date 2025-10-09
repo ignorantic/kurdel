@@ -1,6 +1,6 @@
-import { Newable } from '@kurdel/common';
-import { Identifier } from '@kurdel/ioc';
-import { IDatabase } from '@kurdel/db';
+import type { Newable } from '@kurdel/common';
+import type { Identifier } from '@kurdel/ioc';
+import type { IDatabase } from '@kurdel/db';
 interface ModelDeps {
     db: IDatabase;
 }

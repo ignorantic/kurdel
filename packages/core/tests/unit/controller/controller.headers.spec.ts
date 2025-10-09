@@ -50,4 +50,3 @@ describe('Controller with headersSent', () => {
     expect(res.statusCode).toBe(200);
   });
 });
-

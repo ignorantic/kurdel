@@ -1,5 +1,5 @@
-import { ServerAdapter } from '../http/interfaces.js';
-import { Router } from '../http/router.js';
+import type { ServerAdapter } from '../http/interfaces.js';
+import type { Router } from '../http/router.js';
 export declare const TOKENS: {
     ServerAdapter: import("@kurdel/ioc").InjectionToken<ServerAdapter<import("../http/interfaces.js").RequestLike, import("../http/interfaces.js").ResponseLike>>;
     Router: import("@kurdel/ioc").InjectionToken<Router>;

@@ -1,7 +1,7 @@
-import { Newable } from '@kurdel/common';
+import type { Newable } from '@kurdel/common';
 
-import { Identifier } from 'src/api/identifier.js';
-import { Container, BindingToContract, BindingWithInContract } from 'src/api/container.js';
+import type { Identifier } from 'src/api/identifier.js';
+import type { Container, BindingToContract, BindingWithInContract } from 'src/api/container.js';
 
 import { Binding } from './binding.js';
 import { BindingToContractImpl } from './binding-to-contract-impl.js';
@@ -177,9 +177,7 @@ export class IoCContainer implements Container {
 
     const Ctor = boundEntity as Newable<T>;
     const resolvedDeps = depsMap
-      ? Object.fromEntries(
-          Object.entries(depsMap).map(([k, dep]) => [k, this.get(dep)])
-        )
+      ? Object.fromEntries(Object.entries(depsMap).map(([k, dep]) => [k, this.get(dep)]))
       : {};
 
     if (local.scope === 'Singleton') {

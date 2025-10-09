@@ -45,7 +45,12 @@ describe('BindingToContract', () => {
 describe('BindingWithContract', () => {
   it('should assign depsMap when calling .with()', () => {
     class Dep {}
-    class TestClass { dep: Dep; constructor({ dep }: { dep: Dep }) { this.dep = dep; } }
+    class TestClass {
+      dep: Dep;
+      constructor({ dep }: { dep: Dep }) {
+        this.dep = dep;
+      }
+    }
 
     const binding = new Binding<TestClass>();
     const contract = new BindingWithContract(binding);

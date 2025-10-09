@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import { IDatabase } from '@kurdel/db';
+import type { IDatabase } from '@kurdel/db';
 import { MigrationRegistry } from './migration-registry.js';
 export declare class MigrationManager extends EventEmitter {
     private connection;

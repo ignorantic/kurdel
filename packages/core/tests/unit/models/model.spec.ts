@@ -44,4 +44,3 @@ describe('Model (base class)', () => {
     expect(result).toEqual([{ id: 1 }, { id: 2 }]);
   });
 });
-

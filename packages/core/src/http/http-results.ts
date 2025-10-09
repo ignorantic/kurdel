@@ -1,5 +1,5 @@
-import { HttpError } from './http-error.js';
-import { ActionResult, JsonValue } from './types.js';
+import { HttpError } from 'src/http/http-error.js';
+import type { ActionResult, JsonValue } from 'src/http/types.js';
 
 // success
 export const Ok = (body: JsonValue = { message: 'OK' }): ActionResult => ({
@@ -38,8 +38,7 @@ export const Redirect = (location: string, status = 302): ActionResult => ({
 });
 
 // errors
-export const BadRequest = (msg: string, details?: unknown) =>
-  new HttpError(400, msg, details);
+export const BadRequest = (msg: string, details?: unknown) => new HttpError(400, msg, details);
 
 export const Unauthorized = (msg = 'Unauthorized', details?: JsonValue) =>
   new HttpError(401, msg, details);
@@ -50,8 +49,7 @@ export const Forbidden = (msg = 'Forbidden', details?: JsonValue) =>
 export const NotFound = (msg = 'Not Found', details?: JsonValue) =>
   new HttpError(404, msg, details);
 
-export const Conflict = (msg = 'Conflict', details?: JsonValue) =>
-  new HttpError(409, msg, details);
+export const Conflict = (msg = 'Conflict', details?: JsonValue) => new HttpError(409, msg, details);
 
 export const InternalServerError = (msg = 'Internal Server Error', details?: JsonValue) =>
   new HttpError(500, msg, details);

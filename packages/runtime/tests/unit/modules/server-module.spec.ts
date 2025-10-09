@@ -8,7 +8,7 @@ describe('ServerModule', () => {
     const module = new ServerModule({});
 
     const hasServerProvider = module.providers.some(
-      (p) => 'provide' in p && p.provide === TOKENS.ServerAdapter
+      p => 'provide' in p && p.provide === TOKENS.ServerAdapter
     );
 
     expect(hasServerProvider).toBe(true);

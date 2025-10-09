@@ -26,11 +26,15 @@ export default function useMigrateRollback(manager) {
         };
     }, []);
     useEffect(() => {
-        manager.rollback().then(() => {
+        manager
+            .rollback()
+            .then(() => {
             setDone(true);
-        }).catch((error) => {
+        })
+            .catch(error => {
             setError(error);
-        }).finally(() => {
+        })
+            .finally(() => {
             manager.close().then(() => exit());
         });
     }, []);

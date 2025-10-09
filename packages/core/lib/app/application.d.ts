@@ -1,6 +1,6 @@
-import { Container } from '@kurdel/ioc';
-import { RunningServer } from '../http/interfaces.js';
-import { AppModule } from './app-module.js';
+import type { Container } from '@kurdel/ioc';
+import type { RunningServer } from '../http/interfaces.js';
+import type { AppModule } from './app-module.js';
 /**
  * Public application contract.
  * Exposes a DI container (by interface), allows composing modules,

@@ -53,7 +53,13 @@ describe('RouterImpl', () => {
     expect(handler).toBeTypeOf('function');
 
     const req: any = { method: 'GET', url: '/ping/42' };
-    const res: any = { headersSent: false, writeHead: vi.fn(), end: vi.fn(), setHeader: vi.fn(), statusCode: 0 };
+    const res: any = {
+      headersSent: false,
+      writeHead: vi.fn(),
+      end: vi.fn(),
+      setHeader: vi.fn(),
+      statusCode: 0,
+    };
 
     await handler(req, res);
 
@@ -86,7 +92,13 @@ describe('RouterImpl', () => {
     const handler = router.resolve('GET' as Method, '/ping/abc', scope)!;
 
     const req: any = { method: 'GET', url: '/ping/abc' };
-    const res: any = { headersSent: false, writeHead: vi.fn(), end: vi.fn(), setHeader: vi.fn(), statusCode: 0 };
+    const res: any = {
+      headersSent: false,
+      writeHead: vi.fn(),
+      end: vi.fn(),
+      setHeader: vi.fn(),
+      statusCode: 0,
+    };
 
     await handler(req, res);
 
@@ -94,4 +106,3 @@ describe('RouterImpl', () => {
     expect(calls[0]).toBe('ping:abc:S');
   });
 });
-

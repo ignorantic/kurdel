@@ -1,4 +1,4 @@
-import { ServerResponse, IncomingMessage } from 'node:http';
+import type { ServerResponse, IncomingMessage } from 'node:http';
 
 import type { ActionResult, JsonValue } from './types.js';
 import type { HttpContext } from './http-context.js';
@@ -61,12 +61,9 @@ export abstract class Controller<TDeps = unknown> {
     const dispatch = async (): Promise<ActionResult> => handler.call(this, ctx);
 
     // build composed middleware chain
-    const composed = pipeline.reduceRight<() => Promise<ActionResult>>(
-      (next, mw) => {
-        return () => mw(ctx, next);
-      },
-      dispatch
-    );
+    const composed = pipeline.reduceRight<() => Promise<ActionResult>>((next, mw) => {
+      return () => mw(ctx, next);
+    }, dispatch);
 
     try {
       const result = await composed();
@@ -75,7 +72,10 @@ export abstract class Controller<TDeps = unknown> {
       if (!res.headersSent) {
         this.render(res, { kind: 'json', status: 500, body: { error: 'Internal Server Error' } });
       }
-      try { (this.deps as any)?.logger?.error?.(e); } catch {}
+      try {
+        (this.deps as any)?.logger?.error?.(e);
+      // eslint-disable-next-line no-empty
+      } catch {}
     }
   }
 

@@ -54,6 +54,7 @@ export class Controller {
             }
             try {
                 this.deps?.logger?.error?.(e);
+                // eslint-disable-next-line no-empty
             }
             catch { }
         }

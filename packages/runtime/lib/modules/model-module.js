@@ -11,7 +11,7 @@ export class ModelModule {
         this.imports = { db: IDatabase };
     }
     async register(ioc) {
-        this.models.forEach((model) => {
+        this.models.forEach(model => {
             if ('use' in model) {
                 ioc.put(model.use).with({ db: IDatabase, ...model.deps });
             }

@@ -1,4 +1,4 @@
-import { IDatabase } from '@kurdel/db';
+import type { IDatabase } from '@kurdel/db';
 export declare class MigrationRegistry {
     private connection;
     private builder;

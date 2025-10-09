@@ -13,4 +13,3 @@ export class FakeResolver implements ControllerResolver {
     return scope.get<T>(cls);
   }
 }
-

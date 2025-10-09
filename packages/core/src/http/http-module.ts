@@ -2,8 +2,8 @@ import type { ModelList } from 'src/db/model.js';
 import type { AppModule } from 'src/app/app-module.js';
 import type { AppConfig } from 'src/app/config.js';
 
-import type { Middleware} from './middleware.js';
-import { ControllerConfig } from './interfaces.js';
+import type { Middleware } from './middleware.js';
+import type { ControllerConfig } from './interfaces.js';
 
 /**
  * HttpModule
@@ -39,7 +39,7 @@ export interface HttpModule<TConfig = AppConfig> extends AppModule<TConfig> {
    * through the ModelModule
    */
   readonly models?: ModelList;
-  
+
   /**
    * Controllers that should be registered
    * through the ControllerModule
@@ -52,4 +52,3 @@ export interface HttpModule<TConfig = AppConfig> extends AppModule<TConfig> {
    */
   readonly middlewares?: Middleware[];
 }
-

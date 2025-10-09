@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { Server } from 'http';
+import type { Server } from 'node:http';
 import request from 'supertest';
 
 import type { HttpContext, HttpModule } from '@kurdel/core/http';
@@ -13,7 +13,7 @@ class RootController extends Controller {
   };
 
   async slash() {
-    return Ok({ case: 'slash' })
+    return Ok({ case: 'slash' });
   }
 }
 
@@ -23,7 +23,7 @@ class EmptyController extends Controller {
   };
 
   async empty() {
-    return Ok({ case: 'empty-string' })
+    return Ok({ case: 'empty-string' });
   }
 }
 
@@ -34,11 +34,11 @@ class PrefixedController extends Controller {
   };
 
   async root() {
-    return Ok({ case: 'prefixed-root' })
+    return Ok({ case: 'prefixed-root' });
   }
 
   async withId(ctx: HttpContext) {
-    return Ok({ case: 'prefixed-id', id: ctx.params.id })
+    return Ok({ case: 'prefixed-id', id: ctx.params.id });
   }
 }
 
@@ -111,4 +111,3 @@ describe('Router path edge cases', () => {
     expect(res.body.id).toBe('42');
   });
 });
-

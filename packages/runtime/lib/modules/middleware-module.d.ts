@@ -1,6 +1,6 @@
-import { Container } from '@kurdel/ioc';
-import { AppModule, ProviderConfig } from '@kurdel/core/app';
-import { Middleware } from '@kurdel/core/http';
+import type { Container } from '@kurdel/ioc';
+import type { AppModule, ProviderConfig } from '@kurdel/core/app';
+import type { Middleware } from '@kurdel/core/http';
 /**
  * MiddlewareModule
  *

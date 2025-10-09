@@ -1,6 +1,6 @@
-import { IncomingMessage, ServerResponse } from 'node:http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
-import { ActionResult, JsonValue, Query } from './types.js';
+import type { ActionResult, JsonValue, Query } from './types.js';
 
 export interface HttpContext<TDeps = unknown, TBody = unknown, TParams = Record<string, string>> {
   req: IncomingMessage;
@@ -14,5 +14,4 @@ export interface HttpContext<TDeps = unknown, TBody = unknown, TParams = Record<
   text(status: number, body: string): ActionResult;
   redirect(status: number, location: string): ActionResult;
   noContent(): ActionResult;
-};
-
+}

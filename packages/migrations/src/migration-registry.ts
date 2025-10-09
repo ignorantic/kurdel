@@ -1,4 +1,5 @@
-import { IDatabase, DatabaseQuery, QueryBuilder } from '@kurdel/db';
+import type { IDatabase, DatabaseQuery} from '@kurdel/db';
+import { QueryBuilder } from '@kurdel/db';
 import { Schema } from './schema.js';
 
 type MigrationRecord = {
@@ -25,7 +26,7 @@ export class MigrationRegistry {
     return registry;
   }
 
-  public get all(): Promise<string[]>{
+  public get all(): Promise<string[]> {
     const query = this.builder.select('*').from('migrations').build();
     return this.get(query);
   }
@@ -45,20 +46,16 @@ export class MigrationRegistry {
 
   public async add(name: string, batch: number) {
     const query = this.builder.insert('migrations', { name, batch }).build();
-    await this.connection.run(query)
+    await this.connection.run(query);
   }
 
   public async remove(name: string) {
-    const query = this.builder
-      .delete()
-      .from('migrations')
-      .where('name = ?', [name])
-      .build();
+    const query = this.builder.delete().from('migrations').where('name = ?', [name]).build();
     await this.connection.run(query);
   }
 
   private async get(query: DatabaseQuery): Promise<string[]> {
-    const migrations = await this.connection.all(query) as MigrationRecord[];
+    const migrations = (await this.connection.all(query)) as MigrationRecord[];
     return migrations.map(migration => migration.name);
   }
 
@@ -75,7 +72,7 @@ export class MigrationRegistry {
     return (await this.getLastBatch()) + 1;
   }
 
-  private async existsMigrtionsTable(): Promise<Boolean> {
+  private async existsMigrtionsTable(): Promise<boolean> {
     const selectCountQuery = this.builder
       .select('batch', { fn: 'COUNT' })
       .from('migrations')
@@ -90,7 +87,7 @@ export class MigrationRegistry {
 
   private async createMigrationsTable(): Promise<void> {
     const schema = new Schema(this.connection);
-    await schema.create('migrations', (table) => {
+    await schema.create('migrations', table => {
       table.integer('id');
       table.primaryKey('id');
       table.string('name');

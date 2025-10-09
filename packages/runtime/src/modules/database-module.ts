@@ -1,4 +1,4 @@
-import { IoCContainer } from '@kurdel/ioc';
+import type { IoCContainer } from '@kurdel/ioc';
 import { IDatabase, DBConnector } from '@kurdel/db';
 import type { AppConfig, AppModule } from '@kurdel/core/app';
 
@@ -8,7 +8,7 @@ export class NoopDatabase implements IDatabase {
   all = this.error;
   run = this.error;
   close = this.error;
-  
+
   private async error() {
     throw new Error('Database is disabled (db=false in config)');
   }

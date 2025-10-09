@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
-import { MigrationManager } from '@kurdel/migrations';
-import useMigrationList, { ListItem } from './use-migration-list.js';
+import type { MigrationManager } from '@kurdel/migrations';
+import type { ListItem } from './use-migration-list.js';
+import useMigrationList from './use-migration-list.js';
 
-export default function useMigrateRollback(manager: MigrationManager): [ListItem[], boolean, string?] {
+export default function useMigrateRollback(
+  manager: MigrationManager
+): [ListItem[], boolean, string?] {
   const { exit } = useApp();
   const [done, setDone] = useState(false);
   const [error, setError] = useState<TypeError>();
@@ -16,7 +19,7 @@ export default function useMigrateRollback(manager: MigrationManager): [ListItem
     manager.on('down:success', pushSuccessMigration);
     return () => {
       manager.off('down:success', pushSuccessMigration);
-    }
+    };
   }, []);
 
   useEffect(() => {
@@ -27,17 +30,21 @@ export default function useMigrateRollback(manager: MigrationManager): [ListItem
     manager.on('down:failure', pushFailureMigration);
     return () => {
       manager.off('down:failure', pushFailureMigration);
-    }
+    };
   }, []);
 
   useEffect(() => {
-    manager.rollback().then(() => {
-      setDone(true);
-    }).catch((error) => {
-      setError(error); 
-    }).finally(() => {
-      manager.close().then(() => exit());
-    });
+    manager
+      .rollback()
+      .then(() => {
+        setDone(true);
+      })
+      .catch(error => {
+        setError(error);
+      })
+      .finally(() => {
+        manager.close().then(() => exit());
+      });
   }, []);
 
   return [list, done, error && error.message];

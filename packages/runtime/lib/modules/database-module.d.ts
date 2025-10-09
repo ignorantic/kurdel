@@ -1,4 +1,4 @@
-import { IoCContainer } from '@kurdel/ioc';
+import type { IoCContainer } from '@kurdel/ioc';
 import { IDatabase } from '@kurdel/db';
 import type { AppConfig, AppModule } from '@kurdel/core/app';
 export declare class NoopDatabase implements IDatabase {

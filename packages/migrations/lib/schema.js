@@ -16,3 +16,4 @@ export class Schema {
         this.connection.run({ sql, params: [] });
     }
 }
+//# sourceMappingURL=schema.js.map

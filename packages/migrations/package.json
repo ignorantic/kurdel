@@ -4,14 +4,11 @@
   "description": "framework",
   "main": "lib/index.js",
   "type": "module",
-  "files": [
-    "lib",
-    "types"
-  ],
-  "types": "types/index.d.ts",
+  "files": [ "lib" ],
+  "types": "./lib/index.d.ts",
   "scripts": {
     "test": "echo \"No tests yet\"",
-    "clean": "rimraf lib types ../../.cache/tsconfig.migrations.build.tsbuildinfo",
+    "clean": "rimraf lib ../../.cache/tsconfig.migrations.build.tsbuildinfo",
     "build": "tsc",
     "build:force": "npm run clean && tsc --force"
   },

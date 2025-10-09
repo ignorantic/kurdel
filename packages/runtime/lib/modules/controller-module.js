@@ -30,7 +30,7 @@ export class ControllerModule {
                     registry: TOKENS.MiddlewareRegistry,
                 },
             },
-            ...controllers.map((c) => ({
+            ...controllers.map(c => ({
                 provide: c.use,
                 useClass: c.use,
                 deps: c.deps,
@@ -43,8 +43,8 @@ export class ControllerModule {
     }
     async register(ioc) {
         const registry = ioc.get(TOKENS.MiddlewareRegistry);
-        this.controllers.forEach((c) => {
-            c.middlewares?.forEach((mw) => registry.useFor(c.use, mw));
+        this.controllers.forEach(c => {
+            c.middlewares?.forEach(mw => registry.useFor(c.use, mw));
         });
     }
 }

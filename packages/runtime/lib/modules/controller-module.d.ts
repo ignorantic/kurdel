@@ -1,4 +1,4 @@
-import { Container } from '@kurdel/ioc';
+import type { Container } from '@kurdel/ioc';
 import type { ControllerConfig } from '@kurdel/core/http';
 import type { AppModule, ProviderConfig } from '@kurdel/core/app';
 /**

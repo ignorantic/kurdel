@@ -18,3 +18,4 @@ export class MigrationLoader {
         }));
     }
 }
+//# sourceMappingURL=migration-loader.js.map

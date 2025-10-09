@@ -13,7 +13,7 @@ export class MigrationManager extends EventEmitter {
         this.loader = new MigrationLoader();
     }
     static async create() {
-        const connection = await (new DBConnector()).run();
+        const connection = await new DBConnector().run();
         const registry = await MigrationRegistry.create(connection);
         return new MigrationManager(connection, registry);
     }
@@ -101,3 +101,4 @@ export class MigrationManager extends EventEmitter {
             .map(MigrationClass => new MigrationClass(this.connection));
     }
 }
+//# sourceMappingURL=migration-manager.js.map

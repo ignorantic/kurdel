@@ -36,7 +36,11 @@ describe('Application lifecycle – order & wiring', () => {
       }
     }
 
-    const app = new RuntimeApplication({ modules: [new LifecycleModule()], server: TestAdapter, db: false } as AppConfig);
+    const app = new RuntimeApplication({
+      modules: [new LifecycleModule()],
+      server: TestAdapter,
+      db: false,
+    } as AppConfig);
 
     // Inject adapter instance into IoC before bootstrap
     await app.bootstrap();
@@ -44,19 +48,29 @@ describe('Application lifecycle – order & wiring', () => {
 
     // Prepare lifecycle hooks
     const order: string[] = [];
-    ioc.get(TOKENS.OnStart).push(async () => { order.push('start:1'); });
-    ioc.get(TOKENS.OnStart).push(async () => { order.push('start:2'); });
-    ioc.get(TOKENS.OnShutdown).push(async () => { order.push('stop:1'); });
-    ioc.get(TOKENS.OnShutdown).push(async () => { order.push('stop:2'); });
+    ioc.get(TOKENS.OnStart).push(async () => {
+      order.push('start:1');
+    });
+    ioc.get(TOKENS.OnStart).push(async () => {
+      order.push('start:2');
+    });
+    ioc.get(TOKENS.OnShutdown).push(async () => {
+      order.push('stop:1');
+    });
+    ioc.get(TOKENS.OnShutdown).push(async () => {
+      order.push('stop:2');
+    });
 
-    const userReady = vi.fn(() => { order.push('user:ready'); });
+    const userReady = vi.fn(() => {
+      order.push('user:ready');
+    });
 
     // Start
     const running = app.listen(0, userReady);
 
     // Give the onReady chain time to finish:
     // Promise.then(runHooks[awaits]) -> next tick -> user callback.
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     // Expectations after listen(): OnStart hooks must be before user cb
     expect(listenSpy).toHaveBeenCalledTimes(1);
@@ -70,4 +84,3 @@ describe('Application lifecycle – order & wiring', () => {
     expect(order).toEqual(['start:1', 'start:2', 'user:ready', 'stop:2', 'stop:1']);
   });
 });
-

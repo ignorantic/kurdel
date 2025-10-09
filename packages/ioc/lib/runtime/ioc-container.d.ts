@@ -1,6 +1,6 @@
-import { Newable } from '@kurdel/common';
-import { Identifier } from '../api/identifier.js';
-import { Container, BindingToContract, BindingWithInContract } from '../api/container.js';
+import type { Newable } from '@kurdel/common';
+import type { Identifier } from '../api/identifier.js';
+import type { Container, BindingToContract, BindingWithInContract } from '../api/container.js';
 /**
  * Simple Inversion of Control (IoC) container.
  *

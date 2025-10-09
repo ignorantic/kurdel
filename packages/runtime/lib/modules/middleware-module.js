@@ -25,7 +25,7 @@ export class MiddlewareModule {
         // Recommended order:
         // 1) parsers (json) → 2) user middlewares → 3) error handler (last)
         registry.use(errorHandler);
-        this.middlewares.forEach((mw) => registry.use(mw));
+        this.middlewares.forEach(mw => registry.use(mw));
         registry.use(jsonBodyParser);
     }
 }

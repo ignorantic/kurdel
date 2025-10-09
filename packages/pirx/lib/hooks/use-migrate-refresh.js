@@ -46,11 +46,15 @@ export default function useMigrateRefresh(manager) {
         };
     }, []);
     useEffect(() => {
-        manager.refresh().then(() => {
+        manager
+            .refresh()
+            .then(() => {
             setDone(true);
-        }).catch((error) => {
+        })
+            .catch(error => {
             setError(error);
-        }).finally(() => {
+        })
+            .finally(() => {
             manager.close().then(() => exit());
         });
     }, []);

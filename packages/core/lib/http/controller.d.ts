@@ -1,4 +1,4 @@
-import { ServerResponse, IncomingMessage } from 'node:http';
+import type { ServerResponse, IncomingMessage } from 'node:http';
 import type { ActionResult } from './types.js';
 import type { Middleware } from './middleware.js';
 import type { RouteConfig } from './route.js';

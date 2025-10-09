@@ -1,14 +1,8 @@
-import {
-  Controller,
-  Ok,
-  Created,
-  BadRequest,
-  route,
-} from '@kurdel/core/http';
+import { Controller, Ok, Created, BadRequest, route } from '@kurdel/core/http';
 
 import type { HttpContext } from '@kurdel/core/http';
 
-import { UserService } from './user-service.js';
+import type { UserService } from './user-service.js';
 
 type Deps = { userService: UserService };
 
@@ -19,7 +13,7 @@ export class UserController extends Controller<Deps> {
   };
 
   async list(ctx: HttpContext<Deps>) {
-    return Ok(ctx.deps.userService.findAll())
+    return Ok(ctx.deps.userService.findAll());
   }
 
   async create(ctx: HttpContext<Deps>) {
@@ -37,4 +31,3 @@ export class UserController extends Controller<Deps> {
     return Created(ctx.deps.userService.create(name));
   }
 }
-

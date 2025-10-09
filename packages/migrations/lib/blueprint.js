@@ -17,3 +17,4 @@ export class Blueprint {
         return this.columns.map(column => column.toString()).join(', ');
     }
 }
+//# sourceMappingURL=blueprint.js.map

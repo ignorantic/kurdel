@@ -1,8 +1,8 @@
-import { Container } from '@kurdel/ioc';
+import type { Container } from '@kurdel/ioc';
 
-import { RunningServer } from 'src/http/interfaces.js';
+import type { RunningServer } from 'src/http/interfaces.js';
 
-import { AppModule } from './app-module.js';
+import type { AppModule } from './app-module.js';
 
 /**
  * Public application contract.
@@ -27,4 +27,3 @@ export interface Application {
    */
   getContainer(): Container;
 }
-

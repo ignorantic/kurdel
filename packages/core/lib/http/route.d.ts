@@ -1,13 +1,11 @@
-import { HttpContext } from './http-context.js';
-import { ActionResult, Method } from './types.js';
+import type { HttpContext } from './http-context.js';
+import type { ActionResult, Method } from './types.js';
 export declare const ROUTE_META: unique symbol;
 export type RouteMeta<P extends string = string> = {
     method: Method;
     path: P;
 };
-type Split<S extends string> = S extends '' ? [] : S extends `/${infer R}` ? Split<R> : S extends `${infer A}/${infer B}` ? [A, ...Split<B>] : [
-    S
-];
+type Split<S extends string> = S extends '' ? [] : S extends `/${infer R}` ? Split<R> : S extends `${infer A}/${infer B}` ? [A, ...Split<B>] : [S];
 type ParamName<Seg extends string> = Seg extends `:${infer Name}` ? Name : Seg extends `:${infer Name}<${string}>` ? Name : never;
 export type RouteParams<Path extends string> = {
     [K in ParamName<Split<Path>[number]>]: string;

@@ -1,6 +1,6 @@
-import { BindingWithInContract } from '../api/container.js';
-import { Identifier } from '../api/identifier.js';
-import { Binding } from './binding.js';
+import type { BindingWithInContract } from '../api/container.js';
+import type { Identifier } from '../api/identifier.js';
+import type { Binding } from './binding.js';
 /**
  * Fluent contract returned from IoCContainer.put().
  *

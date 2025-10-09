@@ -2,7 +2,7 @@ import type { ModelList } from '../db/model.js';
 import type { AppModule } from '../app/app-module.js';
 import type { AppConfig } from '../app/config.js';
 import type { Middleware } from './middleware.js';
-import { ControllerConfig } from './interfaces.js';
+import type { ControllerConfig } from './interfaces.js';
 /**
  * HttpModule
  *

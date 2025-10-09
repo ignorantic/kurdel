@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest';
 
-import { ActionResult } from 'src/http/types.js';
+import type { ActionResult } from 'src/http/types.js';
+import type { HttpContext } from 'src/http/http-context.js';
+import { route, type RouteConfig } from 'src/http/route.js';
 import { Controller } from 'src/http/controller.js';
-import { HttpContext } from 'src/http/http-context.js';
-import { route, RouteConfig } from 'src/http/route.js';
 
 import { createReqRes } from '../utils/http.js';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 class UsersController extends Controller<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   readonly routes: RouteConfig<{}> = {
     index: route({ method: 'GET', path: '/users' })(this.index),
     redirect: route({ method: 'GET', path: '/redirect' })(this.redirect),
@@ -15,6 +17,7 @@ class UsersController extends Controller<{}> {
     boom: route({ method: 'GET', path: '/boom' })(this.boom),
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   async index(ctx: HttpContext<{}>): Promise<ActionResult> {
     return { kind: 'json', status: 200, body: { ok: true, q: ctx.query } };
   }
@@ -32,10 +35,16 @@ class UsersController extends Controller<{}> {
   }
 
   // this is not exposed in routes, so it cannot be called
-  _helper() { return 'secret'; }
+  _helper() {
+    return 'secret';
+  }
 }
 
-async function execAction<TDeps>(ctrl: Controller<TDeps>, action: string, url = '/users?role=admin') {
+async function execAction<TDeps>(
+  ctrl: Controller<TDeps>,
+  action: string,
+  url = '/users?role=admin'
+) {
   const { req, res, getResult } = createReqRes(url, 'GET');
   await ctrl.execute(req, res, action);
   return getResult();
@@ -46,13 +55,14 @@ describe('Controller', () => {
     const ctrl = new UsersController({});
     const result = await execAction(ctrl, 'index', '/users?role=admin');
     expect(result.statusCode).toBe(200);
-    expect((result.headers['content-type'] ?? '')).toContain('application/json');
+    expect(result.headers['content-type'] ?? '').toContain('application/json');
     const payload = JSON.parse(result.body);
     expect(payload.ok).toBe(true);
     expect(payload.q.role).toBe('admin');
   });
 
   it('returns 404 for unknown action', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     const ctrl = new UsersController({});
     const result = await execAction(ctrl, 'missingAction', '/users');
     expect(result.statusCode).toBe(404);
@@ -60,12 +70,14 @@ describe('Controller', () => {
   });
 
   it('does not allow calling helper methods as actions', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     const ctrl = new UsersController({});
     const result = await execAction(ctrl, '_helper', '/users');
     expect(result.statusCode).toBe(404);
   });
 
   it('should handle redirect', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     const ctrl = new UsersController({});
     const result = await execAction(ctrl, 'redirect', '/redirect');
     expect(result.statusCode).toBe(302);
@@ -73,12 +85,14 @@ describe('Controller', () => {
   });
 
   it('should handle empty result', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     const ctrl = new UsersController({});
     const result = await execAction(ctrl, 'empty', '/empty');
     expect(result.statusCode).toBe(204);
   });
 
   it('should map thrown error to 500 Internal Server Error', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     const ctrl = new UsersController({});
     const result = await execAction(ctrl, 'boom', '/boom');
     expect(result.body).toContain('Internal Server Error');

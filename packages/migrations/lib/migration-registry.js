@@ -34,15 +34,11 @@ export class MigrationRegistry {
         await this.connection.run(query);
     }
     async remove(name) {
-        const query = this.builder
-            .delete()
-            .from('migrations')
-            .where('name = ?', [name])
-            .build();
+        const query = this.builder.delete().from('migrations').where('name = ?', [name]).build();
         await this.connection.run(query);
     }
     async get(query) {
-        const migrations = await this.connection.all(query);
+        const migrations = (await this.connection.all(query));
         return migrations.map(migration => migration.name);
     }
     async getLastBatch() {
@@ -71,7 +67,7 @@ export class MigrationRegistry {
     }
     async createMigrationsTable() {
         const schema = new Schema(this.connection);
-        await schema.create('migrations', (table) => {
+        await schema.create('migrations', table => {
             table.integer('id');
             table.primaryKey('id');
             table.string('name');
@@ -79,3 +75,4 @@ export class MigrationRegistry {
         });
     }
 }
+//# sourceMappingURL=migration-registry.js.map

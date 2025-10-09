@@ -14,7 +14,7 @@ describe('RouteParams<> inference', () => {
 
   it('keeps {} when no params', () => {
     type P = RouteParams<'/users'>;
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     expectTypeOf<P>().toEqualTypeOf<{}>();
   });
 });
-

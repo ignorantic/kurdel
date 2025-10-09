@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
 export class SQLiteDB {
     constructor(path) {
-        this.db = new sqlite3.Database(path, (err) => {
+        this.db = new sqlite3.Database(path, err => {
             if (err) {
                 console.error('Could not connect to database', err);
             }
@@ -45,7 +45,7 @@ export class SQLiteDB {
     }
     close() {
         return new Promise((resolve, reject) => {
-            this.db.close((err) => {
+            this.db.close(err => {
                 if (err) {
                     reject(err);
                 }

@@ -9,8 +9,9 @@ type Deps = { n: number };
 describe('route(meta)(handler) typing + metadata', () => {
   it('preserves function reference and attaches meta', () => {
     const meta = { method: 'GET' as const, path: '/:id' as const };
-    const fn = async (_: HttpContext<Deps, unknown, RouteParams<typeof meta.path>>): Promise<ActionResult> =>
-      ({ kind: 'empty', status: 204 });
+    const fn = async (
+      _: HttpContext<Deps, unknown, RouteParams<typeof meta.path>>
+    ): Promise<ActionResult> => ({ kind: 'empty', status: 204 });
 
     const wrapped = route(meta)(fn);
 
@@ -23,7 +24,7 @@ describe('route(meta)(handler) typing + metadata', () => {
   it('narrows ctx.params from path', () => {
     const meta = { method: 'GET' as const, path: '/u/:uid/post/:pid' as const };
 
-    const fn = route(meta)(async (ctx) => {
+    const fn = route(meta)(async ctx => {
       // типобезопасные параметры
       expectTypeOf(ctx.params.uid).toEqualTypeOf<string>();
       expectTypeOf(ctx.params.pid).toEqualTypeOf<string>();
@@ -39,4 +40,3 @@ describe('route(meta)(handler) typing + metadata', () => {
     expect(typeof fn).toBe('function');
   });
 });
-

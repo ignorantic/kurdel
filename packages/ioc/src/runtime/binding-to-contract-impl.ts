@@ -1,13 +1,13 @@
-import { Newable } from '@kurdel/common';
+import type { Newable } from '@kurdel/common';
 
-import { BindingToContract, BindingWithInContract } from 'src/api/container.js';
+import type { BindingToContract, BindingWithInContract } from 'src/api/container.js';
 
-import { Binding } from './binding.js';
+import type { Binding } from './binding.js';
 import { BindingWithInContractImpl } from './binding-with-in-contract-impl.js';
 
 /**
  * Contract returned by `IoCContainer.bind`.
- * 
+ *
  * Provides methods to bind an abstract identifier (interface, symbol, etc.)
  * to a concrete implementation or to an existing instance.
  */

@@ -1,12 +1,18 @@
-import { Newable } from '@kurdel/common';
-import { Identifier } from '@kurdel/ioc';
+import type { Newable } from '@kurdel/common';
+import type { Identifier } from '@kurdel/ioc';
 
-import { Middleware } from 'src/http/middleware.js';
-import { Controller } from 'src/http/controller.js';
+import type { Middleware } from 'src/http/middleware.js';
+import type { Controller } from 'src/http/controller.js';
 
-export interface RequestLike { method?: string; url?: string }
+export interface RequestLike {
+  method?: string;
+  url?: string;
+}
 
-export interface ResponseLike { statusCode?: number; end?(body?: unknown): void }
+export interface ResponseLike {
+  statusCode?: number;
+  end?(body?: unknown): void;
+}
 
 export interface ServerAdapter<R = RequestLike, S = ResponseLike> {
   on(handler: (req: R, res: S) => void | Promise<void>): void;
@@ -38,4 +44,3 @@ export interface ControllerConfig {
   /** Optional route prefix applied to all controller routes */
   prefix?: string;
 }
-

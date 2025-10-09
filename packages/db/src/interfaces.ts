@@ -8,9 +8,9 @@ export interface IDatabaseConfig {
 }
 
 export type DatabaseQuery = {
-  sql: string,
-  params: any[],
-}
+  sql: string;
+  params: any[];
+};
 
 export const IDatabase = Symbol('IDatabase');
 export interface IDatabase {
@@ -27,4 +27,3 @@ export interface IQueryBuilder {
   where(condition: string, params?: any[]): IQueryBuilder;
   build(): DatabaseQuery;
 }
-

@@ -1,4 +1,4 @@
-import { Container } from '@kurdel/ioc';
+import type { Container } from '@kurdel/ioc';
 import type { ControllerConfig, Router, MiddlewareRegistry } from '@kurdel/core/http';
 import type { AppModule, ProviderConfig } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/app';
@@ -29,7 +29,7 @@ export class ControllerModule implements AppModule {
       },
       {
         provide: TOKENS.Router,
-        useClass: RuntimeRouter as unknown as new (...a:any[]) => Router,
+        useClass: RuntimeRouter as unknown as new (...a: any[]) => Router,
         isSingleton: true,
         deps: {
           resolver: TOKENS.ControllerResolver,
@@ -37,7 +37,7 @@ export class ControllerModule implements AppModule {
           registry: TOKENS.MiddlewareRegistry,
         },
       },
-      ...controllers.map((c) => ({
+      ...controllers.map(c => ({
         provide: c.use,
         useClass: c.use,
         deps: c.deps,
@@ -52,9 +52,8 @@ export class ControllerModule implements AppModule {
   async register(ioc: Container): Promise<void> {
     const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
 
-    this.controllers.forEach((c) => {
-      c.middlewares?.forEach((mw) => registry.useFor(c.use, mw));
+    this.controllers.forEach(c => {
+      c.middlewares?.forEach(mw => registry.useFor(c.use, mw));
     });
   }
 }
-

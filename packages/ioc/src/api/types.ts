@@ -1,2 +1,2 @@
-export type ScopeType = 'Transient' | 'Singleton'; 
-export type BindingType = 'Constructor' | 'Instance'; 
+export type ScopeType = 'Transient' | 'Singleton';
+export type BindingType = 'Constructor' | 'Instance';

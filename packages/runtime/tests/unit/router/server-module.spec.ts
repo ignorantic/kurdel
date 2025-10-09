@@ -7,7 +7,7 @@
 import { describe, it, expect, vi } from 'vitest';
 
 import { type AppConfig, TOKENS } from '@kurdel/core/app';
-import { ControllerConfig } from '@kurdel/core/http';
+import { type ControllerConfig } from '@kurdel/core/http';
 
 import { ServerModule } from 'src/modules/server-module.js';
 
@@ -67,4 +67,3 @@ describe('ServerModule', () => {
     expect(reqInOn.__ioc).toBeUndefined();
   });
 });
-

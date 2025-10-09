@@ -11,3 +11,4 @@ export class Column {
         return `${this.name} ${this.type} ${this.options.join(' ')}`.trim();
     }
 }
+//# sourceMappingURL=column.js.map

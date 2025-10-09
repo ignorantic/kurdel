@@ -1,10 +1,6 @@
 import { createServer, type Server } from 'node:http';
 
-import type {
-  RequestLike,
-  ResponseLike,
-  ServerAdapter,
-} from '@kurdel/core/http';
+import type { RequestLike, ResponseLike, ServerAdapter } from '@kurdel/core/http';
 
 export class NativeHttpServerAdapter implements ServerAdapter<RequestLike, ResponseLike> {
   private readonly server: Server;
@@ -25,6 +21,7 @@ export class NativeHttpServerAdapter implements ServerAdapter<RequestLike, Respo
           try {
             (res as any).statusCode = 500;
             (res as any).end?.();
+          // eslint-disable-next-line no-empty
           } catch {}
         }
       });
@@ -55,4 +52,3 @@ export class NativeHttpServerAdapter implements ServerAdapter<RequestLike, Respo
     return this.server as unknown as T;
   }
 }
-

@@ -1,9 +1,11 @@
 {
   "name": "@kurdel/pirx",
   "version": "1.0.0",
-  "description": "",
+  "description": "framework",
+  "main": "lib/index.js",
   "type": "module",
-  "main": "lib/pirx.js",
+  "files": [ "lib" ],
+  "types": "./lib/index.d.ts",
   "bin": "lib/pirx.js",
   "scripts": {
     "test": "echo \"No tests yet\"",

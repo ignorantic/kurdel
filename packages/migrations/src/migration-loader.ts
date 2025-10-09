@@ -1,9 +1,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
-import { Newable } from '@kurdel/common';
+import type { Newable } from '@kurdel/common';
 import { MIGRATIONS_DIR } from './consts.js';
-import { Migration } from './migration.js';
+import type { Migration } from './migration.js';
 
 const migrationsDirectory = path.resolve(process.cwd(), MIGRATIONS_DIR);
 const migrationsDirUrl = pathToFileURL(migrationsDirectory + path.sep);
@@ -18,7 +18,7 @@ export class MigrationLoader {
       .filter(name => /\.(m?js|cjs)$/i.test(name));
 
     return Promise.all(
-      files.map(async (file) => {
+      files.map(async file => {
         const url = new URL(file, migrationsDirUrl.toString());
         const mod = await import(url.href);
         return mod.default as Newable<Migration>;

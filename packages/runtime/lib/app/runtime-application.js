@@ -19,6 +19,7 @@ async function runHooks(kind, hooks, logger) {
         catch (e) {
             try {
                 logger?.error?.(`[lifecycle:${kind}]`, e);
+                // eslint-disable-next-line no-empty
             }
             catch { }
             throw e;
@@ -57,9 +58,9 @@ export class RuntimeApplication {
         // Aggregate HTTP declarations from user-provided modules that implement HttpModule.
         // We keep the API clean: only contracts/types from `api/` are referenced on this side.
         const httpModules = (config.modules ?? []).filter((m) => 'models' in m || 'controllers' in m || 'middlewares' in m);
-        const allModels = httpModules.flatMap((m) => m.models ?? []);
-        const allControllers = httpModules.flatMap((m) => m.controllers ?? []);
-        const allMiddlewares = httpModules.flatMap((m) => m.middlewares ?? []);
+        const allModels = httpModules.flatMap(m => m.models ?? []);
+        const allControllers = httpModules.flatMap(m => m.controllers ?? []);
+        const allMiddlewares = httpModules.flatMap(m => m.middlewares ?? []);
         // Compose module pipeline:
         // 1) LifecycleModule provides OnStart/OnShutdown hook arrays (mutable singletons).
         // 2) DatabaseModule (optional wiring for ORM/DB — internal to kurdel runtime).
@@ -172,17 +173,22 @@ export class RuntimeApplication {
         const adapter = this.ioc.get(TOKENS.ServerAdapter);
         // Obtain lifecycle hook arrays (empty when LifecycleModule is absent — still safe).
         const onStart = this.ioc.has(TOKENS.OnStart) ? this.ioc.get(TOKENS.OnStart) : [];
-        const onShutdown = this.ioc.has(TOKENS.OnShutdown) ? this.ioc.get(TOKENS.OnShutdown) : [];
+        const onShutdown = this.ioc.has(TOKENS.OnShutdown)
+            ? this.ioc.get(TOKENS.OnShutdown)
+            : [];
         // Normalize final user callback from overloads.
-        const userDone = (typeof hostOrCb === 'function' ? hostOrCb : cb);
+        const userDone = typeof hostOrCb === 'function' ? hostOrCb : cb;
         // Readiness guard: run hooks first, then invoke user's callback.
         const onReady = () => {
             Promise.resolve()
                 .then(() => runHooks('start', onStart /* optional logger */))
-                .then(() => { try {
-                userDone?.();
-            }
-            catch { } });
+                .then(() => {
+                try {
+                    userDone?.();
+                    // eslint-disable-next-line no-empty
+                }
+                catch { }
+            });
         };
         // Start the server adapter; we do not leak Node types here.
         if (typeof hostOrCb === 'string') {
@@ -195,7 +201,7 @@ export class RuntimeApplication {
         const running = {
             // Proxy raw() using the adapter contract (e.g., Native adapter returns http.Server)
             raw: typeof adapter.raw === 'function'
-                ? (() => adapter.raw?.())
+                ? () => adapter.raw?.()
                 : undefined,
             // Graceful shutdown:
             // 1) stop the adapter (stop accepting new connections, close server)

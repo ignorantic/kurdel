@@ -68,7 +68,9 @@ describe('IoCContainer', () => {
     class TestClass {}
 
     iocContainer.put<TestClass>(TestClass);
-    const tryPutAgain = () => { iocContainer.put<TestClass>(TestClass); };
+    const tryPutAgain = () => {
+      iocContainer.put<TestClass>(TestClass);
+    };
 
     expect(tryPutAgain).toThrow();
   });

@@ -11,7 +11,7 @@ export class LifecycleModule implements AppModule<AppConfig> {
 
   async register(ioc: Container): Promise<void> {
     // Initialize arrays only once; if already present, keep them
-    if (!ioc.has(TOKENS.OnStart))    ioc.set(TOKENS.OnStart, []);
+    if (!ioc.has(TOKENS.OnStart)) ioc.set(TOKENS.OnStart, []);
     if (!ioc.has(TOKENS.OnShutdown)) ioc.set(TOKENS.OnShutdown, []);
   }
 }

@@ -17,4 +17,3 @@ export class FakeController extends Controller<Deps> {
     return { kind: 'json', status: 200, body: { ok: true, id: ctx.params.id, tag: this.deps.tag } };
   }
 }
-

@@ -1,7 +1,7 @@
-import { Newable } from '@kurdel/common';
-import { Identifier } from '@kurdel/ioc';
-import { Middleware } from '../http/middleware.js';
-import { Controller } from '../http/controller.js';
+import type { Newable } from '@kurdel/common';
+import type { Identifier } from '@kurdel/ioc';
+import type { Middleware } from '../http/middleware.js';
+import type { Controller } from '../http/controller.js';
 export interface RequestLike {
     method?: string;
     url?: string;

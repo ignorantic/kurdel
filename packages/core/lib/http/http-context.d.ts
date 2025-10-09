@@ -1,5 +1,5 @@
-import { IncomingMessage, ServerResponse } from 'node:http';
-import { ActionResult, JsonValue, Query } from './types.js';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { ActionResult, JsonValue, Query } from './types.js';
 export interface HttpContext<TDeps = unknown, TBody = unknown, TParams = Record<string, string>> {
     req: IncomingMessage;
     res: ServerResponse;

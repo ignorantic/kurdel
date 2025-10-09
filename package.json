@@ -7,6 +7,9 @@
   ],
   "scripts": {
     "test": "npm run test --ws",
+    "lint": "eslint packages/**/*.ts",
+    "lint:fix": "eslint packages/**/*.ts --fix",
+    "format": "prettier --write \"packages/**/*.ts\"",
     "clean": "npm run clean --workspaces",
     "clean:all": "npm run clean --workspaces && rimraf .cache",
     "build": "npm run build --ws",
@@ -14,6 +17,12 @@
   },
   "devDependencies": {
     "@types/node": "^24.3.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
+    "@typescript-eslint/parser": "^8.46.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vitest": "^0.5.4",
+    "prettier": "^3.6.2",
     "supertest": "^7.1.4",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"

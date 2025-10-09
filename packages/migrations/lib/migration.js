@@ -5,3 +5,4 @@ export class Migration {
         this.schema = new Schema(connection);
     }
 }
+//# sourceMappingURL=migration.js.map

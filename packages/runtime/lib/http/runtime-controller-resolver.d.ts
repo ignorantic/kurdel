@@ -1,6 +1,6 @@
-import { Newable } from '@kurdel/common';
-import { Container } from '@kurdel/ioc';
-import { ControllerResolver } from '@kurdel/core/http';
+import type { Newable } from '@kurdel/common';
+import type { Container } from '@kurdel/ioc';
+import type { ControllerResolver } from '@kurdel/core/http';
 export declare class RuntimeControllerResolver implements ControllerResolver {
     private readonly root;
     constructor(root: Container);

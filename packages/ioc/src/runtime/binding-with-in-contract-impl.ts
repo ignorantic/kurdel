@@ -1,18 +1,18 @@
-import { BindingWithInContract } from 'src/api/container.js';
-import { Identifier } from 'src/api/identifier.js';
+import type { BindingWithInContract } from 'src/api/container.js';
+import type { Identifier } from 'src/api/identifier.js';
 
-import { Binding } from './binding.js';
+import type { Binding } from './binding.js';
 import { BindingWithContract } from './binding-with-contract.js';
 import { BindingInContract } from './binding-in-contract.js';
 
 /**
  * Fluent contract returned from IoCContainer.put().
- * 
+ *
  * Allows you to configure additional options for the binding:
- * 
+ *
  * - declare dependencies with .with({ key: Identifier })
  * - control scope with .inSingletonScope()
- * 
+ *
  * @example
  * ```ts
  * ioc.put(UserController)

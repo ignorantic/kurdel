@@ -1,4 +1,4 @@
-import { Container } from '@kurdel/ioc';
+import type { Container } from '@kurdel/ioc';
 import type { Method, HttpRequest, HttpResponse, ControllerConfig, ControllerResolver, Router, Middleware } from '@kurdel/core/http';
 interface RouterDeps {
     resolver: ControllerResolver;

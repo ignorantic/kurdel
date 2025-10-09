@@ -74,4 +74,3 @@ describe('Application', () => {
     expect(first.n).toBe(second.n); // same instance
   });
 });
-

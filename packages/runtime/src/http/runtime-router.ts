@@ -1,4 +1,4 @@
-import { Container } from '@kurdel/ioc';
+import type { Container } from '@kurdel/ioc';
 
 import type {
   Method,
@@ -9,8 +9,8 @@ import type {
   ControllerResolver,
   Router,
   Middleware,
-} from '@kurdel/core/http';
-import { Controller, ROUTE_META } from '@kurdel/core/http';
+ Controller} from '@kurdel/core/http';
+import { ROUTE_META } from '@kurdel/core/http';
 
 type Entry = {
   method: Method;
@@ -34,7 +34,7 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
   const pattern = path
     .split('/')
     .filter(Boolean)
-    .map((segment) => {
+    .map(segment => {
       if (segment.startsWith(':')) {
         keys.push(segment.slice(1));
         return '([^/]+)';
@@ -63,9 +63,9 @@ export class RuntimeRouter implements Router {
 
     // Keep global middlewares as before (order preserved).
     this.middlewares = [...middlewares];
-    
+
     // Build entries by inspecting controller routes, but do NOT keep the instance.
-    controllerConfigs.forEach((cfg) => {
+    controllerConfigs.forEach(cfg => {
       // Temporary instance from root (or wherever ControllerResolver.get resolves):
       // used only to read `routes` and their RouteMeta at bootstrap.
       const tempInstance = resolver.get(cfg.use);

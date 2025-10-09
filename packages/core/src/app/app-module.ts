@@ -26,7 +26,7 @@ export type ProviderConfig<T = any> =
       useFactory: (ioc: Container) => T;
       isSingleton?: boolean;
     };
-    
+
 /**
  * AppModule
  *

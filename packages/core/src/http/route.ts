@@ -1,29 +1,32 @@
-import { HttpContext } from './http-context.js';
-import { ActionResult, Method } from './types.js';
+import type { HttpContext } from './http-context.js';
+import type { ActionResult, Method } from './types.js';
 
 export const ROUTE_META = Symbol('@kurdel/core:route-meta');
 
-export type RouteMeta<P extends string = string> = { method: Method; path: P }
+export type RouteMeta<P extends string = string> = { method: Method; path: P };
 
-type Split<S extends string> =
-  S extends '' ? [] :
-  S extends `/${infer R}` ? Split<R> :
-  S extends `${infer A}/${infer B}` ? [A, ...Split<B>] :
-  [S];
+type Split<S extends string> = S extends ''
+  ? []
+  : S extends `/${infer R}`
+    ? Split<R>
+    : S extends `${infer A}/${infer B}`
+      ? [A, ...Split<B>]
+      : [S];
 
-type ParamName<Seg extends string> =
-  Seg extends `:${infer Name}` ? Name :
-  Seg extends `:${infer Name}<${string}>` ? Name : // reserved for future constraints
-  never;
+type ParamName<Seg extends string> = Seg extends `:${infer Name}`
+  ? Name
+  : Seg extends `:${infer Name}<${string}>`
+    ? Name // reserved for future constraints
+    : never;
 
 export type RouteParams<Path extends string> = {
-  [K in ParamName<Split<Path>[number]>]: string
+  [K in ParamName<Split<Path>[number]>]: string;
 } & {}; // keeps {} when no params
 
 export type RouteHandler<
   TDeps,
   TBody = unknown,
-  TParams extends Record<string, string> = Record<string, string>
+  TParams extends Record<string, string> = Record<string, string>,
 > = (ctx: HttpContext<TDeps, TBody, TParams>) => Promise<ActionResult>;
 
 export type RouteConfig<TDeps> = {

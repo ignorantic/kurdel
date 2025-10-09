@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import { Server } from 'http';
+import type { Server } from 'http';
 
 import { createApplication } from 'src/create-application.js';
 

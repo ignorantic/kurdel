@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
-import { MigrationManager } from '@kurdel/migrations';
-import useMigrationList, { ListItem } from './use-migration-list.js';
+import type { MigrationManager } from '@kurdel/migrations';
+import type { ListItem } from './use-migration-list.js';
+import useMigrationList from './use-migration-list.js';
 
-export default function useMigrateRefresh(manager: MigrationManager): [ListItem[], ListItem[], boolean, string?] {
+export default function useMigrateRefresh(
+  manager: MigrationManager
+): [ListItem[], ListItem[], boolean, string?] {
   const { exit } = useApp();
 
   const [done, setDone] = useState(false);
@@ -14,22 +17,22 @@ export default function useMigrateRefresh(manager: MigrationManager): [ListItem[
 
   useEffect(() => {
     function pushMigrationDown(migration: string) {
-      addRollbackMigration(true, migration)
+      addRollbackMigration(true, migration);
     }
     manager.on('down:success', pushMigrationDown);
     return () => {
       manager.off('down:success', pushMigrationDown);
-    }
+    };
   }, []);
 
   useEffect(() => {
     function pushMigrationUp(migration: string) {
-      addRunMigration(true, migration)
+      addRunMigration(true, migration);
     }
     manager.on('up:success', pushMigrationUp);
     return () => {
       manager.off('up:success', pushMigrationUp);
-    }
+    };
   }, []);
 
   useEffect(() => {
@@ -40,7 +43,7 @@ export default function useMigrateRefresh(manager: MigrationManager): [ListItem[
     manager.on('down:failure', pushFailureMigrationDown);
     return () => {
       manager.off('down:failure', pushFailureMigrationDown);
-    }
+    };
   }, []);
 
   useEffect(() => {
@@ -51,17 +54,21 @@ export default function useMigrateRefresh(manager: MigrationManager): [ListItem[
     manager.on('up:failure', pushFailureMigrationUp);
     return () => {
       manager.off('up:failure', pushFailureMigrationUp);
-    }
+    };
   }, []);
 
   useEffect(() => {
-    manager.refresh().then(() => {
-      setDone(true);
-    }).catch((error) => {
-      setError(error); 
-    }).finally(() => {
-      manager.close().then(() => exit());
-    });
+    manager
+      .refresh()
+      .then(() => {
+        setDone(true);
+      })
+      .catch(error => {
+        setError(error);
+      })
+      .finally(() => {
+        manager.close().then(() => exit());
+      });
   }, []);
 
   return [rollbackList, runList, done, error && error.message];

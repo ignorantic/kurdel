@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
+import type { ActionResult } from 'src/http/types.js';
+import type { HttpContext } from 'src/http/http-context.js';
+import type { RouteConfig } from 'src/http/route.js';
 import { Controller } from 'src/http/controller.js';
-import { ActionResult, HttpContext, RouteConfig } from 'src/http/types.js';
 
 import { createReqRes } from '../utils/http.js';
 
@@ -9,10 +11,14 @@ import { createReqRes } from '../utils/http.js';
 function deferred<T = void>() {
   let resolve!: (v: T | PromiseLike<T>) => void;
   let reject!: (e?: unknown) => void;
-  const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
   return { promise, resolve, reject };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 class RaceController extends Controller<{}> {
   // shared sync points for deterministic interleaving
   static started = deferred<void>();
@@ -20,11 +26,13 @@ class RaceController extends Controller<{}> {
   static startedCount = 0;
 
   // IMPORTANT: map action name directly to the handler function
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   readonly routes: RouteConfig<{}> = {
     slow: this.slow,
   };
 
   // stateless handler: returns ActionResult and uses ctx
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   async slow(ctx: HttpContext<{}>): Promise<ActionResult> {
     // signal when both requests reached this point
     RaceController.startedCount += 1;
@@ -71,8 +79,8 @@ describe('Controller parallel execution (stateless)', () => {
     const [r1, r2] = await Promise.all([p1, p2]);
 
     // both should be proper JSON responses now
-    expect((r1.headers['content-type'] ?? '')).toContain('application/json');
-    expect((r2.headers['content-type'] ?? '')).toContain('application/json');
+    expect(r1.headers['content-type'] ?? '').toContain('application/json');
+    expect(r2.headers['content-type'] ?? '').toContain('application/json');
 
     const b1 = JSON.parse(r1.body);
     const b2 = JSON.parse(r2.body);
