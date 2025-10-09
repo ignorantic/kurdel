@@ -1,3 +1,59 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
 node_modules/
-.cache/
+.pnpm-store/
+
+# Build outputs
+dist/
+lib/
+out/
+build/
+
+# TypeScript build cache
 *.tsbuildinfo
+.cache/
+coverage/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Test & coverage
+coverage/
+.vitest/
+*.lcov
+
+# npm / yarn / pnpm pack tarballs
+*.tgz
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Local npm link symlinks
+.npmrc
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Generated metadata
+*.d.ts.map
+*.js.map
+
+# Auto-generated docs
+docs/.cache/
+docs/build/

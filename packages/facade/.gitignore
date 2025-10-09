@@ -1,4 +1,19 @@
-node_modules/
-.cache/
+# Build output
+lib/
+dist/
 *.tsbuildinfo
+
+# Test artifacts
 coverage/
+.vitest/
+
+# Local tarballs (npm pack)
+*.tgz
+
+# Node modules
+node_modules/
+
+# Editor
+.DS_Store
+.vscode/
+.idea/
