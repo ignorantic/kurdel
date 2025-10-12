@@ -2,8 +2,8 @@ import type { Newable } from '@kurdel/common';
 
 import type { BindingToContract, BindingWithInContract } from 'src/api/container.js';
 
-import type { Binding } from './binding.js';
-import { BindingWithInContractImpl } from './binding-with-in-contract-impl.js';
+import type { Binding } from 'src/runtime/binding.js';
+import { BindingWithInContractImpl } from 'src/runtime/binding-with-in-contract-impl.js';
 
 /**
  * Contract returned by `IoCContainer.bind`.

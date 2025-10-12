@@ -1,5 +1,5 @@
 import type { Identifier } from 'src/api/identifier.js';
-import type { Binding } from './binding.js';
+import type { Binding } from 'src/runtime/binding.js';
 
 /**
  * Fluent contract returned from IoCContainer.put() when configuring dependencies.

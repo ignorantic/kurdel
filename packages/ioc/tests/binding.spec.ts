@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { Binding } from '../src/runtime/binding.js';
-import { BindingToContractImpl } from '../src/runtime/binding-to-contract-impl.js';
-import { BindingWithContract } from '../src/runtime/binding-with-contract.js';
-import { BindingWithInContractImpl } from '../src/runtime/binding-with-in-contract-impl.js';
+import { Binding } from 'src/runtime/binding.js';
+import { BindingToContractImpl } from 'src/runtime/binding-to-contract-impl.js';
+import { BindingWithContract } from 'src/runtime/binding-with-contract.js';
+import { BindingWithInContractImpl } from 'src/runtime/binding-with-in-contract-impl.js';
 
 describe('Binding', () => {
   it('should initialize with default values', () => {

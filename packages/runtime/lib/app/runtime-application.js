@@ -121,6 +121,7 @@ export class RuntimeApplication {
                 }
             }
         }
+        this.ioc.printGraph();
     }
     /**
      * Register a single provider according to our DI semantics.

@@ -1,6 +1,6 @@
 import type { Newable } from '@kurdel/common';
 import type { BindingToContract, BindingWithInContract } from '../api/container.js';
-import type { Binding } from './binding.js';
+import type { Binding } from '../runtime/binding.js';
 /**
  * Contract returned by `IoCContainer.bind`.
  *

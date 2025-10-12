@@ -1,5 +1,5 @@
-import { BindingWithContract } from './binding-with-contract.js';
-import { BindingInContract } from './binding-in-contract.js';
+import { BindingWithContract } from '../runtime/binding-with-contract.js';
+import { BindingInContract } from '../runtime/binding-in-contract.js';
 /**
  * Fluent contract returned from IoCContainer.put().
  *

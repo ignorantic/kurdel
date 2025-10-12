@@ -1,4 +1,4 @@
-import { BindingWithInContractImpl } from './binding-with-in-contract-impl.js';
+import { BindingWithInContractImpl } from '../runtime/binding-with-in-contract-impl.js';
 /**
  * Contract returned by `IoCContainer.bind`.
  *
