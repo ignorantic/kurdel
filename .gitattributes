@@ -1,0 +1,56 @@
+###############################################################################
+# Kurdel monorepo .gitattributes
+# Controls diff, merge, EOL, and archive/export behavior
+###############################################################################
+
+# -----------------------------------------------------------------------------
+# 🔠 Line endings and text normalization
+# -----------------------------------------------------------------------------
+* text=auto
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+
+# -----------------------------------------------------------------------------
+# 🧾 Mark build artifacts and generated files as non-diffable
+# -----------------------------------------------------------------------------
+*.js diff=none
+*.d.ts diff=none
+*.map diff=none
+*.tsbuildinfo binary
+*.lock binary
+package-lock.json binary
+
+# -----------------------------------------------------------------------------
+# 🧩 Ignore build outputs, caches and coverage when exporting (git archive, npm pack)
+# -----------------------------------------------------------------------------
+dist/ export-ignore
+lib/ export-ignore
+coverage/ export-ignore
+build/ export-ignore
+node_modules/ export-ignore
+*.tsbuildinfo export-ignore
+*.log export-ignore
+
+# -----------------------------------------------------------------------------
+# 🧪 Ignore test artifacts in npm packages (we only ship dist/)
+# -----------------------------------------------------------------------------
+tests/ export-ignore
+__tests__/ export-ignore
+vitest.config.* export-ignore
+*.spec.ts export-ignore
+
+# -----------------------------------------------------------------------------
+# 📦 Monorepo specific: exclude workspace meta
+# -----------------------------------------------------------------------------
+.vscode/ export-ignore
+.idea/ export-ignore
+.temp/ export-ignore
+.DS_Store export-ignore
