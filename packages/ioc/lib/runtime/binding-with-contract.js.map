@@ -1,1 +1,0 @@
-{"version":3,"file":"binding-with-contract.js","sourceRoot":"","sources":["../../src/runtime/binding-with-contract.ts"],"names":[],"mappings":"AAGA;;;;;;;;;;;;GAYG;AACH,MAAM,OAAO,mBAAmB;IAG9B,YAAY,OAAmB;QAC7B,IAAI,CAAC,OAAO,GAAG,OAAO,CAAC;IACzB,CAAC;IAED;;;;;;;;;;;;OAYG;IACH,IAAI,CAAC,IAAgC;QACnC,IAAI,CAAC,OAAO,CAAC,OAAO,GAAG,IAAI,CAAC;QAC5B,OAAO,IAAI,CAAC;IACd,CAAC;CACF"}
