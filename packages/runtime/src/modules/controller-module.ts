@@ -25,12 +25,12 @@ export class ControllerModule implements AppModule {
       {
         provide: TOKENS.ControllerResolver,
         useFactory: (ioc: Container) => new RuntimeControllerResolver(ioc),
-        isSingleton: true,
+        singleton: true,
       },
       {
         provide: TOKENS.Router,
         useClass: RuntimeRouter as unknown as new (...a: any[]) => Router,
-        isSingleton: true,
+        singleton: true,
         deps: {
           resolver: TOKENS.ControllerResolver,
           controllerConfigs: TOKENS.ControllerConfigs,

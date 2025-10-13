@@ -1,56 +1,59 @@
 import type { Identifier, Container } from '@kurdel/ioc';
-import type { AppConfig } from './config.js';
+import type { AppConfig } from 'src/app/config.js';
 
 /**
- * ProviderConfig
- *
  * Describes how a dependency should be provided to the IoC container.
- *
- * - `useClass`: Register a class with optional dependencies (resolved via IoC).
- * - `useInstance`: Provide a pre-constructed instance (singleton).
- * - `useFactory`: Provide a factory function for custom instantiation logic.
  */
 export type ProviderConfig<T = any> =
   | {
+      /** Provide a class that will be instantiated by the container */
       provide: Identifier<T>;
       useClass: new (...args: any[]) => T;
-      deps?: Record<string, Identifier<T>>;
-      isSingleton?: boolean;
+      /**
+       * Optional dependencies explicitly injected into the constructor
+       * (useful for manual wiring or when no metadata is available)
+       */
+      deps?: Record<string, Identifier<unknown>>;
+      /**
+       * Hint for container: store singleton or create per-scope instance
+       * (container may ignore this if its lifecycle rules override)
+       */
+      singleton?: boolean;
     }
   | {
+      /** Provide a pre-constructed instance */
       provide: Identifier<T>;
       useInstance: T;
     }
   | {
+      /** Provide a custom factory function */
       provide: Identifier<T>;
-      useFactory: (ioc: Container) => T;
-      isSingleton?: boolean;
+      useFactory: (ioc: Container) => T | Promise<T>;
+      singleton?: boolean;
     };
 
 /**
- * AppModule
+ * A unit of application composition (feature module).
  *
- * A unit of application composition.
- * - Can import tokens from other modules
- * - Can export tokens for others
- * - Can provide classes or instances
- * - Can run custom async logic in register()
+ * Modules can:
+ * - import tokens from other modules
+ * - export tokens for reuse
+ * - provide dependencies
+ * - execute async setup logic in `register()`
  */
 export interface AppModule<TConfig = AppConfig> {
-  /** Tokens this module depends on */
-  readonly imports?: Record<string, any>;
+  /** Tokens or modules this one depends on */
+  readonly imports?: Identifier<any>[] | Record<string, Identifier<any>>;
 
-  /** Tokens this module exports for others */
-  readonly exports?: Record<string, any>;
+  /** Tokens this module exposes for others */
+  readonly exports?: Identifier<any>[] | Record<string, Identifier<any>>;
 
-  /** Providers defined declaratively */
+  /** Declarative provider registrations */
   readonly providers?: ProviderConfig[];
 
   /**
-   * Register additional logic (async, dynamic config, side effects).
-   *
-   * Called by Application during initialization.
-   * Even if module uses only providers, this method must exist.
+   * Imperative setup hook for dynamic logic.
+   * Called once during app initialization.
    */
-  register(ioc: Container, config: TConfig): Promise<void> | void;
+  register?(ioc: Container, config: TConfig): Promise<void> | void;
 }

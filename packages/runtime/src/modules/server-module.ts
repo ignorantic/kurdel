@@ -38,7 +38,7 @@ export class ServerModule implements AppModule<AppConfig> {
       {
         provide: TOKENS.ServerAdapter,
         useClass: server,
-        isSingleton: true,
+        singleton: true,
       },
     ];
   }

@@ -61,7 +61,7 @@ describe('Application', () => {
         {
           provide: TOKEN_SINGLETON,
           useFactory: () => ({ n: ++counter }),
-          isSingleton: true,
+          singleton: true,
         },
       ];
       async register() {}

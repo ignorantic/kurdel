@@ -20,7 +20,7 @@ export class MiddlewareModule implements AppModule {
     {
       provide: TOKENS.MiddlewareRegistry,
       useClass: RuntimeMiddlewareRegistry,
-      isSingleton: true,
+      singleton: true,
     },
   ];
 

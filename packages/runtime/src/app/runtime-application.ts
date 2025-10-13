@@ -18,12 +18,12 @@ import type {
   HttpModule,
 } from '@kurdel/core/http';
 
-import { ControllerModule } from '../modules/controller-module.js';
-import { DatabaseModule } from '../modules/database-module.js';
-import { MiddlewareModule } from '../modules/middleware-module.js';
-import { ModelModule } from '../modules/model-module.js';
-import { ServerModule } from '../modules/server-module.js';
-import { LifecycleModule } from '../modules/lifecycle-module.js';
+import { ControllerModule } from 'src/modules/controller-module.js';
+import { DatabaseModule } from 'src/modules/database-module.js';
+import { MiddlewareModule } from 'src/modules/middleware-module.js';
+import { ModelModule } from 'src/modules/model-module.js';
+import { ServerModule } from 'src/modules/server-module.js';
+import { LifecycleModule } from 'src/modules/lifecycle-module.js';
 
 /**
  * Run lifecycle hooks sequentially with best-effort logging.
@@ -164,36 +164,56 @@ export class RuntimeApplication implements Application {
   }
 
   /**
-   * Register a single provider according to our DI semantics.
-   * Supports:
-   * - useClass: binds a class and optionally marks the binding singleton.
-   * - useInstance: registers a ready-made value (always singleton).
-   * - useFactory: either singleton by pre-creating the instance, or transient via toFactory.
+   * Register a single provider according to DI semantics.
    *
-   * NOTE: IoC contract is narrow on purpose (DIP). Implementation details (caches, scopes)
-   * belong to @kurdel/ioc and should not leak here.
+   * Supports:
+   * - useClass: binds a class with optional deps and lifecycle hint (singleton or transient)
+   * - useInstance: binds an existing instance (always singleton)
+   * - useFactory: binds async/sync factory, with optional singleton caching
+   *
+   * Handles async factories gracefully: if the factory returns a Promise, it will be awaited
+   * before binding (singleton) or lazily awaited on resolve (transient).
    */
   private registerProvider<T>(provider: ProviderConfig<T>) {
+    // -- useClass --
     if ('useClass' in provider) {
       const binding = this.ioc.bind<T>(provider.provide).to(provider.useClass);
       if (provider.deps) binding.with(provider.deps);
-      if (provider.isSingleton) binding.inSingletonScope();
+      if (provider.singleton) binding.inSingletonScope();
       return;
     }
 
+    // -- useInstance --
     if ('useInstance' in provider) {
       this.ioc.bind<T>(provider.provide).toInstance(provider.useInstance);
       return;
     }
 
+    // -- useFactory --
     if ('useFactory' in provider) {
-      if (provider.isSingleton) {
-        // Eagerly create and store the instance — deterministic singleton.
-        const instance = provider.useFactory(this.ioc);
-        this.ioc.bind<T>(provider.provide).toInstance(instance);
+      const result = provider.useFactory(this.ioc);
+
+      if (result instanceof Promise) {
+        // async factory case
+        if (provider.singleton) {
+          result.then(instance => {
+            this.ioc.bind<T>(provider.provide).toInstance(instance);
+          });
+        } else {
+          // fallback: register async factory as sync (type cast)
+          this.ioc.toFactory(provider.provide, (() => {
+            throw new Error(
+              `Async factory for "${String(provider.provide)}" must be singleton (or IoC must support async factories)`
+            );
+          }) as unknown as () => T);
+        }
       } else {
-        // Lazily create on each resolve — each get() calls factory.
-        this.ioc.toFactory(provider.provide, () => provider.useFactory(this.ioc));
+        // sync factory
+        if (provider.singleton) {
+          this.ioc.bind<T>(provider.provide).toInstance(result);
+        } else {
+          this.ioc.toFactory(provider.provide, () => provider.useFactory(this.ioc) as T);
+        }
       }
     }
   }

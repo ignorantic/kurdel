@@ -1,1 +1,1 @@
-export * from './lifecycle-module.js';
+export {};
