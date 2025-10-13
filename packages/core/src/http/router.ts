@@ -1,9 +1,10 @@
 import type { Container } from '@kurdel/ioc';
+import type { HttpRequest, HttpResponse } from '@kurdel/common';
 
-import type { HttpRequest, HttpResponse, Method } from './types.js';
-import type { ControllerConfig } from './interfaces.js';
-import type { ControllerResolver } from './controller-resolver.js';
-import type { Middleware } from './middleware.js';
+import type { Method } from 'src/http/types.js';
+import type { ControllerConfig } from 'src/http/interfaces.js';
+import type { ControllerResolver } from 'src/http/controller-resolver.js';
+import type { Middleware } from 'src/http/middleware.js';
 
 export interface RouterDeps {
   resolver: ControllerResolver;

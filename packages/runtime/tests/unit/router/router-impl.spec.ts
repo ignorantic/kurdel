@@ -18,14 +18,15 @@ function makeRouter(configs: ControllerConfig[], mws: Middleware[] = []) {
   const root = new FakeContainer();
   const resolver = new FakeResolver(root);
 
-  // Register a temp root instance so RouterImpl can read `routes` at init
   root.set(FakeController as any, new FakeController({ tag: 'root', calls: [] }));
 
   const router = new RuntimeRouter();
+  // добавляем сюда!
+  mws.forEach(mw => router.use(mw));
+
   router.init({
     resolver,
     controllerConfigs: configs,
-    middlewares: mws,
   });
 
   return { router, root };

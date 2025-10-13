@@ -1,6 +1,6 @@
 import { JSONLoader } from '@kurdel/common';
 import { DB_CONFIG_FILENAME } from './consts.js';
-import type { ICombinedDatabaseConfig} from './database-factory.js';
+import type { ICombinedDatabaseConfig } from './database-factory.js';
 import { DatabaseFactory } from './database-factory.js';
 import type { IDatabase } from './interfaces.js';
 

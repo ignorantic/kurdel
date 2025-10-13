@@ -1,20 +1,10 @@
-import type { Newable } from '@kurdel/common';
+import type { HttpRequest, HttpResponse, Newable } from '@kurdel/common';
 import type { Identifier } from '@kurdel/ioc';
 
 import type { Middleware } from 'src/http/middleware.js';
 import type { Controller } from 'src/http/controller.js';
 
-export interface RequestLike {
-  method?: string;
-  url?: string;
-}
-
-export interface ResponseLike {
-  statusCode?: number;
-  end?(body?: unknown): void;
-}
-
-export interface ServerAdapter<R = RequestLike, S = ResponseLike> {
+export interface ServerAdapter<R = HttpRequest, S = HttpResponse> {
   on(handler: (req: R, res: S) => void | Promise<void>): void;
   listen(port: number, hostOrCb?: string | (() => void), cb?: () => void): void | Promise<void>;
   close?(): Promise<void>;

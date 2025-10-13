@@ -1,4 +1,4 @@
-import type { IDatabase, DatabaseQuery} from '@kurdel/db';
+import type { IDatabase, DatabaseQuery } from '@kurdel/db';
 import { QueryBuilder } from '@kurdel/db';
 import { Schema } from './schema.js';
 

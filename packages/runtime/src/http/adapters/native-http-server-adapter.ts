@@ -1,10 +1,12 @@
 import { createServer, type Server } from 'node:http';
 
-import type { RequestLike, ResponseLike, ServerAdapter } from '@kurdel/core/http';
+import type { HttpRequest, HttpResponse } from '@kurdel/common';
 
-export class NativeHttpServerAdapter implements ServerAdapter<RequestLike, ResponseLike> {
+import type { ServerAdapter } from '@kurdel/core/http';
+
+export class NativeHttpServerAdapter implements ServerAdapter<HttpRequest, HttpResponse> {
   private readonly server: Server;
-  private handler?: (req: RequestLike, res: ResponseLike) => void | Promise<void>;
+  private handler?: (req: HttpRequest, res: HttpResponse) => void | Promise<void>;
 
   constructor() {
     // The server delegates to the registered handler; if none, 404.
@@ -21,14 +23,14 @@ export class NativeHttpServerAdapter implements ServerAdapter<RequestLike, Respo
           try {
             (res as any).statusCode = 500;
             (res as any).end?.();
-          // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-empty
           } catch {}
         }
       });
     });
   }
 
-  on(cb: (req: RequestLike, res: ResponseLike) => void | Promise<void>) {
+  on(cb: (req: HttpRequest, res: HttpResponse) => void | Promise<void>) {
     this.handler = cb;
   }
 

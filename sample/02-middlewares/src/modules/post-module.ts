@@ -1,5 +1,5 @@
-import { AppConfig } from '@kurdel/core/app';
-import { HttpModule } from '@kurdel/core/http';
+import type { AppConfig } from '@kurdel/core/app';
+import type { HttpModule } from '@kurdel/core/http';
 
 import { PostController } from '../controllers/post-controller.js';
 import { PostService } from '../services/post-service.js';

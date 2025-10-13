@@ -46,8 +46,12 @@ describe('IoCContainer#getGraph()', () => {
   });
 
   it('detects circular dependencies safely', () => {
-    class A { static deps = { b: null as any }; }
-    class B { static deps = { a: A }; }
+    class A {
+      static deps = { b: null as any };
+    }
+    class B {
+      static deps = { a: A };
+    }
     A.deps.b = B;
 
     container.put(A).with({ b: B });

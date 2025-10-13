@@ -5,9 +5,7 @@ import type { HttpContext } from 'src/http/http-context.js';
 import type { RouteConfig } from 'src/http/route.js';
 import { Controller } from 'src/http/controller.js';
 
-import { createReqRes } from '../utils/http.js';
-
-// simple deferred helper
+// simple deferred helper used for deterministic synchronization
 function deferred<T = void>() {
   let resolve!: (v: T | PromiseLike<T>) => void;
   let reject!: (e?: unknown) => void;
@@ -18,43 +16,70 @@ function deferred<T = void>() {
   return { promise, resolve, reject };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-class RaceController extends Controller<{}> {
-  // shared sync points for deterministic interleaving
+// Stateless controller used to simulate concurrent requests.
+class RaceController extends Controller {
   static started = deferred<void>();
   static release = deferred<void>();
   static startedCount = 0;
 
-  // IMPORTANT: map action name directly to the handler function
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  readonly routes: RouteConfig<{}> = {
+  readonly routes: RouteConfig = {
     slow: this.slow,
   };
 
-  // stateless handler: returns ActionResult and uses ctx
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  async slow(ctx: HttpContext<{}>): Promise<ActionResult> {
-    // signal when both requests reached this point
+  // Stateless handler that awaits a shared promise to simulate latency.
+  async slow(ctx: HttpContext): Promise<ActionResult> {
     RaceController.startedCount += 1;
     if (RaceController.startedCount === 2) {
       RaceController.started.resolve();
     }
 
-    // wait for test to release both handlers at once
     await RaceController.release.promise;
 
     return { kind: 'json', status: 200, body: { q: ctx.query } };
   }
 }
 
-async function exec<TDeps>(ctrl: Controller<TDeps>, action: string, url: string) {
-  const { req, res, getResult } = createReqRes(url, 'GET');
-  await ctrl.execute(req, res, action);
-  return getResult();
+// Minimal fake context generator (no runtime, no Node bindings).
+function makeCtx(url: string): HttpContext {
+  const parsed = new URL(url, 'http://internal');
+  const query: Record<string, string | string[]> = {};
+  parsed.searchParams.forEach((v, k) => (query[k] = v));
+
+  return {
+    req: { method: 'GET', url, headers: {}, query, params: {} },
+    res: {
+      status: 200,
+      sent: false,
+      send: () => {},
+      json: () => {},
+      redirect: () => {},
+      end: () => {},
+    },
+    url: parsed,
+    query,
+    params: {},
+    deps: {},
+    json(status, body) {
+      return { kind: 'json', status, body };
+    },
+    text(status, body) {
+      return { kind: 'text', status, body };
+    },
+    redirect(status, location) {
+      return { kind: 'redirect', status, location };
+    },
+    noContent() {
+      return { kind: 'empty', status: 204 };
+    },
+  };
+}
+
+async function exec(ctrl: Controller, action: string, url: string) {
+  const ctx = makeCtx(url);
+  return ctrl.handle(action, ctx);
 }
 
 beforeEach(() => {
-  // reset sync primitives before each test
   RaceController.started = deferred<void>();
   RaceController.release = deferred<void>();
   RaceController.startedCount = 0;
@@ -64,28 +89,26 @@ describe('Controller parallel execution (stateless)', () => {
   it('handles two concurrent requests on the same instance without state races', async () => {
     const ctrl = new RaceController({});
 
-    const p1 = exec(ctrl, 'slow', '/users/slow?tag=A');
-    const p2 = exec(ctrl, 'slow', '/users/slow?tag=B');
+    // Start two requests concurrently.
+    const p1 = exec(ctrl, 'slow', 'http://internal/users/slow?tag=A');
+    const p2 = exec(ctrl, 'slow', 'http://internal/users/slow?tag=B');
 
-    // wait until both handlers reached the barrier; add a safety timeout to avoid hanging the test
+    // Wait until both reached the barrier.
     await Promise.race([
       RaceController.started.promise,
       new Promise((_, rej) => setTimeout(() => rej(new Error('barrier not reached')), 2000)),
     ]);
 
-    // release both
+    // Release both at the same time.
     RaceController.release.resolve();
 
     const [r1, r2] = await Promise.all([p1, p2]);
 
-    // both should be proper JSON responses now
-    expect(r1.headers['content-type'] ?? '').toContain('application/json');
-    expect(r2.headers['content-type'] ?? '').toContain('application/json');
+    // Both should be valid ActionResults.
+    expect(r1.kind).toBe('json');
+    expect(r2.kind).toBe('json');
 
-    const b1 = JSON.parse(r1.body);
-    const b2 = JSON.parse(r2.body);
-
-    expect(b1.q.tag).toBe('A');
-    expect(b2.q.tag).toBe('B');
+    expect(r1.body.q.tag).toBe('A');
+    expect(r2.body.q.tag).toBe('B');
   });
 });

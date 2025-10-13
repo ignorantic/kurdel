@@ -1,4 +1,4 @@
-import type { Container} from '@kurdel/ioc';
+import type { Container } from '@kurdel/ioc';
 import { IoCContainer } from '@kurdel/ioc';
 import type { ModelList } from '@kurdel/core/db';
 import type {
@@ -41,7 +41,7 @@ async function runHooks(
     } catch (e) {
       try {
         logger?.error?.(`[lifecycle:${kind}]`, e);
-      // eslint-disable-next-line no-empty
+        // eslint-disable-next-line no-empty
       } catch {}
       throw e;
     }
@@ -229,7 +229,7 @@ export class RuntimeApplication implements Application {
         .then(() => {
           try {
             userDone?.();
-          // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-empty
           } catch {}
         });
     };

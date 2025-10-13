@@ -1,11 +1,11 @@
+import type { HttpRequest, HttpResponse } from '@kurdel/common';
+
 import type { Container } from '@kurdel/ioc';
 import { TOKENS } from '@kurdel/core/app';
 import type { AppConfig, AppModule, ProviderConfig } from '@kurdel/core/app';
 import type {
   Method,
   ControllerConfig,
-  RequestLike,
-  ResponseLike,
   ServerAdapter,
   Router,
   MiddlewareRegistry,
@@ -44,7 +44,7 @@ export class ServerModule implements AppModule<AppConfig> {
   }
 
   async register(ioc: Container): Promise<void> {
-    const adapter = ioc.get<ServerAdapter<RequestLike, ResponseLike>>(TOKENS.ServerAdapter);
+    const adapter = ioc.get<ServerAdapter<HttpRequest, HttpResponse>>(TOKENS.ServerAdapter);
     const router = ioc.get<Router>(TOKENS.Router);
 
     const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
@@ -66,7 +66,7 @@ export class ServerModule implements AppModule<AppConfig> {
 
       const handler = router.resolve(method, url, scope);
       if (!handler) {
-        if (typeof res.statusCode === 'number') (res as any).statusCode = 404;
+        if (typeof res.status === 'number') (res as any).statusCode = 404;
         (res as any).end?.();
         return;
       }

@@ -1,5 +1,5 @@
-import type { HttpContext } from './http-context.js';
-import type { ActionResult, Method } from './types.js';
+import type { HttpContext } from 'src/http/http-context.js';
+import type { ActionResult, Method } from 'src/http/types.js';
 
 export const ROUTE_META = Symbol('@kurdel/core:route-meta');
 
@@ -24,13 +24,12 @@ export type RouteParams<Path extends string> = {
 } & {}; // keeps {} when no params
 
 export type RouteHandler<
-  TDeps,
   TBody = unknown,
   TParams extends Record<string, string> = Record<string, string>,
-> = (ctx: HttpContext<TDeps, TBody, TParams>) => Promise<ActionResult>;
+> = (ctx: HttpContext<TBody, TParams>) => Promise<ActionResult>;
 
-export type RouteConfig<TDeps> = {
-  [key: string]: RouteHandler<TDeps, any, any>;
+export type RouteConfig = {
+  [key: string]: RouteHandler<any, any>;
 };
 
 /**
@@ -38,9 +37,7 @@ export type RouteConfig<TDeps> = {
  * Typing-wise, it narrows ctx.params for the handler from meta.path.
  */
 export function route<const M extends RouteMeta>(meta: M) {
-  return function <TDeps, TBody = unknown>(
-    fn: RouteHandler<TDeps, TBody, RouteParams<M['path']>>
-  ): typeof fn {
+  return function <TBody = unknown>(fn: RouteHandler<TBody, RouteParams<M['path']>>): typeof fn {
     (fn as any)[ROUTE_META] = meta;
     return fn;
   };

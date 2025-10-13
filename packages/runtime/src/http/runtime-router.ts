@@ -1,16 +1,19 @@
+import type { HttpRequest, HttpResponse } from '@kurdel/common';
+
 import type { Container } from '@kurdel/ioc';
 
 import type {
   Method,
-  HttpRequest,
-  HttpResponse,
   RouteMeta,
   ControllerConfig,
   ControllerResolver,
   Router,
   Middleware,
- Controller} from '@kurdel/core/http';
+  Controller,
+} from '@kurdel/core/http';
 import { ROUTE_META } from '@kurdel/core/http';
+
+import { RuntimeControllerExecutor } from 'src/http/runtime-controller-executor.js';
 
 type Entry = {
   method: Method;
@@ -49,20 +52,19 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
 interface RouterDeps {
   resolver: ControllerResolver;
   controllerConfigs: ControllerConfig[];
-  middlewares: Middleware[];
 }
 
 export class RuntimeRouter implements Router {
   private entries: Entry[] = [];
   private middlewares: Middleware[] = [];
   private resolver!: ControllerResolver;
+  private executor!: RuntimeControllerExecutor<any>;
 
-  public init({ resolver, controllerConfigs, middlewares }: RouterDeps): void {
+  public init({ resolver, controllerConfigs }: RouterDeps): void {
     // Save the resolver for request-time scope resolution.
     this.resolver = resolver;
 
-    // Keep global middlewares as before (order preserved).
-    this.middlewares = [...middlewares];
+    this.executor = new RuntimeControllerExecutor(this.middlewares);
 
     // Build entries by inspecting controller routes, but do NOT keep the instance.
     controllerConfigs.forEach(cfg => {
@@ -115,7 +117,7 @@ export class RuntimeRouter implements Router {
         for (const mw of entry.controllerMiddlewares) controller.use(mw);
 
         // Execute action with global middlewares preserved.
-        await controller.execute(req as any, res as any, entry.action, this.middlewares);
+        await this.executor.execute(controller, req as any, res as any, entry.action);
       };
     }
 

@@ -12,11 +12,11 @@ export class UserController extends Controller<Deps> {
     create: route({ method: 'POST', path: '/' })(this.create),
   };
 
-  async list(ctx: HttpContext<Deps>) {
-    return Ok(ctx.deps.userService.findAll());
+  async list() {
+    return Ok(this.deps.userService.findAll());
   }
 
-  async create(ctx: HttpContext<Deps>) {
+  async create(ctx: HttpContext) {
     const body = ctx.body as { name: string };
 
     if (!body) {
@@ -28,6 +28,6 @@ export class UserController extends Controller<Deps> {
       throw BadRequest('Field `name` is required');
     }
 
-    return Created(ctx.deps.userService.create(name));
+    return Created(this.deps.userService.create(name));
   }
 }

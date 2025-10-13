@@ -11,7 +11,9 @@
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
-  "files": [ "lib" ],
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:ui": "vitest",
@@ -35,6 +37,7 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
+    "@kurdel/common": "^1.0.0",
     "@kurdel/db": "^1.0.0",
     "@kurdel/ioc": "^1.0.0"
   }

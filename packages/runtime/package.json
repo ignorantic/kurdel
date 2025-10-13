@@ -37,6 +37,7 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
+    "@kurdel/common": "^1.0.0",
     "@kurdel/core": "^1.0.0",
     "@kurdel/ioc": "^1.0.0"
   }

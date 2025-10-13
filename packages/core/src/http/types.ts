@@ -5,10 +5,6 @@ export type Route = { method: Method; path: string; handler: Function };
 
 export type Query = Readonly<Record<string, string | string[]>>;
 
-export type HttpRequest = unknown;
-
-export type HttpResponse = unknown;
-
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
 
 export type ActionResult =
