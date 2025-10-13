@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import type { IDatabase} from '@kurdel/db';
+import type { IDatabase } from '@kurdel/db';
 import { DBConnector } from '@kurdel/db';
 import type { Migration } from './migration.js';
 import { MigrationLoader } from './migration-loader.js';

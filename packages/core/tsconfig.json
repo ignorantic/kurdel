@@ -10,5 +10,5 @@
     "types": ["vitest/globals"],
     "noEmit": true
   },
-  "include": ["src", "tests", "**/*.ts"]
+  "include": ["src", "tests", "**/*.ts", "../runtime/src/http/runtime-controller-executor.ts"]
 }

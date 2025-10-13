@@ -1,10 +1,6 @@
 import type { Newable } from '@kurdel/common';
 import type { Identifier } from 'src/api/identifier.js';
-import type {
-  Container,
-  BindingToContract,
-  BindingWithInContract,
-} from 'src/api/container.js';
+import type { Container, BindingToContract, BindingWithInContract } from 'src/api/container.js';
 
 import { Binding } from 'src/runtime/binding.js';
 import { BindingToContractImpl } from 'src/runtime/binding-to-contract-impl.js';
@@ -196,7 +192,11 @@ export class IoCContainer implements Container {
   public getGraph(rootKey?: Identifier): DependencyNode[] {
     const roots = rootKey ? [rootKey] : Array.from(this.dictionary.keys());
 
-    const walk = (key: Identifier, path: Set<Identifier> = new Set(), fromParent = false): DependencyNode => {
+    const walk = (
+      key: Identifier,
+      path: Set<Identifier> = new Set(),
+      fromParent = false
+    ): DependencyNode => {
       if (path.has(key)) {
         return { key: this.keyLabel(key) + ' (circular)', deps: [] };
       }
@@ -211,7 +211,7 @@ export class IoCContainer implements Container {
 
       const newPath = new Set(path);
       newPath.add(key);
-      const depsNodes = deps.map((dep) => walk(dep, newPath, isFromParent));
+      const depsNodes = deps.map(dep => walk(dep, newPath, isFromParent));
 
       const labelParts = [this.keyLabel(key)];
       if (isFromParent) labelParts.push('[parent]');
@@ -227,7 +227,7 @@ export class IoCContainer implements Container {
       };
     };
 
-    return roots.map((k) => walk(k));
+    return roots.map(k => walk(k));
   }
 
   /** @inheritdoc */
@@ -237,7 +237,7 @@ export class IoCContainer implements Container {
     const render = (node: DependencyNode, prefix = ''): string => {
       const line = `${prefix}- ${node.key}\n`;
       const nextPrefix = prefix + '  ';
-      return line + node.deps.map((d) => render(d, nextPrefix)).join('');
+      return line + node.deps.map(d => render(d, nextPrefix)).join('');
     };
 
     for (const root of graph) {

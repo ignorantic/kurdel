@@ -1,29 +1,30 @@
-import {
-  Controller,
+import type {
   RouteConfig,
   HttpContext,
   ActionResult,
+  RouteParams} from '@kurdel/core/http';
+import {
+  Controller,
   route,
   BadRequest,
   NotFound,
   Ok,
-  Created,
-  RouteParams,
+  Created
 } from '@kurdel/core/http';
-import { UserModel } from './user-model.js';
+import type { UserModel } from './user-model.js';
 
 type Deps = {
   model: UserModel
 };
 
 export class UserController extends Controller<Deps> {
-  readonly routes: RouteConfig<Deps> = {
+  readonly routes: RouteConfig = {
     create: route({ method: 'POST', path: '/' })(this.create),
     getOne: route({ method: 'GET', path: '/:id' })(this.getOne),
     getAll: route({ method: 'GET', path: '/' })(this.getAll),
   };
 
-  async create (ctx: HttpContext<Deps, { name: string, role: string }, {}>): Promise<ActionResult> {
+  async create (ctx: HttpContext<{ name: string, role: string }, unknown>): Promise<ActionResult> {
     const { name, role } = ctx.body ?? {};
 
     if (typeof name !== 'string') {
@@ -34,11 +35,11 @@ export class UserController extends Controller<Deps> {
       throw BadRequest('Role is required');
     }
 
-    await ctx.deps.model.createUser(name, role);
+    await this.deps.model.createUser(name, role);
     return Created({ name, role });
   }
 
-  async getOne (ctx: HttpContext<Deps, {}, RouteParams<'/:id'>>): Promise<ActionResult> {
+  async getOne (ctx: HttpContext<unknown, RouteParams<'/:id'>>): Promise<ActionResult> {
     const { id } = ctx.params;
 
     if (typeof id !== 'string') {
@@ -50,7 +51,7 @@ export class UserController extends Controller<Deps> {
       throw BadRequest('ID is required');
     }
 
-    const record = await ctx.deps.model.getUser(userId);
+    const record = await this.deps.model.getUser(userId);
     if (!record) {
       throw NotFound('User not found');
     }
@@ -58,8 +59,8 @@ export class UserController extends Controller<Deps> {
     return Ok(record);
   }
 
-  async getAll (ctx: HttpContext<Deps>): Promise<ActionResult> {
-    const records = await ctx.deps.model.getUsers();
+  async getAll (): Promise<ActionResult> {
+    const records = await this.deps.model.getUsers();
     return Ok(records);
   }
 }

@@ -21,7 +21,7 @@ export class NativeHttpServerAdapter implements ServerAdapter<RequestLike, Respo
           try {
             (res as any).statusCode = 500;
             (res as any).end?.();
-          // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-empty
           } catch {}
         }
       });

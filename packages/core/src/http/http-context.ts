@@ -1,14 +1,13 @@
-import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { HttpRequest, HttpResponse } from '@kurdel/common';
 
-import type { ActionResult, JsonValue, Query } from './types.js';
+import type { ActionResult, JsonValue, Query } from 'src/http/types.js';
 
-export interface HttpContext<TDeps = unknown, TBody = unknown, TParams = Record<string, string>> {
-  req: IncomingMessage;
-  res: ServerResponse;
+export interface HttpContext<TBody = unknown, TParams = Record<string, string>> {
+  req: HttpRequest;
+  res: HttpResponse;
   url: URL;
   query: Query;
   params: TParams;
-  deps: TDeps;
   body?: TBody;
   json(status: number, body: JsonValue): ActionResult;
   text(status: number, body: string): ActionResult;

@@ -1,4 +1,4 @@
-import { AppModule } from '@kurdel/core/app';
+import type { AppModule } from '@kurdel/core/app';
 
 import { loggerMiddleware } from '../middlewares/logger.js';
 

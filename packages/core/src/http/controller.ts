@@ -1,110 +1,44 @@
-import type { ServerResponse, IncomingMessage } from 'node:http';
-
-import type { ActionResult, JsonValue } from './types.js';
-import type { HttpContext } from './http-context.js';
-import type { Middleware } from './middleware.js';
-import type { RouteConfig } from './route.js';
-
-import { buildURL, toQuery } from '../utils/url.js';
+import type { ActionResult } from 'src/http/types.js';
+import type { HttpContext } from 'src/http/http-context.js';
+import type { Middleware } from 'src/http/middleware.js';
+import type { RouteConfig } from 'src/http/route.js';
 
 export abstract class Controller<TDeps = unknown> {
   constructor(protected readonly deps: TDeps) {}
 
   // strict whitelist
-  abstract readonly routes: RouteConfig<TDeps>;
+  abstract readonly routes: RouteConfig;
 
-  private middlewares: Middleware<TDeps>[] = [];
+  private middlewares: Middleware[] = [];
 
-  use(mw: Middleware<TDeps>) {
+  use(mw: Middleware) {
     this.middlewares.push(mw);
   }
 
-  async execute(
-    req: IncomingMessage,
-    res: ServerResponse,
-    actionName: string,
-    globalMiddlewares: Middleware<TDeps>[] = []
-  ): Promise<void> {
-    const handler = this.routes[actionName];
-    if (typeof handler !== 'function') {
-      res.statusCode = 404;
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.end(`The method '${actionName}' was not found in '${this.constructor.name}' class.`);
-      return;
-    }
-
-    const url = buildURL(req);
-    const ctx: HttpContext<TDeps> = {
-      req,
-      res,
-      url,
-      query: toQuery(url),
-      params: (req as any).__params ?? {},
-      deps: this.deps,
-      json(status: number, body: JsonValue): ActionResult {
-        return { kind: 'json', status, body };
-      },
-      text(status: number, body: string): ActionResult {
-        return { kind: 'text', status, body };
-      },
-      redirect(status: number, location: string): ActionResult {
-        return { kind: 'redirect', status, location };
-      },
-      noContent(): ActionResult {
-        return { kind: 'empty', status: 204 };
-      },
-    };
-
-    const pipeline = [...globalMiddlewares, ...this.middlewares];
-
-    // last step = actual action
-    const dispatch = async (): Promise<ActionResult> => handler.call(this, ctx);
-
-    // build composed middleware chain
-    const composed = pipeline.reduceRight<() => Promise<ActionResult>>((next, mw) => {
-      return () => mw(ctx, next);
-    }, dispatch);
-
-    try {
-      const result = await composed();
-      if (!res.headersSent) this.render(res, result);
-    } catch (e) {
-      if (!res.headersSent) {
-        this.render(res, { kind: 'json', status: 500, body: { error: 'Internal Server Error' } });
-      }
-      try {
-        (this.deps as any)?.logger?.error?.(e);
-      // eslint-disable-next-line no-empty
-      } catch {}
-    }
+  /** Exposed for runtime to build the pipeline. */
+  getMiddlewares(): Middleware[] {
+    return this.middlewares;
   }
 
-  protected render(res: ServerResponse, r: ActionResult): void {
-    switch (r.kind) {
-      case 'json': {
-        const body = JSON.stringify(r.body);
-        res.writeHead(r.status, {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Content-Length': Buffer.byteLength(body).toString(),
-        });
-        res.end(body);
-        return;
-      }
-      case 'text': {
-        res.writeHead(r.status, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end(r.body);
-        return;
-      }
-      case 'redirect': {
-        res.writeHead(r.status, { Location: r.location });
-        res.end();
-        return;
-      }
-      case 'empty': {
-        res.statusCode = r.status;
-        res.end();
-        return;
-      }
+  /** Exposed for runtime to resolve an action. */
+  getAction(actionName: string) {
+    return this.routes[actionName];
+  }
+
+  /** Optional explicit action resolver (runtime uses `routes` by default). */
+  protected resolveAction(actionName: string) {
+    return this.routes[actionName];
+  }
+
+  /**
+   * Optionally overridden in tests or custom adapters,
+   * but normally invoked through RuntimeControllerExecutor.
+   */
+  async handle(actionName: string, ctx: HttpContext): Promise<ActionResult> {
+    const fn = this.resolveAction(actionName);
+    if (typeof fn !== 'function') {
+      throw new Error(`Action '${actionName}' not found in ${this.constructor.name}`);
     }
+    return await fn.call(this, ctx);
   }
 }

@@ -1,5 +1,4 @@
 import type { Middleware } from '@kurdel/core/http';
-import { BadRequest } from '@kurdel/core/http';
 
 /**
  * Parses JSON request body and assigns it to ctx.body.
@@ -15,21 +14,12 @@ import { BadRequest } from '@kurdel/core/http';
  */
 export const jsonBodyParser: Middleware = async (ctx, next) => {
   const contentType = ctx.req.headers['content-type'] ?? '';
+  if (!contentType.includes('application/json')) {
+    return next();
+  }
 
-  if (contentType.includes('application/json')) {
-    try {
-      const chunks: Buffer[] = [];
-      for await (const chunk of ctx.req) {
-        chunks.push(chunk);
-      }
-      const raw = Buffer.concat(chunks).toString();
-
-      if (raw.length > 0) {
-        ctx.body = JSON.parse(raw);
-      }
-    } catch {
-      throw BadRequest('Invalid JSON');
-    }
+  if (ctx.req.body && typeof ctx.req.body === 'object') {
+    ctx.body = ctx.req.body;
   }
 
   return next();

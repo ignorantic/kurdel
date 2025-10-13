@@ -1,5 +1,5 @@
-import { AppConfig } from '@kurdel/core/app';
-import { HttpModule } from '@kurdel/core/http';
+import type { AppConfig } from '@kurdel/core/app';
+import type { HttpModule } from '@kurdel/core/http';
 
 import { UserController } from '../controllers/user-controller.js';
 import { UserService } from '../services/user-service.js';

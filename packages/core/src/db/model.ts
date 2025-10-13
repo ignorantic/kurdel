@@ -1,6 +1,6 @@
 import type { Newable } from '@kurdel/common';
 import type { Identifier } from '@kurdel/ioc';
-import type { IDatabase, IQueryBuilder} from '@kurdel/db';
+import type { IDatabase, IQueryBuilder } from '@kurdel/db';
 import { QueryBuilder } from '@kurdel/db';
 
 interface ModelDeps {
