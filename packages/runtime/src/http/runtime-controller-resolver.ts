@@ -9,7 +9,7 @@ export class RuntimeControllerResolver implements ControllerResolver {
    * Resolve controller instance from the provided request scope.
    * Falls back to the root container when not registered in the scope.
    */
-  resolve<T>(cls: Newable<T>, scope: Container): T {
+  resolve<T>(cls: Newable<T>, scope?: Container): T {
     const c = scope ?? this.root;
 
     // Prefer request scope; if scope.has() falls back to parent itself, the try-get below is enough.
@@ -26,10 +26,5 @@ export class RuntimeControllerResolver implements ControllerResolver {
       // Final fallback to root
       return this.root.get<T>(cls);
     }
-  }
-
-  /** @deprecated kept for backward-compat; prefer resolve(cls, scope) */
-  get<T>(cls: Newable<T>): T {
-    return this.root.get<T>(cls);
   }
 }

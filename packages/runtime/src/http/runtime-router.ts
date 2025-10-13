@@ -1,7 +1,6 @@
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
-
 import type { Container } from '@kurdel/ioc';
-
+import { ROUTE_META } from '@kurdel/core/http';
 import type {
   Method,
   RouteMeta,
@@ -11,7 +10,6 @@ import type {
   Middleware,
   Controller,
 } from '@kurdel/core/http';
-import { ROUTE_META } from '@kurdel/core/http';
 
 import { RuntimeControllerExecutor } from 'src/http/runtime-controller-executor.js';
 
@@ -70,7 +68,7 @@ export class RuntimeRouter implements Router {
     controllerConfigs.forEach(cfg => {
       // Temporary instance from root (or wherever ControllerResolver.get resolves):
       // used only to read `routes` and their RouteMeta at bootstrap.
-      const tempInstance = resolver.get(cfg.use);
+      const tempInstance = resolver.resolve(cfg.use);
 
       // Apply config-level middlewares to entries, not to the temp instance.
       // (We will apply them to the per-request instance at dispatch.)
@@ -90,34 +88,25 @@ export class RuntimeRouter implements Router {
    * The scope is the per-request container created by the server adapter.
    */
   public resolve(method: Method, url: string, scope: Container) {
-    const safe = (url || '/').replace(/\\/g, '/');
-    const pathname = new URL(safe, 'http://internal').pathname;
+    const pathname = (url ?? '/').split('?')[0].replace(/\\/g, '/');
 
     for (const entry of this.entries) {
       if (entry.method !== method) continue;
+
       const match = entry.regex.exec(pathname);
       if (!match) continue;
 
-      // Extract ":param" values by index
-      const params: Record<string, string> = {};
-      entry.keys.forEach((key, i) => {
-        params[key] = match[i + 1];
-      });
+      const params = Object.fromEntries(entry.keys.map((key, i) => [key, match[i + 1]]));
 
-      // Return a dispatch function that receives the request scope explicitly.
       return async (req: HttpRequest, res: HttpResponse) => {
-        // Expose params for Controller.execute() to pick up.
         (req as any).__params = params;
 
-        // Resolve a fresh controller instance from the request scope (fallback handled inside resolver).
-        const controller = this.resolver.resolve<Controller<any>>(entry.token as any, scope);
+        const controller = this.resolver.resolve<Controller<any>>(entry.token, scope);
 
-        // Apply controller-level middlewares from config to THIS instance.
-        // This is safe because the instance is per-request (no duplication across requests).
         for (const mw of entry.controllerMiddlewares) controller.use(mw);
 
-        // Execute action with global middlewares preserved.
-        await this.executor.execute(controller, req as any, res as any, entry.action);
+        const executor = new RuntimeControllerExecutor(this.middlewares);
+        await executor.execute(controller, req as any, res as any, entry.action);
       };
     }
 
