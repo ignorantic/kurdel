@@ -7,41 +7,55 @@ Clear boundaries, **no decorators**, explicit modules & providers, typed results
 
 ## 🧩 Architecture Overview
 
-Kurdel is now split into **three packages**, each with a clear role:
+Kurdel is organized as a modular monorepo with clearly separated packages —  
+each focused on a single responsibility and layered for stability.
 
 | Package | Purpose |
 |----------|----------|
-| **`@kurdel/core`** | Framework **contracts**, types, and tokens — pure API definitions, no runtime code. |
-| **`@kurdel/runtime`** | Actual **implementations** — router, controller resolver, adapters, modules, lifecycle, etc. |
-| **`@kurdel/facade`** | The **entry point** for applications — exports `createApplication()` and hides internal structure. |
+| **`@kurdel/common`** | Shared low-level primitives: HTTP types, helpers, and base interfaces. |
+| **`@kurdel/core`** | Framework **contracts**, interfaces, and tokens — pure API layer with no runtime logic. |
+| **`@kurdel/runtime`** | Runtime **implementation** — router, controller resolver, modules, adapters, lifecycle, etc. |
+| **`@kurdel/facade`** | The **entry point** for applications — exports `createApplication()` and hides internal wiring. |
+| **`@kurdel/ioc`** | Lightweight dependency injection container used across all modules. |
+| **`@kurdel/db`** | Database layer — model abstractions, ORM helpers, and connection interfaces. |
+| **`@kurdel/migrations`** | Database schema migration tools and CLI. |
+| **`@kurdel/pirx`** | Simple CLI for project scaffolding, build helpers, and developer utilities. |
 
-This separation allows users to depend only on stable APIs (`@kurdel/core`), while internal logic lives in `@kurdel/runtime`.
+> **Dependency direction:**  
+> `common → core → runtime → facade`  
+> with `ioc`, `db`, `migrations`, and `pirx` acting as independent verticals.
 
 ---
 
 ## ✨ Features
 
-* **IoC by contract** — built on `@kurdel/ioc`, compatible with any IoC container.
-* **No decorators** — routes and middlewares are explicit (no reflection or metadata).
-* **Request scope** — controllers are resolved from a **per-request DI scope**.
-* **Lifecycle hooks** — modules can register startup/shutdown hooks.
-* **Typed routes** — compile-time validation for route parameters.
-* **Testable by design** — `Application.listen()` returns a typed `RunningServer` with `close()` and `raw()`.
+- **IoC by contract** — powered by `@kurdel/ioc`, independent of framework internals.  
+- **No decorators** — explicit and type-safe route/middleware definitions.  
+- **Request scope** — each request gets its own DI container and controller instance.  
+- **Lifecycle hooks** — modules can define startup and shutdown hooks.  
+- **Typed routes** — route parameters validated at compile-time.  
+- **Database-ready** — optional model layer with migration support.  
+- **CLI tooling** — `@kurdel/pirx` for scaffolding and developer utilities.  
+- **Testable** — `Application.listen()` returns a composable test handle.  
 
 ---
 
 ## ⚙️ Installation
 
 ```bash
-npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/ioc
+npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/common @kurdel/ioc @kurdel/db
 ```
 
-> Node ≥ 18, TypeScript ≥ 5.
-> Recommended: `"type": "module"`, `"module": "nodenext"` in `tsconfig.json`.
+> Requires Node ≥ 18 and TypeScript ≥ 5
+> Recommended `tsconfig.json`:
+>
+> ```json
+> { "type": "module", "module": "nodenext" }
+> ```
 
 ---
 
-## 🚀 Quick start
+## 🚀 Quick Start
 
 ```ts
 // app.ts
@@ -71,24 +85,26 @@ const server = app.listen(3000, () => console.log('http://localhost:3000'));
 
 ---
 
-## 🧠 Concepts
+## 🧠 Core Concepts
 
-### Application (from `@kurdel/runtime`)
+### Application
 
-Encapsulates module registration and server startup.
+Responsible for wiring modules, initializing IoC, and starting the HTTP adapter.
 
 ```ts
 import type { Application } from '@kurdel/core/app';
 ```
 
-Main API:
+Key methods:
 
-* `use(...modules)` – add additional modules before bootstrap.
-* `listen(port)` → returns `RunningServer` — `{ raw?(), close() }`.
+* `use(...modules)` — register modules before bootstrap
+* `listen(port)` — start server and return `RunningServer`
+
+---
 
 ### Modules
 
-Encapsulate feature logic (controllers, middlewares, models, lifecycle hooks):
+Feature-level composition units.
 
 ```ts
 import type { AppModule } from '@kurdel/core/app';
@@ -99,33 +115,33 @@ export class UserModule implements AppModule {
     { use: UserController, prefix: '/api' },
   ];
 
-  // optional lifecycle hook
   async register(ioc, config) {
-    // custom wiring here
+    // optional custom wiring
   }
 }
 ```
 
-### Controllers (no decorators)
+---
 
-Controllers declare routes using the `route()` helper.
+### Controllers
+
+Declare routes explicitly using `route()` — no decorators or metadata reflection.
 
 ```ts
 import { Controller, route, Ok, type HttpContext } from '@kurdel/core/http';
 
 export class UserController extends Controller {
   readonly routes = {
-    list:   route({ method: 'GET',  path: '/users'     })(this.list),
-    byId:   route({ method: 'GET',  path: '/users/:id' })(this.byId),
-    create: route({ method: 'POST', path: '/users'     })(this.create),
+    list: route({ method: 'GET', path: '/users' })(this.list),
+    byId: route({ method: 'GET', path: '/users/:id' })(this.byId),
   };
 
-  async list() { return Ok([{ id: 1, name: 'Ada' }]); }
+  async list() {
+    return Ok([{ id: 1, name: 'Ada' }]);
+  }
+
   async byId(ctx: HttpContext<{}, {}, { id: string }>) {
     return Ok({ id: ctx.params.id });
-  }
-  async create(ctx: HttpContext<{}, { name: string }>) {
-    return Ok({ id: 'new', name: ctx.body?.name ?? 'unknown' });
   }
 }
 ```
@@ -134,8 +150,8 @@ export class UserController extends Controller {
 
 ## 🔁 Request-scoped IoC
 
-Kurdel uses dependency injection from `@kurdel/ioc` under the hood.
-Each request creates a **child container scope**, isolating controller instances.
+Kurdel uses its own lightweight IoC container (`@kurdel/ioc`).
+Each request spawns a **child scope**, ensuring isolated dependencies.
 
 ```ts
 import { createToken } from '@kurdel/ioc';
@@ -144,13 +160,13 @@ const UserRepoToken = createToken<UserRepo>('users/UserRepo');
 // container.bind(UserRepoToken).to(UserRepoImpl).inSingletonScope();
 ```
 
-Framework-level tokens like `Router`, `ServerAdapter`, `ControllerResolver`, etc. are available via `TOKENS.*`.
+All framework-level dependencies (Router, ControllerResolver, etc.) are registered via `TOKENS.*`.
 
 ---
 
 ## 🧩 Lifecycle Hooks
 
-Modules can define lifecycle callbacks that run automatically:
+Modules can define startup/shutdown hooks for custom logic.
 
 ```ts
 import type { OnStartHook, OnShutdownHook } from '@kurdel/core/app/lifecycle';
@@ -161,28 +177,21 @@ class MetricsModule {
 }
 ```
 
-* `onStart` hooks run **before** the user `listen()` callback.
-* `onShutdown` hooks run **after** `server.close()` in reverse order.
-
 ---
 
 ## 🧪 Testing
-
-`listen()` returns a handle that integrates with `supertest`:
 
 ```ts
 import request from 'supertest';
 import { createApplication } from '@kurdel/facade';
 import { Controller, route, Ok } from '@kurdel/core/http';
 
-class TController extends Controller {
+class PingController extends Controller {
   readonly routes = { ping: route({ method: 'GET', path: '/ping' })(this.ping) };
   async ping() { return Ok({ ok: true }); }
 }
 
-class TModule { readonly controllers = [{ use: TController }]; }
-
-const app = await createApplication({ modules: [new TModule()] });
+const app = await createApplication({ modules: [{ controllers: [{ use: PingController }] }] });
 const h = app.listen(0);
 
 const res = await request(h.raw()!).get('/ping');
@@ -194,46 +203,39 @@ await h.close();
 
 ---
 
-## 📁 Project layout (monorepo)
+## 🏗️ Monorepo Layout
 
 ```
 packages/
-  core/      # Pure contracts (API types, interfaces, tokens)
-  runtime/   # Implementations (router, modules, adapters, lifecycle)
-  facade/    # Entry points (createApplication, CLI, helpers)
-  ioc/       # IoC container library used internally and externally
+  common/       # Shared primitives and HTTP types
+  ioc/          # IoC container (standalone)
+  core/         # Public API contracts (tokens, interfaces)
+  runtime/      # Framework implementation (router, lifecycle, adapters)
+  facade/       # Entry points (createApplication, helpers)
+  db/           # Database layer (connectors, ORM utilities)
+  migrations/   # Migration engine and CLI commands
+  pirx/         # Developer CLI (scaffolding, utilities)
 ```
 
-Consumers import from subpaths, e.g.:
-
-```ts
-import { createApplication } from '@kurdel/facade';
-import { Controller, route, Ok } from '@kurdel/core/http';
-import type { AppModule } from '@kurdel/core/app';
-```
 ---
 
-## 🧩 Development & Contribution
+## 🤝 Contributing
 
-If you’re interested in how **kurdel** is structured or want to contribute:
-
-- 🏗️ [Architecture overview](./ARCHITECTURE.md) — explains the internal layers (`core`, `runtime`, `facade`) and naming conventions.
-- 🧑‍💻 [Contributing guide](./CONTRIBUTING.md) — details on development workflow, build setup, commit format, and testing.
-
-Both documents are meant for **contributors and maintainers**,  
-not for everyday users of the framework.
+* 📘 [ARCHITECTURE.md](./ARCHITECTURE.md) — detailed internal design overview
+* 🛠️ [CONTRIBUTING.md](./CONTRIBUTING.md) — setup, build, commit conventions, and testing
 
 ---
 
 ## 🚧 Status
 
-Early-stage and evolving API — feedback is welcome.
-Next steps:
+Kurdel is under active development.
+Next milestones:
 
-* In-memory HTTP adapter for tests
-* Route param constraints
-* Extended `HttpContext` utilities
-* CLI scaffolding
+* In-memory HTTP adapter for isolated testing
+* Richer database & migration APIs
+* Unified `pirx` CLI workflow
+* Route constraints & validation layer
+* Extended middleware registry
 
 ---
 

@@ -1,118 +1,185 @@
 # kurdel Architecture
 
-kurdel is a modular, strongly-typed framework organized into clearly separated layers:
+kurdel is a **modular, strongly-typed** framework built around clear separation of layers and explicit composition.
 
 ```
-@kurdel/core      → Contracts / tokens / base types
-@kurdel/runtime   → Runtime implementations and composition
-@kurdel/facade    → Entry points for users
-@kurdel/ioc       → Standalone IoC library
+
+@kurdel/common     → Shared primitives and base HTTP types
+@kurdel/core       → Contracts / tokens / interfaces
+@kurdel/runtime    → Runtime implementations and IoC composition
+@kurdel/facade     → Public entry points (createApplication)
+@kurdel/ioc        → Standalone IoC container
+@kurdel/db         → Database abstraction layer
+@kurdel/migrations → Migration engine and tools
+@kurdel/pirx       → Developer CLI and utilities
 
 ```
 
 ---
 
-## 🧠 Core principles
+## 🧠 Core Principles
 
-- **Separation of what vs how**
-  - `core` defines *what* (interfaces, contracts, types)
+- **Separation of what vs how**  
+  - `core` defines *what* (contracts, tokens, types)  
   - `runtime` defines *how* (implementations and composition)
-- **No decorators or hidden globals** — everything is explicit.
-- **Request-scoped IoC** — a new DI scope per request.
-- **Typed end-to-end** — routes, params, and results are fully type-checked.
+
+- **SOLID architecture** — each module does one thing and depends only on contracts.  
+- **Explicit DI** — no decorators, no magic globals.  
+- **Request-scoped IoC** — every request gets its own dependency scope.  
+- **Typed end-to-end** — parameters, context, and results are compile-time safe.  
+- **Zero hidden coupling** — all dependencies are injected or declared explicitly.
 
 ---
 
-## ⚙️ Layers overview
+## ⚙️ Layer Overview
 
-| Layer | Location | Example | Description |
-|--------|-----------|----------|-------------|
-| **API (contracts)** | `@kurdel/core/...` | `Application`, `ServerAdapter`, `TOKENS` | Public framework contracts |
-| **Runtime** | `@kurdel/runtime/...` | `RuntimeApplication`, `RuntimeRouter`, `NativeHttpServerAdapter` | Executable implementation |
-| **Modules** | `@kurdel/runtime/modules/...` | `ServerModule`, `ControllerModule` | IoC wiring and composition |
-| **Facade** | `@kurdel/facade/...` | `createApplication()` | Simplified user entry points |
-| **Samples** | `sample/` | `01-simple-app` | Example applications |
+| Layer | Package | Example | Description |
+|--------|----------|----------|-------------|
+| **Common primitives** | `@kurdel/common` | `HttpRequest`, `HttpResponse`, `Result` | Shared low-level types and helpers |
+| **Contracts / API** | `@kurdel/core` | `Application`, `Controller`, `ServerAdapter`, `TOKENS` | Pure framework contracts |
+| **Runtime** | `@kurdel/runtime` | `RuntimeApplication`, `RuntimeRouter`, `NativeHttpServerAdapter` | Actual framework logic and composition |
+| **Modules (internal)** | `@kurdel/runtime/modules` | `ServerModule`, `ControllerModule`, `LifecycleModule` | IoC-based runtime modules |
+| **Facade** | `@kurdel/facade` | `createApplication()` | User-facing entry points |
+| **Database** | `@kurdel/db` | `Model`, `DbConnector` | Data layer and ORM abstraction |
+| **Migrations** | `@kurdel/migrations` | `MigrationRunner`, `MigrationConfig` | Schema migration system |
+| **CLI / Tooling** | `@kurdel/pirx` | `pirx generate`, `pirx new` | Developer tools and project scaffolding |
 
 ---
 
-## 🧩 Naming rules
+## 🔗 Dependency Graph
+
+```
+
+@kurdel/facade ─┬─► @kurdel/runtime
+├─► @kurdel/core
+└─► @kurdel/ioc
+
+@kurdel/runtime ─┬─► @kurdel/core
+├─► @kurdel/common
+└─► @kurdel/ioc
+
+@kurdel/core ───► @kurdel/common
+@kurdel/db ─────► @kurdel/common
+@kurdel/migrations ─► @kurdel/db
+@kurdel/pirx ───► @kurdel/migrations
+
+```
+
+> The **facade** has no business logic — it only composes `core` and `runtime`.  
+> The **common** package sits at the very bottom and contains no dependencies.
+
+---
+
+## 🧱 Application Lifecycle
+
+1. **Configuration** — the user defines `AppConfig` and feature modules.  
+2. **Bootstrap** — `RuntimeApplication` registers modules, providers, and lifecycle hooks.  
+3. **Server Start** — `ServerAdapter.listen()` starts the HTTP server.  
+4. **Request Handling** — router resolves per-request scope and executes the controller.  
+5. **Lifecycle Hooks** — `OnStart` and `OnShutdown` hooks run automatically.  
+
+---
+
+## 🧩 Naming Rules
 
 | Type | Prefix | Example |
 |------|---------|---------|
 | Contract implementation | `Runtime` | `RuntimeApplication`, `RuntimeRouter` |
 | Platform adapter | `Native` | `NativeHttpServerAdapter` |
 | Framework module | *(none)* | `ServerModule`, `LifecycleModule` |
-| Test-only / mock | `Test` / `Fake` | `TestServerAdapter`, `FakeControllerResolver` |
-
----
-
-## 🔗 Dependency graph
-
-```
-@kurdel/facade ─┬─► @kurdel/runtime
-└─► @kurdel/core
-@kurdel/runtime ─┬─► @kurdel/core
-└─► @kurdel/ioc
-@kurdel/core ───► @kurdel/ioc (types only)
-
-```
-
-> The **facade** layer contains no business logic — it only wires `core` and `runtime`.
-
----
-
-## 🧱 Application lifecycle
-
-1. **Configuration** — user defines `AppConfig` with modules  
-2. **Bootstrap** — `RuntimeApplication` calls `.register()` on each module  
-3. **Listen** — `ServerAdapter.listen()` starts the HTTP server  
-4. **Hooks** — `LifecycleModule` triggers `OnStart` / `OnShutdown`
+| CLI or tooling | `pirx` | `pirx generate`, `pirx db:migrate` |
+| Test / mock | `Test` / `Fake` | `FakeController`, `TestServerAdapter` |
 
 ---
 
 ## 🧰 Extensibility
 
-- Any contract (`ServerAdapter`, `Router`, `ControllerResolver`, …) can be replaced in IoC  
-- Custom modules can be registered via `app.use(...)`  
-- Planned adapters: **Edge**, **Bun**, **Cloudflare Workers**
+- Any contract (e.g. `Router`, `ServerAdapter`, `ControllerResolver`) can be replaced via IoC.  
+- Modules can provide their own providers or override existing bindings.  
+- `pirx` CLI provides plugin hooks for extending commands.  
+- Planned adapters: **Edge**, **Bun**, **Deno**, **Cloudflare Workers**.
 
 ---
 
-## 🧩 Public imports
+## 🧭 Internal Runtime Layout
 
-Users import from stable subpaths:
+```
+
+src/
+app/
+runtime-application.ts
+router/
+runtime-router.ts
+runtime-controller-resolver.ts
+http/
+native-http-server-adapter.ts
+runtime-controller-executor.ts
+modules/
+server-module.ts
+controller-module.ts
+model-module.ts
+middleware-module.ts
+lifecycle-module.ts
+
+```
+
+---
+
+## 🧩 Database & Migrations
+
+### `@kurdel/db`
+Provides:
+- Unified `DbConnector` interface for adapters (Postgres, SQLite, etc.)
+- Base `Model` abstraction and query utilities.
+- Optional integration module for automatic model registration.
+
+### `@kurdel/migrations`
+Provides:
+- Migration runner and registry.
+- Command-line migration tools (`pirx db:migrate`, `pirx db:rollback`).
+- Pluggable storage backends (filesystem, SQL table, JSON).
+
+---
+
+## 🧮 CLI and Developer Tools
+
+### `@kurdel/pirx`
+
+A minimal CLI layer that integrates directly with the runtime and migrations:
+- `pirx new` — scaffold new apps or modules.  
+- `pirx db:migrate` — run pending migrations.  
+- `pirx inspect` — print IoC bindings and dependency graph.  
+- `pirx build` — orchestrate build pipeline via Lerna/Nx.  
+
+---
+
+## 🧩 Public Imports
+
+Users always import from stable entry points:
 
 ```ts
-import { createApplication } from '@kurdel/core';
+import { createApplication } from '@kurdel/facade';
 import { Controller, route, Ok } from '@kurdel/core/http';
 import type { AppModule } from '@kurdel/core/app';
 ```
 
 ---
 
-## 🧭 Internal runtime layout
+## 🧩 Summary
 
-```
-src/runtime/
-  app/
-    runtime-application.ts
-  router/
-    runtime-router.ts
-    runtime-controller-resolver.ts
-  http/
-    native-http-server-adapter.ts
-  modules/
-    server-module.ts
-    controller-module.ts
-    lifecycle-module.ts
-```
+✅ **`common`** — shared primitives
+✅ **`core`** — contracts and tokens
+✅ **`runtime`** — framework implementation
+✅ **`facade`** — user entry point
+✅ **`ioc`** — DI container
+✅ **`db` / `migrations`** — persistence & schema management
+✅ **`pirx`** — CLI and developer tooling
 
 ---
 
-## 🧩 Summary
+> Kurdel follows a **strict layering model**:
+> business logic never leaks upward, and abstractions always depend inward.
 
-* Contracts live in **`core`**
-* Implementations live in **`runtime`**
-* Platform-specific code uses **`Native*`**
-* Core framework implementations use **`Runtime*`**
-* Modules remain simple and prefix-free (`ServerModule`, `LifecycleModule`)
+---
+
+© Andrii Sorokin · MIT License
