@@ -1,0 +1,10 @@
+{
+  "version": "independent",
+  "packages": ["packages/*", "sample/*"],
+  "command": {
+    "run": {
+      "stream": true,
+      "sort": true
+    }
+  }
+}

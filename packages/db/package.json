@@ -30,5 +30,8 @@
   },
   "peerDependencies": {
     "sqlite3": "^5.1.6"
+  },
+  "dependencies": {
+    "@kurdel/common": "^1.0.0"
   }
 }

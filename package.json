@@ -6,13 +6,13 @@
     "sample/*"
   ],
   "scripts": {
-    "test": "npm run test --ws",
     "lint": "eslint packages/**/*.ts",
+    "test": "lerna run test --stream",
     "lint:fix": "eslint packages/**/*.ts --fix",
     "format": "prettier --write \"packages/**/*.ts\"",
     "clean": "npm run clean --workspaces",
     "clean:all": "npm run clean --workspaces && rimraf .cache",
-    "build": "npm run build --ws",
+    "build": "lerna run build --stream --sort",
     "rebuild": "npm run clean:all && npm run build"
   },
   "devDependencies": {
@@ -22,6 +22,7 @@
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vitest": "^0.5.4",
+    "lerna": "^9.0.0",
     "prettier": "^3.6.2",
     "supertest": "^7.1.4",
     "typescript": "^5.9.2",
