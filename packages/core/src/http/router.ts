@@ -2,7 +2,7 @@ import type { Container } from '@kurdel/ioc';
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
 
 import type { Method } from 'src/http/types.js';
-import type { ControllerConfig } from 'src/http/interfaces.js';
+import type { ControllerConfig } from 'src/http/controller-config.js';
 import type { ControllerResolver } from 'src/http/controller-resolver.js';
 import type { Middleware } from 'src/http/middleware.js';
 

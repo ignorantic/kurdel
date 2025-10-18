@@ -1,6 +1,6 @@
 import type { Newable } from '@kurdel/common';
 
-import type { ServerAdapter } from 'src/http/interfaces.js';
+import type { ServerAdapter } from 'src/http/server-adapter.js';
 import type { Model } from 'src/db/model.js';
 import type { HttpModule } from 'src/http/http-module.js';
 

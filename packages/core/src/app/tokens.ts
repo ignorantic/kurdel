@@ -1,7 +1,7 @@
 import { createGlobalToken } from '@kurdel/ioc';
 
-import type { ServerAdapter } from '../http/interfaces.js';
-import type { Router } from '../http/router.js';
+import type { ServerAdapter } from 'src/http/server-adapter.js';
+import type { Router } from 'src/http/router.js';
 
 import type { OnShutdownHook, OnStartHook } from './lifecycle.js';
 

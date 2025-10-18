@@ -1,5 +1,5 @@
 import type { Identifier, Container } from '@kurdel/ioc';
-import type { AppConfig } from 'src/app/config.js';
+import type { AppConfig } from 'src/app/app-config.js';
 
 /**
  * Describes how a dependency should be provided to the IoC container.
