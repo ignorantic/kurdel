@@ -1,7 +1,7 @@
-import { createApplication } from '@kurdel/facade';
+import { createNodeApplication } from '@kurdel/facade';
 import { UserModule } from './user-module.js';
 
-const app = await createApplication({
+const app = await createNodeApplication({
   modules: [new UserModule()]
 });
 

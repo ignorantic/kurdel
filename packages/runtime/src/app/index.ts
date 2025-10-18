@@ -1,1 +1,1 @@
-export { RuntimeApplication } from 'src/app/runtime-application.js';
+export { RuntimeApplication } from './runtime-application.js';

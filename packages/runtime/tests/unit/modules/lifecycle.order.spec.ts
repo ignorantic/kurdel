@@ -38,7 +38,7 @@ describe('Application lifecycle – order & wiring', () => {
 
     const app = new RuntimeApplication({
       modules: [new LifecycleModule()],
-      server: TestAdapter,
+      serverAdapter: new TestAdapter(),
       db: false,
     } as AppConfig);
 

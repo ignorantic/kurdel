@@ -13,6 +13,8 @@ export interface RouterDeps {
 }
 
 export interface Router {
+  middlewares: Middleware[];
+
   /** Prepare routes (called once at bootstrap) */
   init(deps: RouterDeps): void;
 

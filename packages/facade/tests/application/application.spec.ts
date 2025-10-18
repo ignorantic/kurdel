@@ -8,6 +8,12 @@ const TOKEN_B = Symbol('B');
 const TOKEN_FACTORY = Symbol('factory');
 const TOKEN_SINGLETON = Symbol('factory-singleton');
 
+const fakeAdapter = {
+  on: vi.fn(),
+  listen: vi.fn(),
+  close: vi.fn(),
+};
+
 describe('Application', () => {
   it('should throw if required import is missing', async () => {
     class ImportingModule implements AppModule {
@@ -17,7 +23,7 @@ describe('Application', () => {
 
     // no module provides TOKEN_A
     await expect(() =>
-      createApplication({ db: false, modules: [new ImportingModule()] })
+      createApplication({ serverAdapter: fakeAdapter, db: false, modules: [new ImportingModule()] })
     ).rejects.toThrow(/Missing dependency/);
   });
 
@@ -28,7 +34,7 @@ describe('Application', () => {
     }
 
     await expect(() =>
-      createApplication({ db: false, modules: [new BadModule()] })
+      createApplication({ serverAdapter: fakeAdapter, db: false, modules: [new BadModule()] })
     ).rejects.toThrow(/Module did not register expected export/);
   });
 
@@ -46,7 +52,11 @@ describe('Application', () => {
       async register() {}
     }
 
-    const app = await createApplication({ db: false, modules: [new FactoryModule()] });
+    const app = await createApplication({
+      serverAdapter: fakeAdapter,
+      db: false,
+      modules: [new FactoryModule()],
+    });
     const ioc = app.getContainer();
     const first = ioc.get<{ n: number }>(TOKEN_FACTORY);
     const second = ioc.get<{ n: number }>(TOKEN_FACTORY);
@@ -67,7 +77,11 @@ describe('Application', () => {
       async register() {}
     }
 
-    const app = await createApplication({ db: false, modules: [new FactoryModule()] });
+    const app = await createApplication({
+      serverAdapter: fakeAdapter,
+      db: false,
+      modules: [new FactoryModule()],
+    });
     const ioc = app.getContainer();
     const first = ioc.get<{ n: number }>(TOKEN_SINGLETON);
     const second = ioc.get<{ n: number }>(TOKEN_SINGLETON);

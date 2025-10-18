@@ -40,7 +40,7 @@ export class ServerRunner {
     onShutdown: (() => Promise<void>)[] = [],
     port: number,
     hostOrCb?: string | (() => void),
-    cb?: () => void,
+    cb?: () => void
   ): RunningServer {
     // Normalize callback overloads
     const userCb = typeof hostOrCb === 'function' ? hostOrCb : cb;

@@ -2,15 +2,22 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { Server } from 'node:http';
 import request from 'supertest';
 
-import { createApplication } from 'src/create-application.js';
+import { createNodeApplication } from 'src/create-node-application.js';
 
 import { UserModule } from './user-module.js';
 
 let server: Server;
 
+const fakeAdapter = {
+  on: vi.fn(),
+  listen: vi.fn(),
+  close: vi.fn(),
+};
+
 describe('UserModule integration', () => {
   beforeAll(async () => {
-    const app = await createApplication({
+    const app = await createNodeApplication({
+      serverAdapter: fakeAdapter,
       modules: [new UserModule()],
       db: false,
     });

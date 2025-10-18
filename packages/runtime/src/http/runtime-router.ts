@@ -54,15 +54,13 @@ interface RouterDeps {
 
 export class RuntimeRouter implements Router {
   private entries: Entry[] = [];
-  private middlewares: Middleware[] = [];
   private resolver!: ControllerResolver;
-  private executor!: RuntimeControllerExecutor<any>;
+
+  public middlewares: Middleware[] = [];
 
   public init({ resolver, controllerConfigs }: RouterDeps): void {
     // Save the resolver for request-time scope resolution.
     this.resolver = resolver;
-
-    this.executor = new RuntimeControllerExecutor(this.middlewares);
 
     // Build entries by inspecting controller routes, but do NOT keep the instance.
     controllerConfigs.forEach(cfg => {

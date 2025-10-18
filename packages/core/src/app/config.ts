@@ -7,7 +7,7 @@ import type { HttpModule } from 'src/http/http-module.js';
 import type { AppModule } from './app-module.js';
 
 export interface AppConfig {
-  server?: Newable<ServerAdapter>;
+  serverAdapter?: ServerAdapter;
   db?: boolean;
   models?: Newable<Model>[];
   modules?: (AppModule | HttpModule)[];

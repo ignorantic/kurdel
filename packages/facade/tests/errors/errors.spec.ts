@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import type { Server } from 'http';
 
-import { createApplication } from 'src/create-application.js';
+import { createNodeApplication } from 'src/create-node-application.js';
 
 import { ErrorModule } from './error-module.js';
 
@@ -13,7 +13,7 @@ describe('Centralized error handling', () => {
     // silence console.error for clean test output
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const app = await createApplication({
+    const app = await createNodeApplication({
       modules: [new ErrorModule()],
       db: false,
     });

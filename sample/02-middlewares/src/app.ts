@@ -1,9 +1,9 @@
-import { createApplication } from '@kurdel/facade';
+import { createNodeApplication } from '@kurdel/facade';
 import { UserModule } from './modules/user-module.js';
 import { PostModule } from './modules/post-module.js';
 import { LoggerModule } from './modules/logger-module.js';
 
-const app = await createApplication({
+const app = await createNodeApplication({
   db: false,
   modules: [
     new UserModule,

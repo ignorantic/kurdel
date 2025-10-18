@@ -41,8 +41,7 @@ export class RuntimeComposer {
   static compose(config: AppConfig): AppModule[] {
     // Extract only user modules that expose HTTP artifacts (controllers, models, middlewares)
     const httpModules = (config.modules ?? []).filter(
-      (m): m is HttpModule =>
-        'models' in m || 'controllers' in m || 'middlewares' in m
+      (m): m is HttpModule => 'models' in m || 'controllers' in m || 'middlewares' in m
     );
 
     // Aggregate HTTP declarations from user HttpModules

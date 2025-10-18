@@ -1,24 +1,22 @@
-import type { HttpRequest, HttpResponse } from '@kurdel/common';
-
 import type { Container } from '@kurdel/ioc';
-import { TOKENS } from '@kurdel/core/app';
 import type { AppConfig, AppModule, ProviderConfig } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/app';
 import type {
-  Method,
-  ControllerConfig,
   ServerAdapter,
   Router,
+  ControllerConfig,
   MiddlewareRegistry,
+  ControllerResolver,
+  Method,
 } from '@kurdel/core/http';
-
-import { NativeHttpServerAdapter } from 'src/http/adapters/native-http-server-adapter.js';
 
 /**
  * ServerModule: wires the HTTP ServerAdapter to the Router.
  *
- * - Provides a singleton ServerAdapter implementation
- * - Injects the root Container and the Router into the adapter
- * - No global state; request-scope is created inside the adapter per request-scope
+ * Responsibilities:
+ * - Provides a platform-agnostic ServerAdapter (injected via AppConfig)
+ * - Initializes Router with all controllers and middlewares
+ * - Delegates actual HTTP handling to the adapter (no Node/Bun specifics here)
  */
 export class ServerModule implements AppModule<AppConfig> {
   readonly imports = {
@@ -27,31 +25,38 @@ export class ServerModule implements AppModule<AppConfig> {
     controllerConfigs: TOKENS.ControllerConfigs,
     controllerResolver: TOKENS.ControllerResolver,
   };
-  readonly exports = { server: TOKENS.ServerAdapter };
+
+  readonly exports = {
+    server: TOKENS.ServerAdapter,
+  };
 
   readonly providers: ProviderConfig[];
 
-  constructor(config: AppConfig) {
-    const { server = NativeHttpServerAdapter } = config;
+  constructor(private readonly config: AppConfig) {
+    const { serverAdapter } = config;
+    if (!serverAdapter)
+      throw new Error(
+        'Missing serverAdapter in AppConfig. Provide one via createNodeApplication()'
+      );
 
     this.providers = [
       {
         provide: TOKENS.ServerAdapter,
-        useClass: server,
-        singleton: true,
+        useInstance: serverAdapter,
       },
     ];
   }
 
   async register(ioc: Container): Promise<void> {
-    const adapter = ioc.get<ServerAdapter<HttpRequest, HttpResponse>>(TOKENS.ServerAdapter);
+    const adapter = ioc.get<ServerAdapter>(TOKENS.ServerAdapter);
     const router = ioc.get<Router>(TOKENS.Router);
-
     const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
     const controllerConfigs = ioc.get<ControllerConfig[]>(TOKENS.ControllerConfigs);
+    const resolver = ioc.get<ControllerResolver>(TOKENS.ControllerResolver);
 
+    // Initialize router with controller metadata & middlewares
     router.init({
-      resolver: ioc.get(TOKENS.ControllerResolver),
+      resolver,
       controllerConfigs,
       middlewares: registry.all(),
     });

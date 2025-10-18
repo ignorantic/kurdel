@@ -28,7 +28,7 @@ describe('ServerModule', () => {
 
     const fakeRegistry = { all: vi.fn().mockReturnValue([]) };
     const fakeControllerConfigs: ControllerConfig[] = [];
-    const fakeResolver = {}; // Not used directly here
+    const fakeResolver = {};
 
     const fakeAdapter = {
       on: vi.fn((cb: (req: any, res: any) => void | Promise<void>) => {
@@ -37,6 +37,8 @@ describe('ServerModule', () => {
         const res: any = { end: vi.fn(), setHeader: vi.fn(), statusCode: 0 };
         cb(req, res);
       }),
+      listen: vi.fn(),
+      close: vi.fn(),
     };
 
     // Register DI tokens
@@ -47,7 +49,7 @@ describe('ServerModule', () => {
     ioc.set(TOKENS.ServerAdapter as any, fakeAdapter);
 
     // Run the module register hook
-    const mod = new ServerModule({} as AppConfig);
+    const mod = new ServerModule({ serverAdapter: fakeAdapter } as AppConfig);
     await mod.register(ioc as any);
 
     // Router.init called with deps from container

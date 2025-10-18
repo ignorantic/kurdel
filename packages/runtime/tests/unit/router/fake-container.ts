@@ -1,5 +1,5 @@
 import type { Newable } from '@kurdel/common';
-import type { Container, Identifier } from '@kurdel/ioc';
+import type { Container, DependencyNode, Identifier } from '@kurdel/ioc';
 
 type DepsMap = Record<string, Identifier<any>>;
 
@@ -155,6 +155,20 @@ export class FakeContainer implements Container {
 
   createScope(): Container {
     return new FakeContainer(this);
+  }
+
+  getGraph(rootKey?: Identifier): DependencyNode[] {
+    return [
+      {
+        key: '',
+        fromParent: false,
+        deps: [],
+      },
+    ];
+  }
+
+  printGraph(rootKey?: Identifier): void {
+    return;
   }
 
   private findBinding(

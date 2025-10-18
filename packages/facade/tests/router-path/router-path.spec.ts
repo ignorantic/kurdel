@@ -5,7 +5,7 @@ import request from 'supertest';
 import type { HttpContext, HttpModule } from '@kurdel/core/http';
 import { Controller, Ok, route } from '@kurdel/core/http';
 
-import { createApplication } from 'src/create-application.js';
+import { createNodeApplication } from 'src/create-node-application.js';
 
 class RootController extends Controller {
   readonly routes = {
@@ -62,9 +62,15 @@ class TestHttpModule implements HttpModule {
 
 let server: Server;
 
+const fakeAdapter = {
+  on: vi.fn(),
+  listen: vi.fn(),
+  close: vi.fn(),
+};
+
 describe('Router path edge cases', () => {
   beforeAll(async () => {
-    const app = await createApplication({
+    const app = await createNodeApplication({
       modules: [new TestHttpModule()],
       db: false,
     });

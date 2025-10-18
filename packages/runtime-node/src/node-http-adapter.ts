@@ -61,40 +61,40 @@ export async function adaptNodeRequest(req: IncomingMessage): Promise<HttpReques
  * Wraps native ServerResponse into a platform-independent HttpResponse.
  */
 export function adaptNodeResponse(res: ServerResponse): HttpResponse {
-  let sent = false;
-
-  const wrap: HttpResponse = {
+  return {
     status(code: number) {
       res.statusCode = code;
-      return wrap;
+      return this;
     },
+    send(body: any) {
+      if (body == null) {
+        res.end();
+        return this;
+      }
 
-    json(data: unknown) {
-      if (sent) return;
-      const body = JSON.stringify(data);
-      res.writeHead(res.statusCode || 200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(body);
-      sent = true;
+      const content = typeof body === 'object' ? JSON.stringify(body) : String(body);
+
+      if (!res.getHeader('content-type')) {
+        res.setHeader(
+          'content-type',
+          typeof body === 'object' ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8'
+        );
+      }
+
+      res.end(content);
+      return this;
     },
-
-    send(data: string | Uint8Array) {
-      if (sent) return;
-      res.writeHead(res.statusCode || 200, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end(data);
-      sent = true;
+    json: (body: unknown) => {
+      res.statusCode = res.statusCode || 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(body));
+      return res;
     },
-
-    redirect(status: number, location: string) {
-      if (sent) return;
-      res.writeHead(status, { Location: location });
+    redirect(code: number, location: string) {
+      res.statusCode = code;
+      res.setHeader('location', location);
       res.end();
-      sent = true;
+      return this;
     },
-
-    get sent() {
-      return sent;
-    },
-  };
-
-  return wrap;
+  } as unknown as HttpResponse;
 }

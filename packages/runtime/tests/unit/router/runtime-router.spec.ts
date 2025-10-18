@@ -21,7 +21,7 @@ function makeRouter(configs: ControllerConfig[], mws: Middleware[] = []) {
   root.set(FakeController as any, new FakeController({ tag: 'root', calls: [] }));
 
   const router = new RuntimeRouter();
-  // добавляем сюда!
+
   mws.forEach(mw => router.use(mw));
 
   router.init({
@@ -54,12 +54,25 @@ describe('RouterImpl', () => {
     expect(handler).toBeTypeOf('function');
 
     const req: any = { method: 'GET', url: '/ping/42' };
+
     const res: any = {
+      statusCode: 200,
       headersSent: false,
-      writeHead: vi.fn(),
-      end: vi.fn(),
-      setHeader: vi.fn(),
-      statusCode: 0,
+      body: undefined as any,
+      json: vi.fn(),
+      status: vi.fn(function (this: any, code) {
+        this.statusCode = code;
+        return this;
+      }),
+      send: vi.fn(function (this: any, body) {
+        this.body = body;
+        return this;
+      }),
+      redirect: vi.fn(function (this: any, code, location) {
+        this.statusCode = code;
+        this.location = location;
+        return this;
+      }),
     };
 
     await handler(req, res);
@@ -71,8 +84,8 @@ describe('RouterImpl', () => {
     expect(globalCalls).toEqual(['g1']);
 
     // JSON response was rendered
-    expect(res.writeHead).toHaveBeenCalledWith(200, expect.any(Object));
-    expect(res.end).toHaveBeenCalledWith(expect.stringContaining('"ok":true'));
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: true }));
   });
 
   it('returns null when no route matches', () => {
@@ -93,12 +106,25 @@ describe('RouterImpl', () => {
     const handler = router.resolve('GET' as Method, '/ping/abc', scope)!;
 
     const req: any = { method: 'GET', url: '/ping/abc' };
+
     const res: any = {
+      statusCode: 200,
       headersSent: false,
-      writeHead: vi.fn(),
-      end: vi.fn(),
-      setHeader: vi.fn(),
-      statusCode: 0,
+      body: undefined as any,
+      json: vi.fn(),
+      status: vi.fn(function (this: any, code) {
+        this.statusCode = code;
+        return this;
+      }),
+      send: vi.fn(function (this: any, body) {
+        this.body = body;
+        return this;
+      }),
+      redirect: vi.fn(function (this: any, code, location) {
+        this.statusCode = code;
+        this.location = location;
+        return this;
+      }),
     };
 
     await handler(req, res);

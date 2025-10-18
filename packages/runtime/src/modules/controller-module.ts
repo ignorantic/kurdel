@@ -34,7 +34,6 @@ export class ControllerModule implements AppModule {
         deps: {
           resolver: TOKENS.ControllerResolver,
           controllerConfigs: TOKENS.ControllerConfigs,
-          registry: TOKENS.MiddlewareRegistry,
         },
       },
       ...controllers.map(c => ({

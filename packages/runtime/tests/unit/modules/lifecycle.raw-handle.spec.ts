@@ -8,7 +8,7 @@ import { LifecycleModule } from 'src/modules/lifecycle-module.js';
 /**
  * Verifies that RunningServer.raw() is proxied from the adapter when available.
  */
-describe('Application lifecycle – RunningServer.raw()', () => {
+describe('Application lifecycle - RunningServer.raw()', () => {
   it('exposes raw() when adapter provides it', async () => {
     // Minimal adapter with raw() returning a sentinel object
     const sentinel = { name: 'raw-server' };
@@ -33,7 +33,7 @@ describe('Application lifecycle – RunningServer.raw()', () => {
 
     const app = new RuntimeApplication({
       modules: [new LifecycleModule()],
-      server: TestAdapter,
+      serverAdapter: new TestAdapter(),
       db: false,
     } as AppConfig);
     await app.bootstrap();
@@ -62,7 +62,7 @@ describe('Application lifecycle – RunningServer.raw()', () => {
 
     const app = new RuntimeApplication({
       modules: [new LifecycleModule()],
-      server: TestAdapter,
+      serverAdapter: new TestAdapter(),
       db: false,
     } as AppConfig);
     await app.bootstrap();
