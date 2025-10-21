@@ -13,7 +13,7 @@
     "composite": true,
     "noEmit": false,
     "incremental": true,
-    "tsBuildInfoFile": "../../.cache/tsconfig.facade.build.tsbuildinfo"
+    "tsBuildInfoFile": "../../.cache/tsconfig.runtime-express.build.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts", "tests/**", "vitest.config.ts"]

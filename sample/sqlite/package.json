@@ -1,12 +1,12 @@
 {
-  "name": "simple-app",
+  "name": "kurdel-example-app",
   "version": "1.0.0",
-  "description": "example simple app",
+  "description": "example simple app with sqlite DB",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"No tests yet\"",
-    "clean": "rimraf dist ../../.cache/tsconfig.sample.01.build.tsbuildinfo",
+    "clean": "rimraf dist ../../.cache/tsconfig.sample.sqlite.build.tsbuildinfo",
     "build": "tsc",
     "build:force": "npm run clean && tsc --force",
     "dev": "node dist/app.js"

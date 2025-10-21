@@ -1,12 +1,12 @@
 {
-  "name": "middlewares",
+  "name": "kurdel-example-app",
   "version": "1.0.0",
-  "description": "example app with middlewares",
+  "description": "example simple app with express adapter",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"No tests yet\"",
-    "clean": "rimraf dist ../../.cache/tsconfig.sample.02.build.tsbuildinfo",
+    "clean": "rimraf dist ../../.cache/tsconfig.sample.express.build.tsbuildinfo",
     "build": "tsc",
     "build:force": "npm run clean && tsc --force",
     "dev": "node dist/app.js"
@@ -15,8 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@kurdel/core": "^1.0.0",
-    "@kurdel/facade": "^1.0.0",
-    "sqlite3": "^5.1.6"
+    "@kurdel/facade": "^1.0.0"
   },
   "devDependencies": {
     "@kurdel/migrations": "^1.0.0",

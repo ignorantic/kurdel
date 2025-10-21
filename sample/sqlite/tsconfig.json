@@ -10,6 +10,6 @@
     "strict": true,
     "skipLibCheck": true,
     "incremental": true,
-    "tsBuildInfoFile": "../../.cache/tsconfig.sample.01.build.tsbuildinfo"
+    "tsBuildInfoFile": "../../.cache/tsconfig.sample.sqlite.build.tsbuildinfo"
   }
 }

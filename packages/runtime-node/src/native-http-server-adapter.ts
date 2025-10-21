@@ -1,10 +1,9 @@
 import { createServer, type Server, type IncomingMessage, type ServerResponse } from 'node:http';
 
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
-import type { Router, ServerAdapter } from '@kurdel/core/http';
+import type { ServerAdapter } from '@kurdel/core/http';
 
-import { adaptNodeRequest, adaptNodeResponse } from './node-http-adapter.js';
-import { RuntimeControllerExecutor } from '@kurdel/runtime/http';
+import { adaptNodeRequest, adaptNodeResponse } from './native-req-res-adapters.js';
 
 /**
  * Node.js implementation of ServerAdapter.
@@ -17,13 +16,9 @@ import { RuntimeControllerExecutor } from '@kurdel/runtime/http';
  */
 export class NativeHttpServerAdapter implements ServerAdapter<HttpRequest, HttpResponse> {
   private readonly server: Server;
-  private readonly executor: RuntimeControllerExecutor;
   private handler?: (req: HttpRequest, res: HttpResponse) => void | Promise<void>;
 
-  constructor(router: Router) {
-    // Executor handles controller pipelines (middlewares + action)
-    this.executor = new RuntimeControllerExecutor(router.middlewares);
-
+  constructor() {
     // Node HTTP server delegates every request to our dispatch layer
     this.server = createServer((req, res) => this.dispatch(req, res));
   }

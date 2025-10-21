@@ -1,6 +1,5 @@
 import type { AppConfig } from '@kurdel/core/app';
 import { NativeHttpServerAdapter } from '@kurdel/runtime-node';
-import { RuntimeRouter } from '@kurdel/runtime/http';
 
 import { createApplication } from 'src/create-application.js';
 
@@ -13,8 +12,7 @@ import { createApplication } from 'src/create-application.js';
  * - Keeps the rest of the framework completely platform-agnostic
  */
 export function createNodeApplication(config: AppConfig) {
-  const router = new RuntimeRouter();
-  const serverAdapter = new NativeHttpServerAdapter(router);
+  const serverAdapter = new NativeHttpServerAdapter();
 
   return createApplication({
     ...config,

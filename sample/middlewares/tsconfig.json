@@ -10,6 +10,6 @@
     "strict": true,
     "skipLibCheck": true,
     "incremental": true,
-    "tsBuildInfoFile": "../../.cache/tsconfig.sample.02.build.tsbuildinfo"
+    "tsBuildInfoFile": "../../.cache/tsconfig.sample.middlewares.build.tsbuildinfo"
   }
 }

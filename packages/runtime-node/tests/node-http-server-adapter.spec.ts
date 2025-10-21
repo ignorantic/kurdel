@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NativeHttpServerAdapter } from 'src/native-http-server-adapter.js';
-import { createServer } from 'node:http';
 
 // Mock runtime controller executor
 vi.mock('@kurdel/runtime/http', () => ({
@@ -9,12 +8,12 @@ vi.mock('@kurdel/runtime/http', () => ({
   })),
 }));
 
-describe('NativeHttpServerAdapter', () => {
+describe('NodeHttpServerAdapter', () => {
   let adapter: NativeHttpServerAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    adapter = new NativeHttpServerAdapter({ resolve: vi.fn(), middlewares: [] } as any);
+    adapter = new NativeHttpServerAdapter();
   });
 
   it('creates an underlying Node HTTP server', () => {
@@ -53,6 +52,7 @@ describe('NativeHttpServerAdapter', () => {
     const res = { end: vi.fn(), statusCode: 0, headersSent: false };
     const server = adapter.raw()!;
 
+    // 🔇 silence console.error only for this test
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await (server.listeners('request')[0] as any)({}, res);

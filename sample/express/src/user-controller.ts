@@ -1,0 +1,49 @@
+import type {
+  RouteConfig,
+  HttpContext,
+  ActionResult,
+  RouteParams} from '@kurdel/core/http';
+import {
+  Controller,
+  route,
+  BadRequest,
+  NotFound,
+  Ok
+} from '@kurdel/core/http';
+import type { UserService } from './user-service.js';
+
+type Deps = {
+  service: UserService
+};
+
+export class UserController extends Controller<Deps> {
+  readonly routes: RouteConfig = {
+    getOne: route({ method: 'GET', path: '/:id' })(this.getOne),
+    getAll: route({ method: 'GET', path: '/' })(this.getAll),
+  };
+
+  async getOne(ctx: HttpContext<unknown, RouteParams<'/:id'>>): Promise<ActionResult> {
+    const { id } = ctx.params;
+
+    if (typeof id !== 'string') {
+      throw BadRequest('ID is required');
+    }
+
+    const userId = Number(id);
+    if (!Number.isFinite(userId)) {
+      throw BadRequest('ID must be a number');
+    }
+
+    const record = await this.deps.service.getUser(userId);
+    if (!record) {
+      throw NotFound('User not found');
+    }
+
+    return Ok(record);
+  }
+
+  async getAll(): Promise<ActionResult> {
+    const records = await this.deps.service.getUsers();
+    return Ok(records);
+  }
+}
