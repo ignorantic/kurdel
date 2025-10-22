@@ -7,7 +7,8 @@
     ".": "./lib/index.js",
     "./http": "./lib/http/index.js",
     "./app": "./lib/app/index.js",
-    "./db": "./lib/db/index.js"
+    "./db": "./lib/db/index.js",
+    "./tokens": "./lib/tokens/index.js"
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

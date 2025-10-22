@@ -1,8 +1,8 @@
 import type { Container } from '@kurdel/ioc';
 import { IoCContainer } from '@kurdel/ioc';
 import type { AppConfig, Application, AppModule } from '@kurdel/core/app';
-import { TOKENS } from '@kurdel/core/app';
 import type { RunningServer, ServerAdapter } from '@kurdel/core/http';
+import { TOKENS } from '@kurdel/core/tokens';
 
 import { ModuleLoader } from 'src/app/module-loader.js';
 import { LifecycleManager } from 'src/app/lifecycle-manager.js';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TOKENS } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
 
 import { ServerModule } from 'src/modules/server-module.js';
 

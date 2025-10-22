@@ -1,7 +1,7 @@
 import type { Container } from '@kurdel/ioc';
 
 import type { AppModule, AppConfig } from '@kurdel/core/app';
-import { TOKENS } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
 
 export class LifecycleModule implements AppModule<AppConfig> {
   readonly exports = {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { TOKENS } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
 import { Controller, type MiddlewareRegistry } from '@kurdel/core/http';
 
 import { ControllerModule } from 'src/modules/controller-module.js';

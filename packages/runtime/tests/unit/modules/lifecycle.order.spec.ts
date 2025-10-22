@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { type AppConfig, TOKENS } from '@kurdel/core/app';
+import { type AppConfig } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
 import type { ServerAdapter } from '@kurdel/core/http';
 
 import { RuntimeApplication } from 'src/app/runtime-application.js';

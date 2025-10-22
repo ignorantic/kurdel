@@ -1,7 +1,7 @@
 import type { Container } from '@kurdel/ioc';
 import type { ControllerConfig, Router, MiddlewareRegistry } from '@kurdel/core/http';
 import type { AppModule, ProviderConfig } from '@kurdel/core/app';
-import { TOKENS } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
 
 import { RuntimeControllerResolver } from 'src/http/runtime-controller-resolver.js';
 import { RuntimeRouter } from 'src/http/runtime-router.js';

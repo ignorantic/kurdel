@@ -1,6 +1,6 @@
 import type { Container } from '@kurdel/ioc';
 import type { AppConfig, AppModule, ProviderConfig } from '@kurdel/core/app';
-import { TOKENS } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
 import type {
   ServerAdapter,
   Router,
