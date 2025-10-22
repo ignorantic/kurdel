@@ -1,6 +1,9 @@
 {
   "version": "independent",
-  "packages": ["packages/*"],
+  "packages": [
+    "packages/*",
+    "sample/*"
+  ],
   "command": {
     "run": {
       "stream": true,

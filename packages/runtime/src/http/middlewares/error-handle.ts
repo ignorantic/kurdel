@@ -5,7 +5,6 @@ export const errorHandler: Middleware = async (ctx, next) => {
   try {
     return await next();
   } catch (err) {
-    console.error(err);
     if (err instanceof HttpError) {
       return {
         kind: 'json',
@@ -16,6 +15,8 @@ export const errorHandler: Middleware = async (ctx, next) => {
         },
       };
     }
+    
+    console.error(err);
 
     return {
       kind: 'json',

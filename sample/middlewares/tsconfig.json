@@ -10,6 +10,7 @@
     "strict": true,
     "skipLibCheck": true,
     "incremental": true,
+    "types": ["vitest/globals"],
     "tsBuildInfoFile": "../../.cache/tsconfig.sample.middlewares.build.tsbuildinfo"
   }
 }
