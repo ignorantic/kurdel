@@ -13,11 +13,13 @@ The repository is a **monorepo** composed of multiple workspaces (packages):
 |----------|----------|
 | **@kurdel/common** | Shared primitives and HTTP types used across the framework. |
 | **@kurdel/core** | Contracts, interfaces, tokens, base API definitions. |
-| **@kurdel/runtime** | Executable runtime implementation (router, modules, adapters, lifecycle). |
-| **@kurdel/facade** | User-facing entry points (`createApplication()`, helpers). |
+| **@kurdel/runtime** | Core runtime implementation (router, modules, adapters, lifecycle). |
+| **@kurdel/runtime-node** | Native Node.js HTTP server adapter. |
+| **@kurdel/runtime-express** | Express runtime adapter. |
+| **@kurdel/facade** | User-facing entry points (`createNodeApplication()`, helpers). |
 | **@kurdel/ioc** | Standalone IoC container library used across all layers. |
 | **@kurdel/db** | Database abstractions, connectors, and ORM utilities. |
-| **@kurdel/migrations** | Migration engine and command-line tools. |
+| **@kurdel/migrations** | Migration engine and schema management tools. |
 | **@kurdel/pirx** | Developer CLI for scaffolding, migrations, and utilities. |
 | **samples/** | Example applications and integration demos. |
 
@@ -25,20 +27,24 @@ The repository is a **monorepo** composed of multiple workspaces (packages):
 
 ```
 
-@kurdel/facade ─┬─► @kurdel/runtime
-├─► @kurdel/core
-└─► @kurdel/ioc
+@kurdel/facade ─┬─► @kurdel/runtime-node / @kurdel/runtime-express
+│               ├─► @kurdel/runtime
+│               ├─► @kurdel/core
+│               └─► @kurdel/ioc
 
 @kurdel/runtime ─┬─► @kurdel/core
-├─► @kurdel/common
-└─► @kurdel/ioc
+│                ├─► @kurdel/common
+│                └─► @kurdel/ioc
 
 @kurdel/core ───► @kurdel/common
-@kurdel/db ─────► @kurdel/core
+@kurdel/db ─────► @kurdel/common
 @kurdel/migrations ─► @kurdel/db
-@kurdel/pirx ───► @kurdel/runtime + @kurdel/migrations
+@kurdel/pirx ───► @kurdel/migrations
 
 ```
+
+> The `facade` has no business logic — it composes runtime and core layers.  
+> The `common` package sits at the base and has no dependencies.
 
 ---
 
@@ -60,7 +66,6 @@ Each package structure:
 
 ```
 src/
-  api/       # Contracts and tokens (in core)
   http/      # HTTP runtime or adapters
   modules/   # IoC modules (runtime)
   app/       # Application composition
@@ -72,21 +77,21 @@ index.ts     # Main export barrel
 
 * Implementation classes of `@kurdel/core` contracts use the `Runtime*` prefix.
   Example: `RuntimeApplication`, `RuntimeRouter`
-* Platform-specific classes use the `Native*` prefix.
-  Example: `NativeHttpServerAdapter`
-* Modules (`ServerModule`, `LifecycleModule`, etc.) **have no prefix**.
+* Platform-specific classes use the `Native*` or `Express*` prefix.
+  Example: `NativeHttpServerAdapter`, `ExpressServerAdapter`
+* IoC modules (`ServerModule`, `LifecycleModule`, etc.) have **no prefix**.
 
 ---
 
 ## 🧩 Naming Conventions
 
-| Type                    | Example                                  | Description                         |
-| ----------------------- | ---------------------------------------- | ----------------------------------- |
-| Contract implementation | `RuntimeApplication`, `RuntimeRouter`    | Implements a `core` interface       |
-| Platform adapter        | `NativeHttpServerAdapter`                | Relies on Node or platform APIs     |
-| Framework module        | `ServerModule`, `LifecycleModule`        | Registers bindings in IoC           |
-| CLI tool                | `pirx generate`, `pirx db:migrate`       | Commands exposed via `@kurdel/pirx` |
-| Tokens & interfaces     | `Application`, `ServerAdapter`, `TOKENS` | Declared in `@kurdel/core`          |
+| Type                    | Example                                           | Description                         |
+| ----------------------- | ------------------------------------------------- | ----------------------------------- |
+| Contract implementation | `RuntimeApplication`, `RuntimeRouter`             | Implements a `core` interface       |
+| Platform adapter        | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Relies on Node or Express APIs      |
+| Framework module        | `ServerModule`, `LifecycleModule`                 | Registers bindings in IoC           |
+| CLI tool                | `pirx generate`, `pirx db:migrate`                | Commands exposed via `@kurdel/pirx` |
+| Tokens & interfaces     | `Application`, `ServerAdapter`, `TOKENS`          | Declared in `@kurdel/core`          |
 
 ---
 
@@ -94,9 +99,10 @@ index.ts     # Main export barrel
 
 All tests are written in **Vitest**.
 
-* Unit tests live under `tests/unit/...`
-* Integration tests use `supertest` and live under `tests/integration/...`
-* No real network listeners — prefer in-memory or stubbed adapters.
+* **Unit tests:** `tests/unit/**`
+* **Integration tests:** `tests/integration/**` (use `supertest`)
+* **E2E tests:** `tests/e2e/**` (use `createNodeApplication()` or `createExpressApplication()`)
+* No real network listeners — use in-memory or stubbed adapters.
 
 Run:
 
@@ -116,14 +122,14 @@ npm run test -w @kurdel/runtime
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) standard:
 
-| Type       | Example                                          | Description                |
-| ---------- | ------------------------------------------------ | -------------------------- |
-| `feat`     | `feat(http): add streaming response helper`      | New feature                |
-| `fix`      | `fix(router): preserve query params order`       | Bug fix                    |
-| `refactor` | `refactor(runtime): extract controller resolver` | Internal refactor          |
-| `test`     | `test(core): add lifecycle hook coverage`        | Tests added or improved    |
-| `docs`     | `docs(readme): update installation section`      | Documentation change       |
-| `chore`    | `chore(build): bump Lerna config`                | Non-functional maintenance |
+| Type       | Example                                           | Description                |
+| ---------- | ------------------------------------------------- | -------------------------- |
+| `feat`     | `feat(router): add middleware chain timing`       | New feature                |
+| `fix`      | `fix(core): correct HttpContext typing`           | Bug fix                    |
+| `refactor` | `refactor(runtime): simplify controller resolver` | Internal refactor          |
+| `test`     | `test(facade): add E2E startup coverage`          | Tests added or improved    |
+| `docs`     | `docs(architecture): update dependency graph`     | Documentation change       |
+| `chore`    | `chore(build): update Nx configuration`           | Non-functional maintenance |
 
 ---
 
@@ -137,7 +143,7 @@ Build everything in order:
 npx lerna run build
 ```
 
-or a specific package:
+Build a specific package:
 
 ```bash
 npm run build -w @kurdel/core
@@ -147,9 +153,9 @@ npm run build -w @kurdel/runtime
 ### Build conventions
 
 * Each package must build **independently**.
-* No direct cross-imports of `src/` files between packages — always use published entry points.
-* Type declarations are resolved via `tsc-alias` after build.
-* Build output must go to `lib/` for all packages.
+* No direct cross-imports of `src/` between packages — always use public exports.
+* Type paths are rewritten using **tsc-alias** after build.
+* Compiled output goes to `lib/` for all packages.
 
 ---
 
@@ -160,46 +166,48 @@ Before opening a PR:
 1. ✅ Run **all tests** (`npm test`)
 2. 🧱 Ensure **TypeScript builds cleanly** (`npm run build`)
 3. 🧹 Format code using **Prettier** (`npm run format`)
-4. 🧾 Document any API changes in `README.md` or the PR body
-5. 🔍 Keep commits atomic and well-scoped
+4. 🧾 Document API changes in `README.md` or PR description
+5. 🔍 Keep commits atomic and scoped logically
 
 ---
 
 ## 🤝 Tips for Contributors
 
-* Use **absolute imports with `src/` prefix** within each package.
-* Prefer **constructor injection** over property assignment.
-* All IoC tokens must live in `@kurdel/core`, never in runtime.
-* Avoid introducing decorators — they are intentionally excluded from design.
-* Keep runtime modules composable and prefix-free.
+* Use **absolute imports** (`src/...`) inside packages.
+* Prefer **constructor injection** over property injection.
+* IoC tokens and interfaces must live in `@kurdel/core`.
+* Avoid introducing decorators — they are intentionally excluded.
+* Runtime modules must remain composable and prefix-free.
+* Do not leak runtime logic into facade or CLI packages.
 
 ---
 
 ## 🧭 Development Workflow
 
-Typical inner loop:
+Typical development loop:
 
 ```bash
-# install deps
+# Install dependencies
 npm install
 
-# build all
+# Build all packages in dependency order
 npx lerna run build
 
-# run tests
+# Run tests
 npm test
 
-# run a sample app
-npm run dev -w simple-app
+# Start a sample app
+npm run dev -w @kurdel/sample-express
 ```
 
 ---
 
 ## 🪶 Notes
 
-* Kurdel’s architecture prioritizes **stability and transparency** over magic.
-* Everything is **typed, explicit, and dependency-injected**.
-* All internal packages can be developed and tested in isolation.
+* Kurdel prioritizes **explicit composition** and **type safety**.
+* Every feature is implemented as an **IoC-registered module**, not global state.
+* Packages can be developed, built, and tested **in isolation**.
+* The framework is designed for **predictability, transparency, and strong typing**.
 
 ---
 
