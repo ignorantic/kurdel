@@ -50,6 +50,7 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
 interface RouterDeps {
   resolver: ControllerResolver;
   controllerConfigs: ControllerConfig[];
+  middlewares: Middleware[];
 }
 
 export class RuntimeRouter implements Router {
@@ -58,9 +59,12 @@ export class RuntimeRouter implements Router {
 
   public middlewares: Middleware[] = [];
 
-  public init({ resolver, controllerConfigs }: RouterDeps): void {
+  public init({ resolver, controllerConfigs, middlewares }: RouterDeps): void {
     // Save the resolver for request-time scope resolution.
     this.resolver = resolver;
+
+    // Save global middlewares for use in RuntimeControllerExecutor
+    this.middlewares = middlewares ?? [];
 
     // Build entries by inspecting controller routes, but do NOT keep the instance.
     controllerConfigs.forEach(cfg => {
