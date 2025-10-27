@@ -1,5 +1,6 @@
+import type { ActionResult, HtmlResult } from 'src/http/action-result.js';
+import type { JsonValue } from 'src/http/types.js';
 import { HttpError } from 'src/http/http-error.js';
-import type { ActionResult, JsonValue } from 'src/http/types.js';
 
 // success
 export const Ok = (body: JsonValue = { message: 'OK' }): ActionResult => ({
@@ -29,6 +30,12 @@ export const Json = (data: JsonValue, status = 200): ActionResult => ({
   kind: 'json',
   status,
   body: JSON.stringify(data),
+});
+
+export const Html = (body: string, status = 200): HtmlResult => ({
+  kind: 'html',
+  status,
+  body,
 });
 
 export const Redirect = (location: string, status = 302): ActionResult => ({

@@ -49,11 +49,20 @@ describe('NodeHttpServerAdapter', () => {
     const handler = vi.fn(() => Promise.reject(new Error('fail')));
     adapter.on(handler);
 
-    const res = { end: vi.fn(), statusCode: 0, headersSent: false };
     const server = adapter.raw()!;
 
     // 🔇 silence console.error only for this test
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const res = {
+      statusCode: 200,
+      headers: {},
+      setHeader(key: string, value: string) {
+        this.headers[key] = value;
+      },
+      end: vi.fn(),
+    };
+
 
     await (server.listeners('request')[0] as any)({}, res);
 

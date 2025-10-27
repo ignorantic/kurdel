@@ -1,6 +1,8 @@
 import type { Middleware } from '@kurdel/core/http';
 import { HttpError } from '@kurdel/core/http';
 
+import { isHttpError } from 'src/http/is-http-error.js';
+
 export const errorHandler: Middleware = async (ctx, next) => {
   try {
     return await next();
@@ -15,7 +17,12 @@ export const errorHandler: Middleware = async (ctx, next) => {
         },
       };
     }
-    
+
+    if (isHttpError(err)) {
+      ctx.res.status(err.status).send(err.message ?? 'Error');
+      return;
+    }
+
     console.error(err);
 
     return {
@@ -25,3 +32,5 @@ export const errorHandler: Middleware = async (ctx, next) => {
     };
   }
 };
+
+

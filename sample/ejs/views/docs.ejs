@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Docs — Kurdel Demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+        color: #222;
+        background-color: #f8f9fa;
+        text-align: center;
+      }
+      .card {
+        display: inline-block;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem 3rem;
+        margin-top: 10vh;
+        max-width: 640px;
+        text-align: left;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+      p, li {
+        margin: 0.5rem 0;
+        color: #444;
+        line-height: 1.5;
+      }
+      ul {
+        padding-left: 1.25rem;
+      }
+      nav {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      nav a {
+        display: inline-block;
+        margin: 0 0.5rem;
+        padding: 0.5rem 1rem;
+        color: #0366d6;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #eaf2fd;
+        transition: background 0.2s;
+      }
+      nav a:hover {
+        background: #dce9fc;
+      }
+      code {
+        background: #f2f2f2;
+        border-radius: 4px;
+        padding: 0.15rem 0.3rem;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a href="/">🏠 Home</a>
+      <a href="/users">👥 Users</a>
+      <a href="/about">ℹ️ About</a>
+    </nav>
+
+    <div class="card">
+      <h1>Documentation</h1>
+      <p>This demo includes the following features:</p>
+      <ul>
+        <li>📦 Modular monorepo architecture with <code>@kurdel/*</code> packages</li>
+        <li>🧠 Dependency Injection via <code>@kurdel/ioc</code></li>
+        <li>⚙️ Request-scoped controllers and middlewares</li>
+        <li>🧱 HTML templating with <code>EjsTemplateModule</code></li>
+        <li>🧩 Error handling and typed <code>ActionResult</code> responses</li>
+      </ul>
+      <p>
+        For full documentation, visit the project repository or open the
+        <code>ARCHITECTURE.md</code> and <code>CONTRIBUTING.md</code> files in the root.
+      </p>
+    </div>
+  </body>
+</html>

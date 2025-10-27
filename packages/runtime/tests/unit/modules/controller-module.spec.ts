@@ -30,7 +30,14 @@ describe('ControllerModule', () => {
     }
 
     const fakeRegistry = { useFor: vi.fn(), all: () => [] } as unknown as MiddlewareRegistry;
-    const fakeIoc = { get: () => fakeRegistry };
+    const fakeIoc = {
+      get: vi.fn(() => fakeRegistry),
+      bind: vi.fn(() => ({
+        toConstantValue: vi.fn(),
+        toInstance: vi.fn(),
+      })),
+      has: vi.fn(() => false),
+    };
 
     const module = new ControllerModule([{ use: TestController, middlewares: [mw] }]);
 

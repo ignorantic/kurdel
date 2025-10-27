@@ -1,6 +1,6 @@
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
 import type { Container } from '@kurdel/ioc';
-import { ROUTE_META } from '@kurdel/core/http';
+import { NotFound, ROUTE_META } from '@kurdel/core/http';
 import type {
   Method,
   RouteMeta,
@@ -113,14 +113,21 @@ export class RuntimeRouter implements Router {
       };
     }
 
-    return null;
+    // If no route matches, return a default 404 handler
+    return async () => {
+      // Option 1: delegate to global errorHandler if available
+      throw NotFound('Route not found');
+
+      // Option 2 (fallback if no errorHandler is configured):
+      // res.status(404).send('Not Found');
+    };
   }
 
   /**
    * Read RouteMeta from the controller's `routes` and register entries.
    * Note: we pass a token (ctor) to entries for request-time resolution.
    */
-  private useController<T>(
+  private useController<T extends Record<string, any>>(
     controllerInstance: Controller<T>,
     prefix: string,
     token: ControllerConfig['use'],

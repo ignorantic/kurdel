@@ -1,0 +1,31 @@
+{
+  "name": "@kurdel/sample-ejs",
+  "version": "1.0.0",
+  "description": "example simple app with ejs template",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:ui": "vitest",
+    "test:watch": "vitest --watch",
+    "coverage": "vitest run --coverage",
+    "clean": "rimraf dist ../../.cache/tsconfig.sample.ejs.build.tsbuildinfo",
+    "build": "tsc",
+    "build:force": "npm run clean && tsc --force",
+    "dev": "node dist/app.js"
+  },
+  "author": "Andrii Sorokin",
+  "license": "MIT",
+  "dependencies": {
+    "@kurdel/core": "^1.0.0",
+    "@kurdel/facade": "^1.0.0",
+    "@kurdel/template-ejs": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^3.2.4",
+    "rimraf": "^6.0.1",
+    "supertest": "^7.1.4"
+  }
+}

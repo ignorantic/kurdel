@@ -1,4 +1,5 @@
 export * from './types.js';
+export * from './action-result.js';
 export * from './server-adapter.js';
 export * from './running-server.js';
 export * from './controller-config.js';

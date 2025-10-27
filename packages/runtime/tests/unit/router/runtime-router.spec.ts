@@ -94,7 +94,7 @@ describe('RouterImpl', () => {
     scope.set(FakeController as any, new FakeController({ tag: 'S', calls: [] }));
 
     const handler = router.resolve('GET' as Method, '/unknown', scope);
-    expect(handler).toBeNull();
+    expect(typeof handler).toBe('function');
   });
 
   it('extracts path params and exposes them via req.__params', async () => {

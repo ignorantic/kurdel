@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>About — Kurdel Demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+        color: #222;
+        background-color: #f8f9fa;
+        text-align: center;
+      }
+      .card {
+        display: inline-block;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem 3rem;
+        margin-top: 10vh;
+        max-width: 640px;
+        text-align: left;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        margin: 0.75rem 0;
+        color: #444;
+        line-height: 1.5;
+      }
+      nav {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      nav a {
+        display: inline-block;
+        margin: 0 0.5rem;
+        padding: 0.5rem 1rem;
+        color: #0366d6;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #eaf2fd;
+        transition: background 0.2s;
+      }
+      nav a:hover {
+        background: #dce9fc;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a href="/">🏠 Home</a>
+      <a href="/users">👥 Users</a>
+      <a href="/docs">📖 Docs</a>
+    </nav>
+
+    <div class="card">
+      <h1>About Kurdel</h1>
+      <p>
+        <strong>Kurdel</strong> is a modular TypeScript-first web framework focused on
+        strong typing, explicit composition, and predictable runtime behavior.
+      </p>
+      <p>
+        It provides a minimal set of abstractions — routing, controllers, IoC container,
+        and optional database/migration layer — without decorators or hidden globals.
+      </p>
+      <p>
+        This demo showcases the framework’s runtime behavior, HTML templating via EJS,
+        and modular dependency injection.
+      </p>
+    </div>
+  </body>
+</html>

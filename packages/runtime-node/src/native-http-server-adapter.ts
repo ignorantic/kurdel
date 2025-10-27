@@ -1,101 +1,82 @@
-import { createServer, type Server, type IncomingMessage, type ServerResponse } from 'node:http';
+import type { Server, IncomingMessage, ServerResponse } from 'node:http';
+import { createServer } from 'node:http';
 
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
 import type { ServerAdapter } from '@kurdel/core/http';
 
-import { adaptNodeRequest, adaptNodeResponse } from './native-req-res-adapters.js';
+import { adaptNodeRequest, adaptNodeResponse } from 'src/native-req-res-adapters.js';
 
 /**
  * Node.js implementation of ServerAdapter.
  *
  * Responsibilities:
- * - Create and manage a native HTTP server
- * - Adapt Node's IncomingMessage / ServerResponse into platform-agnostic
- *   HttpRequest / HttpResponse
- * - Delegate execution to the router through a unified runtime executor
+ * - Listen for native HTTP requests
+ * - Adapt Node's IncomingMessage / ServerResponse into
+ *   framework-agnostic HttpRequest / HttpResponse
+ * - Delegate execution to the runtime handler
  */
 export class NativeHttpServerAdapter implements ServerAdapter<HttpRequest, HttpResponse> {
   private readonly server: Server;
   private handler?: (req: HttpRequest, res: HttpResponse) => void | Promise<void>;
 
   constructor() {
-    // Node HTTP server delegates every request to our dispatch layer
+    // Delegate each incoming request to the unified dispatch method
     this.server = createServer((req, res) => this.dispatch(req, res));
   }
 
-  /**
-   * Internal dispatcher: adapts Node's request/response to framework abstractions.
-   */
-  private async dispatch(req: IncomingMessage, res: ServerResponse) {
-    const h = this.handler;
-    if (!h) {
+  /** Core dispatch: adapt and delegate to the framework handler. */
+  private async dispatch(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    if (!this.handler) {
       res.statusCode = 404;
-      res.end();
+      res.end('Not Found');
       return;
     }
 
     try {
-      // Adapt native Node objects into platform-agnostic types
       const request = await adaptNodeRequest(req);
       const response = adaptNodeResponse(res);
 
-      // Delegate to framework-level handler
-      await Promise.resolve(h(request, response));
+      await Promise.resolve(this.handler(request, response));
     } catch (err) {
-      console.error('Unhandled request error:', err);
-      if (!res.headersSent) {
-        try {
-          res.statusCode = 500;
-          res.end('Internal Server Error');
-        } catch {
-          console.error('[NativeHttpServerAdapter] Unhandled request error:', err);
-
-          if (!res.headersSent) {
-            try {
-              res.statusCode = 500;
-              res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-              res.end('Internal Server Error');
-            } catch (nestedErr) {
-              console.error('[NativeHttpServerAdapter] Failed to send 500:', nestedErr);
-            }
-          }
-        }
-      }
+      this.handleDispatchError(res, err);
     }
   }
 
-  /**
-   * Register the platform-independent handler invoked on every request.
-   */
-  on(cb: (req: HttpRequest, res: HttpResponse) => void | Promise<void>) {
+  /** Minimal fallback when handler throws unexpectedly. */
+  private handleDispatchError(res: ServerResponse, err: unknown): void {
+    console.error('Unhandled request error:', err);
+
+    if (res.headersSent) return;
+
+    const status = (err as any)?.status ?? 500;
+    const message = (err as any)?.message ?? 'Internal Server Error';
+
+    res.statusCode = status;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end(`${status}: ${message}`);
+  }
+
+  /** Register the runtime handler invoked for every request. */
+  on(cb: (req: HttpRequest, res: HttpResponse) => void | Promise<void>): void {
     this.handler = cb;
   }
 
-  /**
-   * Start listening for incoming connections.
-   */
+  /** Start listening for HTTP connections. */
   listen(port: number, hostOrCb?: string | (() => void), cb?: () => void): void {
     const done = (typeof hostOrCb === 'function' ? hostOrCb : cb) ?? (() => {});
-    if (typeof hostOrCb === 'string') {
-      this.server.listen(port, hostOrCb, done);
-    } else {
-      this.server.listen(port, done);
-    }
+    if (typeof hostOrCb === 'string') this.server.listen(port, hostOrCb, done);
+    else this.server.listen(port, done);
   }
 
-  /**
-   * Gracefully close the underlying Node server.
-   */
+  /** Gracefully close the underlying HTTP server. */
   async close(): Promise<void> {
     await new Promise<void>((resolve, reject) =>
-      this.server.close((err?: Error) => (err ? reject(err) : resolve()))
+      this.server.close(err => (err ? reject(err) : resolve()))
     );
   }
 
-  /**
-   * Returns the raw Node HTTP server instance (used by ApplicationImpl/RunningServer).
-   */
-  raw<T = Server>(): T | undefined {
+  /** Expose the raw Node.js server (used by the runtime). */
+  raw<T = Server>(): T {
     return this.server as unknown as T;
   }
 }

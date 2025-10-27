@@ -1,5 +1,6 @@
+import type { Method } from 'src/http/types.js';
 import type { HttpContext } from 'src/http/http-context.js';
-import type { ActionResult, Method } from 'src/http/types.js';
+import type { ActionResult } from 'src/http/action-result.js';
 
 export const ROUTE_META = Symbol('@kurdel/core:route-meta');
 

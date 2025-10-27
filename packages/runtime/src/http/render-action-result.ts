@@ -1,4 +1,4 @@
-import type { HttpResponse } from '@kurdel/common';
+import type { HttpResponse, HttpResponseWithHeaders } from '@kurdel/common';
 
 import type { ActionResult } from '@kurdel/core/http';
 
@@ -11,6 +11,12 @@ export function renderActionResult(res: HttpResponse, r: ActionResult): void {
     case 'text':
       res.status(r.status).send(r.body);
       break;
+    case 'html': {
+      const withHeaders = res as HttpResponseWithHeaders;
+      withHeaders.setHeader?.('Content-Type', r.contentType ?? 'text/html; charset=utf-8');
+      res.status(r.status).send(r.body);
+      break;
+    }
     case 'redirect':
       res.redirect(r.status, r.location);
       break;

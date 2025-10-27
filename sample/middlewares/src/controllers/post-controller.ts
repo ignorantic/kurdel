@@ -10,7 +10,7 @@ import {
   NotFound,
   Ok
 } from '@kurdel/core/http';
-import type { PostService } from 'services/post-service.js';
+import type { PostService } from '../services/post-service.js';
 
 type Deps = {
   service: PostService

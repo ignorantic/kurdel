@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Welcome — Kurdel Demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+        color: #222;
+        background-color: #f8f9fa;
+        text-align: center;
+      }
+      .card {
+        display: inline-block;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem 3rem;
+        margin-top: 10vh;
+        max-width: 640px;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        margin: 0.5rem 0 1.5rem;
+        color: #555;
+      }
+      nav a {
+        display: inline-block;
+        margin: 0 0.5rem;
+        padding: 0.5rem 1rem;
+        color: #0366d6;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #eaf2fd;
+        transition: background 0.2s;
+      }
+      nav a:hover {
+        background: #dce9fc;
+      }
+      footer {
+        margin-top: 2rem;
+        font-size: 0.85rem;
+        color: #777;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Welcome to Kurdel Demo</h1>
+      <p>A tiny modular web framework with IoC and strong typing.</p>
+
+      <nav>
+        <a href="/users">👥 Users</a>
+        <a href="/about">ℹ️ About</a>
+        <a href="/docs">📖 Docs</a>
+      </nav>
+
+      <footer>
+        <p>© <%= new Date().getFullYear() %> Kurdel Framework Demo</p>
+      </footer>
+    </div>
+  </body>
+</html>

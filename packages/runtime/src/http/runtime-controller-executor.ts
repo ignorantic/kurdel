@@ -20,7 +20,7 @@ import { renderActionResult } from 'src/http/render-action-result.js';
  * - Render the resulting ActionResult into an HttpResponse
  * - Handle HttpError and unexpected exceptions gracefully
  */
-export class RuntimeControllerExecutor<TDeps = unknown> {
+export class RuntimeControllerExecutor<TDeps extends Record<string, any> = Record<string, any>> {
   constructor(private readonly globalMiddlewares: Middleware[] = []) {}
 
   /**

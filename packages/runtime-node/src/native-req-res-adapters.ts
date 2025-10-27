@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-import { DEFAULT_INTERNAL_BASE, type HttpRequest, type HttpResponse } from '@kurdel/common';
+import type { HttpRequest, HttpResponseWithHeaders } from '@kurdel/common';
+import { DEFAULT_INTERNAL_BASE } from '@kurdel/common';
 
 /**
  * Reads request body and parses JSON if possible.
@@ -60,8 +61,12 @@ export async function adaptNodeRequest(req: IncomingMessage): Promise<HttpReques
 /**
  * Wraps native ServerResponse into a platform-independent HttpResponse.
  */
-export function adaptNodeResponse(res: ServerResponse): HttpResponse {
+export function adaptNodeResponse(res: ServerResponse): HttpResponseWithHeaders {
   return {
+    get sent() {
+      return res.writableEnded || res.destroyed;
+    },
+
     status(code: number) {
       res.statusCode = code;
       return this;
@@ -96,5 +101,14 @@ export function adaptNodeResponse(res: ServerResponse): HttpResponse {
       res.end();
       return this;
     },
-  } as unknown as HttpResponse;
+    setHeader(name: string, value: string) { res.setHeader(name, value); },
+    getHeader(name: string) {
+      const v = res.getHeader(name);
+      return typeof v === 'string' ? v : Array.isArray(v) ? v.join(', ') : undefined;
+    },
+    type(mime: string) {
+      this.setHeader('Content-Type', mime);
+      return this;
+    },
+  };
 }

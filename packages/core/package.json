@@ -8,6 +8,7 @@
     "./http": "./lib/http/index.js",
     "./app": "./lib/app/index.js",
     "./db": "./lib/db/index.js",
+    "./template": "./lib/template/index.js",
     "./tokens": "./lib/tokens/index.js"
   },
   "main": "./lib/index.js",

@@ -5,6 +5,7 @@ import { TOKENS } from '@kurdel/core/tokens';
 
 import { RuntimeControllerResolver } from 'src/http/runtime-controller-resolver.js';
 import { RuntimeRouter } from 'src/http/runtime-router.js';
+import { ensureTemplateEngineBinding } from 'src/template/ensure-template-engine-binding.js';
 
 /**
  * ControllerModule
@@ -39,7 +40,10 @@ export class ControllerModule implements AppModule {
       ...controllers.map(c => ({
         provide: c.use,
         useClass: c.use,
-        deps: c.deps,
+        deps: {
+          ...c.deps,
+          view: TOKENS.TemplateEngineToken,
+        },
       })),
       {
         provide: TOKENS.ControllerConfigs,
@@ -54,5 +58,7 @@ export class ControllerModule implements AppModule {
     this.controllers.forEach(c => {
       c.middlewares?.forEach(mw => registry.useFor(c.use, mw));
     });
+
+    ensureTemplateEngineBinding(ioc);
   }
 }
