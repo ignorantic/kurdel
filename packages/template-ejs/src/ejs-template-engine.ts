@@ -1,7 +1,7 @@
 import ejs from 'ejs';
 import type { TemplateEngine } from '@kurdel/core/template';
 
-export class EjsEngine implements TemplateEngine {
+export class EjsTemplateEngine implements TemplateEngine {
   constructor(private readonly baseDir: string) {}
 
   async render(templatePath: string, data: Record<string, unknown>): Promise<string> {

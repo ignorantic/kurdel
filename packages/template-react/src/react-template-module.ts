@@ -1,20 +1,19 @@
 import { TOKENS } from '@kurdel/core/tokens';
 import type { AppModule } from '@kurdel/core/app';
 
-import type { EjsTemplateModuleOptions } from 'src/ejs-template-options.js';
-import { EjsTemplateEngine } from 'src/ejs-template-engine.js';
+import type { ReactTemplateOptions } from './react-template-options.js';
+import { ReactTemplateEngine } from './react-template-engine.js';
 
-export class EjsTemplateModule {
-  static forRoot(options: EjsTemplateModuleOptions): AppModule {
+export class ReactTemplateModule {
+  static forRoot(options: ReactTemplateOptions): AppModule {
     return {
       exports: {
         view: TOKENS.TemplateEngineToken,
       },
-      
       providers: [
         {
           provide: TOKENS.TemplateEngineToken,
-          useFactory: () => new EjsTemplateEngine(options.baseDir),
+          useFactory: () => new ReactTemplateEngine(options.baseDir),
           singleton: true,
         },
       ],

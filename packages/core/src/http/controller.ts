@@ -53,7 +53,7 @@ export abstract class Controller<TDeps extends Record<string, any> = {}> {
       status,
       kind: 'html',
       body: html,
-      contentType: 'text/html',
+      contentType: 'text/html; charset=utf-8',
     };
   }
 

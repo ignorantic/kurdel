@@ -26,7 +26,7 @@ afterAll(async () => {
   await server.close();
 });
 
-describe('Kurdel Demo E2E', () => {
+describe('Kurdel EJS Demo E2E', () => {
   it('renders home page', async () => {
     const res = await request(server.raw()).get('/');
     expect(res.status).toBe(200);
