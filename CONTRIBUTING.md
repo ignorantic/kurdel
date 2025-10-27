@@ -1,35 +1,39 @@
 # Contributing to kurdel
 
-**kurdel** is a **TypeScript-first web framework** built on IoC and SOLID principles.  
-To keep the architecture clean and predictable, please follow the conventions below.
+**Kurdel** is a **TypeScript-first web framework** built on IoC and SOLID principles.  
+To keep the architecture clean, predictable, and type-safe, please follow the conventions below.
 
 ---
 
 ## 🧱 Architecture Layers
 
-The repository is a **monorepo** composed of multiple workspaces (packages):
+Kurdel is a **monorepo** composed of modular, independent workspaces (packages):
 
 | Package | Purpose |
 |----------|----------|
 | **@kurdel/common** | Shared primitives and HTTP types used across the framework. |
-| **@kurdel/core** | Contracts, interfaces, tokens, base API definitions. |
-| **@kurdel/runtime** | Core runtime implementation (router, modules, adapters, lifecycle). |
+| **@kurdel/core** | Contracts, interfaces, tokens, and base API definitions. |
+| **@kurdel/runtime** | Core runtime implementation (router, controllers, middlewares, lifecycle). |
 | **@kurdel/runtime-node** | Native Node.js HTTP server adapter. |
 | **@kurdel/runtime-express** | Express runtime adapter. |
-| **@kurdel/facade** | User-facing entry points (`createNodeApplication()`, helpers). |
-| **@kurdel/ioc** | Standalone IoC container library used across all layers. |
-| **@kurdel/db** | Database abstractions, connectors, and ORM utilities. |
+| **@kurdel/template-ejs** | EJS template engine integration (server-side rendering). |
+| **@kurdel/facade** | User-facing entry points (`createNodeApplication()`, etc.). |
+| **@kurdel/ioc** | Standalone IoC container used across all layers. |
+| **@kurdel/db** | Database abstractions, connectors, and model base classes. |
 | **@kurdel/migrations** | Migration engine and schema management tools. |
 | **@kurdel/pirx** | Developer CLI for scaffolding, migrations, and utilities. |
 | **samples/** | Example applications and integration demos. |
 
-### Dependency direction
+---
+
+### Dependency Direction
 
 ```
 
 @kurdel/facade ─┬─► @kurdel/runtime-node / @kurdel/runtime-express
 │               ├─► @kurdel/runtime
 │               ├─► @kurdel/core
+│               ├─► @kurdel/template-ejs
 │               └─► @kurdel/ioc
 
 @kurdel/runtime ─┬─► @kurdel/core
@@ -43,14 +47,14 @@ The repository is a **monorepo** composed of multiple workspaces (packages):
 
 ```
 
-> The `facade` has no business logic — it composes runtime and core layers.  
-> The `common` package sits at the base and has no dependencies.
+> The `facade` package contains no business logic — it only composes runtimes and modules.  
+> The `common` package sits at the base and has **zero dependencies**.
 
 ---
 
 ## 📂 Code Style & Structure
 
-All packages follow **ESM conventions**:
+All packages use **ES Modules** and TypeScript ≥ 5.
 
 ```json
 {
@@ -62,55 +66,64 @@ All packages follow **ESM conventions**:
 }
 ```
 
-Each package structure:
+### Typical package layout
 
 ```
 src/
-  http/      # HTTP runtime or adapters
-  modules/   # IoC modules (runtime)
-  app/       # Application composition
-  cli/       # CLI commands (pirx)
-index.ts     # Main export barrel
+  http/        # HTTP runtime, adapters, or controller logic
+  modules/     # IoC modules (runtime)
+  app/         # Application composition and bootstrap
+  cli/         # CLI commands (pirx)
+index.ts       # Public barrel export
 ```
 
 **Inside `@kurdel/runtime`:**
 
 * Implementation classes of `@kurdel/core` contracts use the `Runtime*` prefix.
-  Example: `RuntimeApplication`, `RuntimeRouter`
-* Platform-specific classes use the `Native*` or `Express*` prefix.
-  Example: `NativeHttpServerAdapter`, `ExpressServerAdapter`
-* IoC modules (`ServerModule`, `LifecycleModule`, etc.) have **no prefix**.
+  → e.g. `RuntimeApplication`, `RuntimeRouter`
+* Platform-specific adapters use `Native*` or `Express*`.
+  → e.g. `NativeHttpServerAdapter`, `ExpressServerAdapter`
+* IoC modules have **no prefix** (e.g. `ServerModule`, `LifecycleModule`).
+* Template engines implement the shared `TemplateEngine` contract.
 
 ---
 
 ## 🧩 Naming Conventions
 
-| Type                    | Example                                           | Description                         |
-| ----------------------- | ------------------------------------------------- | ----------------------------------- |
-| Contract implementation | `RuntimeApplication`, `RuntimeRouter`             | Implements a `core` interface       |
-| Platform adapter        | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Relies on Node or Express APIs      |
-| Framework module        | `ServerModule`, `LifecycleModule`                 | Registers bindings in IoC           |
-| CLI tool                | `pirx generate`, `pirx db:migrate`                | Commands exposed via `@kurdel/pirx` |
-| Tokens & interfaces     | `Application`, `ServerAdapter`, `TOKENS`          | Declared in `@kurdel/core`          |
+| Type                    | Example                                           | Description                           |
+| ----------------------- | ------------------------------------------------- | ------------------------------------- |
+| Contract implementation | `RuntimeApplication`, `RuntimeRouter`             | Implements a `@kurdel/core` interface |
+| Platform adapter        | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Binds framework to a platform runtime |
+| Template engine         | `EjsTemplateModule`                               | Implements `TemplateEngine` for SSR   |
+| Framework module        | `ServerModule`, `LifecycleModule`                 | Registers bindings in IoC             |
+| CLI tool                | `pirx generate`, `pirx db:migrate`                | Commands provided by `@kurdel/pirx`   |
+| Token / Interface       | `Application`, `ServerAdapter`, `TOKENS`          | Defined in `@kurdel/core`             |
 
 ---
 
 ## 🧪 Testing
 
-All tests are written in **Vitest**.
+All tests are written using **Vitest** and run in-process.
 
-* **Unit tests:** `tests/unit/**`
-* **Integration tests:** `tests/integration/**` (use `supertest`)
-* **E2E tests:** `tests/e2e/**` (use `createNodeApplication()` or `createExpressApplication()`)
-* No real network listeners — use in-memory or stubbed adapters.
+| Type            | Location               | Description                                          |
+| --------------- | ---------------------- | ---------------------------------------------------- |
+| **Unit**        | `tests/unit/**`        | Pure logic tests (IoC, routing, etc.)                |
+| **Integration** | `tests/integration/**` | Uses `supertest` and `createNodeApplication()`       |
+| **E2E**         | `tests/e2e/**`         | Validates behavior with real adapters (Node/Express) |
 
-Run:
+Guidelines:
+
+* No real network listeners — always use in-memory or stubbed adapters.
+* Avoid cross-package mocks; prefer test-local fakes.
+* Keep test output deterministic (no console logs).
+
+Run all tests:
 
 ```bash
 npm test
 ```
 
-or for a specific package:
+Run for a specific package:
 
 ```bash
 npm run test -w @kurdel/runtime
@@ -135,9 +148,9 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) standard
 
 ## 🧰 Build & Workspace Commands
 
-This monorepo uses **Lerna (powered by Nx)** for dependency-aware builds.
+Kurdel uses **Lerna (powered by Nx)** for dependency-aware builds.
 
-Build everything in order:
+Build everything:
 
 ```bash
 npx lerna run build
@@ -150,12 +163,12 @@ npm run build -w @kurdel/core
 npm run build -w @kurdel/runtime
 ```
 
-### Build conventions
+### Build Conventions
 
-* Each package must build **independently**.
+* Each package **must build independently**.
 * No direct cross-imports of `src/` between packages — always use public exports.
-* Type paths are rewritten using **tsc-alias** after build.
-* Compiled output goes to `lib/` for all packages.
+* Type paths are rewritten via **tsc-alias** after compilation.
+* All compiled outputs go to `/lib`.
 
 ---
 
@@ -163,51 +176,53 @@ npm run build -w @kurdel/runtime
 
 Before opening a PR:
 
-1. ✅ Run **all tests** (`npm test`)
-2. 🧱 Ensure **TypeScript builds cleanly** (`npm run build`)
-3. 🧹 Format code using **Prettier** (`npm run format`)
-4. 🧾 Document API changes in `README.md` or PR description
-5. 🔍 Keep commits atomic and scoped logically
+1. ✅ Run all tests — `npm test`
+2. 🧱 Ensure TypeScript builds cleanly — `npm run build`
+3. 🧹 Format code — `npm run format`
+4. 🧾 Document API changes (README or PR description)
+5. 🔍 Keep commits atomic and logically scoped
 
 ---
 
 ## 🤝 Tips for Contributors
 
-* Use **absolute imports** (`src/...`) inside packages.
+* Use **absolute imports** (`src/...`) within packages.
 * Prefer **constructor injection** over property injection.
-* IoC tokens and interfaces must live in `@kurdel/core`.
-* Avoid introducing decorators — they are intentionally excluded.
-* Runtime modules must remain composable and prefix-free.
-* Do not leak runtime logic into facade or CLI packages.
+* IoC tokens and interfaces always belong to `@kurdel/core`.
+* Avoid decorators — the design is intentionally explicit.
+* Runtime modules must remain **prefix-free** and composable.
+* Do not leak runtime or template logic into `@kurdel/facade` or `@kurdel/pirx`.
+* Template engines should implement `TemplateEngine` and register via IoC.
 
 ---
 
 ## 🧭 Development Workflow
 
-Typical development loop:
+Typical loop:
 
 ```bash
 # Install dependencies
 npm install
 
-# Build all packages in dependency order
+# Build all packages
 npx lerna run build
 
 # Run tests
 npm test
 
 # Start a sample app
-npm run dev -w @kurdel/sample-express
+npm run dev -w @kurdel/sample-ejs
 ```
 
 ---
 
 ## 🪶 Notes
 
-* Kurdel prioritizes **explicit composition** and **type safety**.
+* Kurdel prioritizes **explicit composition**, **predictability**, and **type safety**.
 * Every feature is implemented as an **IoC-registered module**, not global state.
 * Packages can be developed, built, and tested **in isolation**.
-* The framework is designed for **predictability, transparency, and strong typing**.
+* Template engines (like EJS) are optional runtime extensions.
+* Future integrations: Handlebars, Mustache, and SSR caching modules.
 
 ---
 

@@ -1,6 +1,10 @@
 # kurdel Architecture
 
-kurdel is a **modular, strongly-typed** TypeScript framework built on explicit composition and contract-driven design.
+Kurdel is a **modular, strongly-typed** TypeScript framework built on explicit composition and contract-driven design.
+
+---
+
+## 🧩 Package Map
 
 ```
 
@@ -9,6 +13,7 @@ kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 @kurdel/runtime         → Core runtime (routing, middlewares, controllers)
 @kurdel/runtime-node    → Native Node.js HTTP adapter
 @kurdel/runtime-express → Express adapter
+@kurdel/template-ejs    → EJS template engine integration (SSR)
 @kurdel/facade          → Public entry points (`createNodeApplication`, etc.)
 @kurdel/ioc             → Standalone IoC container
 @kurdel/db              → Database abstraction layer
@@ -41,7 +46,9 @@ kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 | **Contracts / API** | `@kurdel/core` | `Application`, `Controller`, `ServerAdapter`, `TOKENS` | Core framework contracts |
 | **Runtime** | `@kurdel/runtime` | `RuntimeApplication`, `RuntimeRouter`, `RuntimeControllerExecutor` | HTTP execution and orchestration |
 | **Platform Adapters** | `@kurdel/runtime-node`, `@kurdel/runtime-express` | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Platform-specific server bindings |
-| **Facade** | `@kurdel/facade` | `createNodeApplication()` | User-facing entry points |
+| **Template Engines** | `@kurdel/template-ejs` | `EjsTemplateModule` | Server-side rendering integration (EJS) |
+| **Facade** | `@kurdel/facade` | `createNodeApplication()` | Public entry points for application setup |
+| **IoC Container** | `@kurdel/ioc` | `createContainer`, `createToken` | Lightweight DI framework |
 | **Database** | `@kurdel/db` | `Model`, `DbConnector` | Data layer abstraction |
 | **Migrations** | `@kurdel/migrations` | `MigrationRunner`, `MigrationConfig` | Schema migration system |
 | **CLI / Tooling** | `@kurdel/pirx` | `pirx generate`, `pirx db:migrate` | Developer tools and project scaffolding |
@@ -55,6 +62,7 @@ kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 @kurdel/facade ─┬─► @kurdel/runtime-node / @kurdel/runtime-express
 │               ├─► @kurdel/runtime
 │               ├─► @kurdel/core
+│               ├─► @kurdel/template-ejs
 │               └─► @kurdel/ioc
 
 @kurdel/runtime ─┬─► @kurdel/core
@@ -75,11 +83,12 @@ kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 
 ## 🧱 Application Lifecycle
 
-1. **Configuration** — user defines `AppModule` with controllers and middlewares  
+1. **Configuration** — user defines `AppModule` with controllers, middlewares, and templates  
 2. **Bootstrap** — `RuntimeApplication` wires modules, middlewares, and providers  
 3. **Server Start** — platform adapter (`Node`, `Express`, etc.) starts listening  
 4. **Request Handling** — router builds per-request scope and executes controller  
-5. **Lifecycle Hooks** — `OnStart` / `OnShutdown` hooks run automatically  
+5. **Rendering (optional)** — template engine (e.g. EJS) handles SSR responses  
+6. **Lifecycle Hooks** — `OnStart` / `OnShutdown` hooks run automatically  
 
 ---
 
@@ -89,6 +98,7 @@ kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 |------|---------|---------|
 | Contract implementation | `Runtime` | `RuntimeApplication`, `RuntimeRouter` |
 | Platform adapter | `Native` / `Express` | `NativeHttpServerAdapter`, `ExpressServerAdapter` |
+| Template engine | engine name | `EjsTemplateModule`, `HandlebarsTemplateModule` *(planned)* |
 | Framework module | *(none)* | `ServerModule`, `ControllerModule` |
 | CLI or tooling | `pirx` | `pirx db:migrate` |
 | Test / mock | `Test` / `Fake` | `FakeController`, `TestServerAdapter` |
@@ -98,7 +108,8 @@ kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 ## 🧰 Extensibility
 
 - All runtime contracts (router, controller resolver, etc.) can be overridden via IoC  
-- Modules can register additional providers or override existing ones  
+- Modules can register custom providers or override core implementations  
+- Template engines implement the `TemplateEngine` interface and can be plugged in dynamically  
 - `pirx` CLI supports plugin commands  
 - Planned adapters: **Edge**, **Bun**, **Deno**, **Cloudflare Workers**
 
@@ -109,16 +120,16 @@ kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 ```
 
 src/
-  runtime-application.ts
+runtime-application.ts
 http/
-  runtime-router.ts
-  runtime-controller-resolver.ts
-  runtime-controller-executor.ts
+runtime-router.ts
+runtime-controller-resolver.ts
+runtime-controller-executor.ts
 modules/
-  server-module.ts
-  controller-module.ts
-  lifecycle-module.ts
-  middleware-module.ts
+server-module.ts
+controller-module.ts
+lifecycle-module.ts
+middleware-module.ts
 
 ```
 
@@ -158,8 +169,9 @@ Users import from stable entry points only:
 ```ts
 import { createNodeApplication } from '@kurdel/facade';
 import { Controller, route, Ok } from '@kurdel/core/http';
+import { EjsTemplateModule } from '@kurdel/template-ejs';
 import type { AppModule } from '@kurdel/core/app';
-````
+```
 
 ---
 
@@ -168,6 +180,7 @@ import type { AppModule } from '@kurdel/core/app';
 ✅ **`common`** — primitives
 ✅ **`core`** — contracts
 ✅ **`runtime`** — execution logic
+✅ **`template-ejs`** — SSR rendering
 ✅ **`facade`** — public API
 ✅ **`ioc`** — dependency injection
 ✅ **`db` / `migrations`** — persistence layer

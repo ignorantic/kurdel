@@ -18,13 +18,14 @@ Kurdel is a **modular monorepo** — each package focuses on a single concern an
 | **`@kurdel/runtime-express`** | Express runtime adapter. |
 | **`@kurdel/facade`** | Application **entry point** — exports `createNodeApplication()` and `createExpressApplication()`. |
 | **`@kurdel/ioc`** | Lightweight dependency injection container used across all layers. |
+| **`@kurdel/template-ejs`** | Integration with **EJS** templates for SSR rendering. |
 | **`@kurdel/db`** | Database abstraction layer — model base classes, query helpers, connectors. |
 | **`@kurdel/migrations`** | Schema migration tools and registry. |
 | **`@kurdel/pirx`** | Developer CLI for scaffolding, migrations, and utilities. |
 
 > **Dependency direction:**  
 > `common → core → runtime → runtime-{platform} → facade`  
-> with `ioc`, `db`, `migrations`, and `pirx` acting as parallel verticals.
+> with `ioc`, `template-*`, `db`, `migrations`, and `pirx` acting as parallel verticals.
 
 ---
 
@@ -38,14 +39,59 @@ Kurdel is a **modular monorepo** — each package focuses on a single concern an
 - **Database-ready** — optional model layer and migration system.  
 - **CLI tooling** — `@kurdel/pirx` for scaffolding and developer utilities.  
 - **Unified runtimes** — shared HTTP adaptation for Node and Express.  
-- **Test-friendly** — composable runtime with `supertest` integration.
+- **Test-friendly** — composable runtime with `supertest` integration.  
+- **SSR-ready** — built-in EJS templating module.
+
+---
+
+## 🧱 Template Engine
+
+Kurdel ships with a lightweight integration for **EJS** to support server-side rendering out of the box.
+
+| Package | Engine | Description |
+|----------|---------|-------------|
+| **`@kurdel/template-ejs`** | [EJS](https://ejs.co/) | Simple logic-based templates with partials and layouts. |
+
+Register the template module in your app:
+
+```ts
+import { EjsTemplateModule } from '@kurdel/template-ejs';
+import { createNodeApplication } from '@kurdel/facade';
+
+const app = await createNodeApplication({
+  modules: [
+    EjsTemplateModule.forRoot({ baseDir: 'views' }),
+  ],
+});
+
+app.listen(3000);
+```
+
+Render a view directly from your controller:
+
+```ts
+import { Controller, route, View } from '@kurdel/core/http';
+
+export class HomeController extends Controller {
+  readonly routes = {
+    index: route({ method: 'GET', path: '/' })(this.index),
+  };
+
+  async index() {
+    return View('home', { title: 'Welcome to Kurdel!' });
+  }
+}
+```
+
+> ✅ Works seamlessly across Node and Express runtimes
+> via a unified `TemplateEngine` interface inside `@kurdel/runtime`.
 
 ---
 
 ## ⚙️ Installation
 
 ```bash
-npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/common @kurdel/ioc
+npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/common @kurdel/ioc @kurdel/template-ejs
 ```
 
 > Requires Node ≥ 18 and TypeScript ≥ 5
@@ -220,25 +266,19 @@ await server.close();
 
 ```
 packages/
-  common/          # Shared primitives and HTTP types
-  core/            # Contracts, tokens, and interfaces
-  runtime/         # Runtime orchestration and middleware chain
-  runtime-node/    # Node.js native HTTP adapter
-  runtime-express/ # Express adapter
-  facade/          # Entry points (createNodeApplication, etc.)
-  ioc/             # Dependency injection container
-  db/              # Database abstractions and connectors
-  migrations/      # Migration runner and schema tools
-  pirx/            # CLI for dev utilities
-samples/           # Example apps
+  common/           # Shared primitives and HTTP types
+  core/             # Contracts, tokens, and interfaces
+  runtime/          # Runtime orchestration and middleware chain
+  runtime-node/     # Native Node.js HTTP adapter
+  runtime-express/  # Express adapter
+  facade/           # Entry points (createNodeApplication, etc.)
+  ioc/              # Dependency injection container
+  template-ejs/     # EJS template engine integration for SSR
+  db/               # Database abstractions and connectors
+  migrations/       # Migration runner and schema tools
+  pirx/             # CLI for developer utilities
+samples/            # Example applications
 ```
-
----
-
-## 🤝 Contributing
-
-* 🧠 [ARCHITECTURE.md](./ARCHITECTURE.md) — internal architecture and dependency graph
-* 🧩 [CONTRIBUTING.md](./CONTRIBUTING.md) — development workflow and conventions
 
 ---
 
@@ -247,9 +287,10 @@ samples/           # Example apps
 Kurdel is under active development.
 Next milestones:
 
+* Handlebars template engine module
 * In-memory HTTP adapter for isolated tests
 * Improved migration & ORM APIs
-* Unified `pirx` workflow for project lifecycle
+* Unified `pirx` project workflow
 * Built-in route validation and constraints
 * Advanced middleware registry and composition tools
 
