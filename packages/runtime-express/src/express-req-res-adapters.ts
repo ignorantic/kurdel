@@ -14,11 +14,7 @@ export function adaptExpressRequest(req: Request): HttpRequest {
   // Construct query object (Express provides it already normalized)
   const query: Record<string, string | string[]> = {};
   for (const [key, value] of Object.entries(req.query)) {
-    query[key] = Array.isArray(value)
-      ? (value as string[])
-      : value != null
-      ? String(value)
-      : '';
+    query[key] = Array.isArray(value) ? (value as string[]) : value != null ? String(value) : '';
   }
 
   // Parse body only if present

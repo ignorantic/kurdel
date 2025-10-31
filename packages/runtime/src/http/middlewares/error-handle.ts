@@ -32,5 +32,3 @@ export const errorHandler: Middleware = async (ctx, next) => {
     };
   }
 };
-
-

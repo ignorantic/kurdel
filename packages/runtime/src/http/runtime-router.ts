@@ -1,6 +1,6 @@
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
 import type { Container } from '@kurdel/ioc';
-import { NotFound, ROUTE_META } from '@kurdel/core/http';
+import { ROUTE_META } from '@kurdel/core/http';
 import type {
   Method,
   RouteMeta,
@@ -10,18 +10,15 @@ import type {
   Middleware,
   Controller,
 } from '@kurdel/core/http';
-
-import { RuntimeControllerExecutor } from 'src/http/runtime-controller-executor.js';
+import { RuntimeRequestOrchestrator } from 'src/http/runtime-request-orchestrator.js';
 
 type Entry = {
   method: Method;
   path: string;
   regex: RegExp;
   keys: string[];
-  // Store the controller token/ctor instead of the instance to enable request-scoped resolution.
   token: ControllerConfig['use'];
   action: string;
-  // Per-controller middlewares from ControllerConfig; applied on the per-request instance before execute.
   controllerMiddlewares: Middleware[];
 };
 
@@ -43,7 +40,6 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
       return segment;
     })
     .join('/');
-  // Note: allow optional trailing slash for convenience.
   return { regex: new RegExp(`^/${pattern}/?$`), keys };
 }
 
@@ -53,6 +49,12 @@ interface RouterDeps {
   middlewares?: Middleware[];
 }
 
+/**
+ * RuntimeRouter is responsible for:
+ * - Matching incoming requests to controller actions
+ * - Executing pre-routing middleware (e.g. static, CORS)
+ * - Delegating matched routes to RuntimeRequestOrchestrator
+ */
 export class RuntimeRouter implements Router {
   private entries: Entry[] = [];
 
@@ -61,37 +63,30 @@ export class RuntimeRouter implements Router {
   public middlewares: Middleware[] = [];
 
   public init({ resolver, controllerConfigs, middlewares = [] }: RouterDeps): void {
-    // Save the resolver for request-time scope resolution.
     this.resolver = resolver;
+    this.middlewares.push(...middlewares);
 
-    // Save global middlewares for use in RuntimeControllerExecutor
-    this.middlewares = this.middlewares.concat(middlewares);
-
-    // Build entries by inspecting controller routes, but do NOT keep the instance.
     controllerConfigs.forEach(cfg => {
-      // Temporary instance from root (or wherever ControllerResolver.get resolves):
-      // used only to read `routes` and their RouteMeta at bootstrap.
       const tempInstance = resolver.resolve(cfg.use);
-
-      // Apply config-level middlewares to entries, not to the temp instance.
-      // (We will apply them to the per-request instance at dispatch.)
       const prefix = cfg.prefix ?? '';
       const controllerMws = cfg.middlewares ?? [];
-
-      this.useController(tempInstance, prefix, cfg.use, controllerMws);
+      this.registerController(tempInstance, prefix, cfg.use, controllerMws);
     });
   }
 
+  /** Adds a global middleware executed before routing. */
   public use(mw: Middleware) {
     this.middlewares.push(mw);
   }
 
   /**
-   * Resolve to a handler that now accepts (req, res, scope).
-   * The scope is the per-request container created by the server adapter.
+   * Resolves a controller action into a request handler.
+   * Always returns a function — even for unmatched routes.
    */
   public resolve(method: Method, url: string, scope: Container) {
     const pathname = (url ?? '/').split('?')[0].replace(/\\/g, '/');
+
+    const orchestrator = new RuntimeRequestOrchestrator(this.middlewares);
 
     for (const entry of this.entries) {
       if (entry.method !== method) continue;
@@ -101,33 +96,27 @@ export class RuntimeRouter implements Router {
 
       const params = Object.fromEntries(entry.keys.map((key, i) => [key, match[i + 1]]));
 
+      // ✅ Route match → build request handler
       return async (req: HttpRequest, res: HttpResponse) => {
         (req as any).__params = params;
 
         const controller = this.resolver.resolve<Controller<any>>(entry.token, scope);
-
         for (const mw of entry.controllerMiddlewares) controller.use(mw);
 
-        const executor = new RuntimeControllerExecutor(this.middlewares);
-        await executor.execute(controller, req as any, res as any, entry.action);
+        await orchestrator.execute(req, res, controller, entry.action);
       };
     }
 
-    // If no route matches, return a default 404 handler
-    return async () => {
-      // Option 1: delegate to global errorHandler if available
-      throw NotFound('Route not found');
-
-      // Option 2 (fallback if no errorHandler is configured):
-      // res.status(404).send('Not Found');
+    // 🧩 No matching route → delegate to orchestrator (middleware-only + 404)
+    return async (req: HttpRequest, res: HttpResponse) => {
+      await orchestrator.execute(req, res);
     };
   }
 
   /**
-   * Read RouteMeta from the controller's `routes` and register entries.
-   * Note: we pass a token (ctor) to entries for request-time resolution.
+   * Registers all controller routes (based on RouteMeta).
    */
-  private useController<T extends Record<string, any>>(
+  private registerController<T extends Record<string, any>>(
     controllerInstance: Controller<T>,
     prefix: string,
     token: ControllerConfig['use'],
@@ -136,7 +125,6 @@ export class RuntimeRouter implements Router {
     for (const [action, handler] of Object.entries(controllerInstance.routes)) {
       const meta: RouteMeta | undefined = (handler as any)[ROUTE_META];
       if (!meta) continue;
-
       const fullPath = prefix + meta.path;
       this.add(meta.method, fullPath, token, action, controllerMiddlewares);
     }

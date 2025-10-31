@@ -42,10 +42,7 @@ describe('ExpressServerAdapter', () => {
       res.sendStatus(204);
     });
 
-    await request(app)
-      .post('/foo/42?debug=true')
-      .set('X-Custom', 'abc')
-      .send({ name: 'Alice' });
+    await request(app).post('/foo/42?debug=true').set('X-Custom', 'abc').send({ name: 'Alice' });
 
     expect(captured).not.toBeNull();
     expect(captured!.method).toBe('POST');

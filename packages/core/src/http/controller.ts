@@ -39,7 +39,7 @@ export abstract class Controller<TDeps extends Record<string, any> = {}> {
   protected async render(
     template: string,
     data?: Record<string, unknown>,
-    status = 200,
+    status = 200
   ): Promise<HtmlResult> {
     const view = (this.deps as any).view as TemplateEngine | undefined;
     if (!view) {

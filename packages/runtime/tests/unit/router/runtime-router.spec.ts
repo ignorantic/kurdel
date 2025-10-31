@@ -32,7 +32,7 @@ function makeRouter(configs: ControllerConfig[], mws: Middleware[] = []) {
   return { router, root };
 }
 
-describe('RouterImpl', () => {
+describe('RuntimeRouter', () => {
   it('resolves handler and uses the provided request scope', async () => {
     const configs: ControllerConfig[] = [{ use: FakeController, prefix: '' }];
 
@@ -88,13 +88,44 @@ describe('RouterImpl', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: true }));
   });
 
-  it('returns null when no route matches', () => {
+  it('returns a 404 handler when no route matches', async () => {
     const { router, root } = makeRouter([{ use: FakeController }], []);
     const scope = root.createScope();
     scope.set(FakeController as any, new FakeController({ tag: 'S', calls: [] }));
 
     const handler = router.resolve('GET' as Method, '/unknown', scope);
     expect(typeof handler).toBe('function');
+
+    // simulate HttpRequest/HttpResponse
+    const req = { method: 'GET', url: '/unknown' } as any;
+    const res = {
+      sent: false,
+      statusCode: 0,
+      body: '',
+      status: vi.fn(function (this: any, code: number) {
+        this.statusCode = code;
+        return this;
+      }),
+      send: vi.fn(function (this: any, body?: any) {
+        this.body = body ?? '';
+        this.sent = true;
+        return this;
+      }),
+      json: vi.fn(function (this: any, body?: any) {
+        return this.send(JSON.stringify(body));
+      }),
+      redirect: vi.fn(function (this: any, code, location) {
+        this.statusCode = code;
+        this.location = location;
+        return this;
+      }),
+    };
+
+    await handler!(req, res);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body).toContain('404');
+    expect(res.sent).toBe(true);
   });
 
   it('extracts path params and exposes them via req.__params', async () => {

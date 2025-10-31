@@ -101,7 +101,9 @@ export function adaptNodeResponse(res: ServerResponse): HttpResponseWithHeaders 
       res.end();
       return this;
     },
-    setHeader(name: string, value: string) { res.setHeader(name, value); },
+    setHeader(name: string, value: string) {
+      res.setHeader(name, value);
+    },
     getHeader(name: string) {
       const v = res.getHeader(name);
       return typeof v === 'string' ? v : Array.isArray(v) ? v.join(', ') : undefined;

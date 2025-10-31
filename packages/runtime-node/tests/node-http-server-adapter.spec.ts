@@ -63,7 +63,6 @@ describe('NodeHttpServerAdapter', () => {
       end: vi.fn(),
     };
 
-
     await (server.listeners('request')[0] as any)({}, res);
 
     expect(res.statusCode).toBe(500);

@@ -10,7 +10,7 @@ export class EjsTemplateModule {
       exports: {
         view: TOKENS.TemplateEngineToken,
       },
-      
+
       providers: [
         {
           provide: TOKENS.TemplateEngineToken,
