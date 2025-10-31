@@ -17,23 +17,12 @@ export interface BaseResult {
 }
 
 /**
- * Platform-neutral representation of a readable stream.
- * Each runtime adapter (Node, Express, Deno, Edge) maps this to its native stream type.
- */
-export interface AnyReadable {
-  /** Opaque platform-specific stream */
-  readonly kind?: 'node' | 'web' | string;
-  /** Underlying stream object (Node.Readable, ReadableStream, etc.) */
-  readonly stream: unknown;
-}
-
-/**
  * Streaming response — e.g. file download, SSE, proxied stream.
  */
-export interface StreamResult extends BaseResult {
+export interface StreamResult<TReadable = unknown> extends BaseResult {
   kind: 'stream';
   /** Platform-neutral stream descriptor */
-  body: AnyReadable;
+  body: TReadable;
   /** Optional MIME type */
   contentType?: string;
   /** Optional content length (bytes) */
@@ -85,10 +74,10 @@ export interface EmptyResult extends BaseResult {
 /**
  * Union of all possible controller return types.
  */
-export type ActionResult =
+export type ActionResult<TReadable = unknown> =
   | JsonResult
   | TextResult
   | HtmlResult
   | RedirectResult
   | EmptyResult
-  | StreamResult;
+  | StreamResult<TReadable>;

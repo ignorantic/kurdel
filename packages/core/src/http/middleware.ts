@@ -1,7 +1,7 @@
 import type { HttpContext } from 'src/http/http-context.js';
 import type { ActionResult } from 'src/http/action-result.js';
 
-export type Middleware<TBody = unknown> = (
+export type Middleware<TBody = unknown, TReadable = unknown > = (
   ctx: HttpContext<TBody>,
-  next: () => Promise<ActionResult | void>
-) => Promise<ActionResult | void>;
+  next: () => Promise<ActionResult<TReadable> | void>
+) => Promise<ActionResult<TReadable> | void>;

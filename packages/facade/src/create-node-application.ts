@@ -1,5 +1,5 @@
 import type { AppConfig } from '@kurdel/core/app';
-import { NativeHttpServerAdapter } from '@kurdel/runtime-node';
+import { NativeHttpServerAdapter } from '@kurdel/runtime-node/http';
 
 import { createApplication } from 'src/create-application.js';
 

@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
 import type { ServerAdapter } from '@kurdel/core/http';
 
-import { adaptNodeRequest, adaptNodeResponse } from 'src/native-req-res-adapters.js';
+import { adaptNodeRequest, adaptNodeResponse } from 'src/http/native-req-res-adapters.js';
 
 /**
  * Node.js implementation of ServerAdapter.

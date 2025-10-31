@@ -7,14 +7,14 @@ import type { HttpContext, Middleware, ActionResult } from '@kurdel/core/http';
 export class RuntimeMiddlewarePipe {
   constructor(private readonly middlewares: Middleware[] = []) {}
 
-  async run(
+  async run<TReadable = unknown>(
     ctx: HttpContext,
-    terminal?: () => Promise<ActionResult | void>
-  ): Promise<ActionResult | void> {
-    const dispatch = async (): Promise<ActionResult | void> =>
+    terminal?: () => Promise<ActionResult<TReadable> | void>
+  ): Promise<ActionResult<TReadable> | void> {
+    const dispatch = async (): Promise<ActionResult<TReadable> | void> =>
       terminal ? await terminal() : undefined;
 
-    const composed = this.middlewares.reduceRight<() => Promise<ActionResult | void>>(
+    const composed = this.middlewares.reduceRight<() => Promise<ActionResult<any> | void>>(
       (next, mw) => {
         return async () => {
           const result = await mw(ctx, next);
@@ -24,6 +24,6 @@ export class RuntimeMiddlewarePipe {
       dispatch
     );
 
-    return composed();
+    return composed() as Promise<ActionResult<TReadable> | void>;;
   }
 }
