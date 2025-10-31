@@ -10,9 +10,27 @@ export interface HttpRequest {
 
 /** A minimal, platform-independent HTTP response abstraction. */
 export interface HttpResponse {
+  /** Sends a complete response body (string, Buffer, or object). */
+  send(body?: any): void;
+
+  /** Sends a JSON response with correct content type. */
+  json(body: unknown): void;
+
+  /** Sets the HTTP status code. */
+  status(code: number): this;
+
+  /** Optional shorthand for redirection. */
+  redirect(status: number, location: string): void;
+
+  /** Write a data chunk to the response stream. */
+  write?(chunk: any): void;
+
+  /** End the response stream (optional final data chunk). */
+  end?(chunk?: any): void;
+  
+  /** Marks the response as already sent. */
   sent: boolean;
-  status: (code: number) => HttpResponse;
-  json: (data: unknown) => void;
-  send: (data: string | Uint8Array) => void;
-  redirect: (status: number, location: string) => void;
+
+  /** Underlying native platform response (optional). */
+  raw?: unknown;
 }

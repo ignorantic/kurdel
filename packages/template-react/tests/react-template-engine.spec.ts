@@ -9,6 +9,19 @@ describe('ReactTemplateEngine', async () => {
   // Prepare a temporary directory with mock React components
   await fs.mkdir(TMP_DIR, { recursive: true });
 
+  await fs.writeFile(
+    path.join(TMP_DIR, 'document.js'),
+    `
+      import React from 'react';
+      
+      export default function Document({ children }) {
+        return React.createElement('html', null,
+          React.createElement('body', null, children)
+        );
+      }
+    `,
+  );
+
   const writeView = async (name: string, content: string) => {
     const file = path.join(TMP_DIR, `${name}.js`);
     await fs.writeFile(file, content);

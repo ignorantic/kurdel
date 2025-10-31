@@ -8,7 +8,10 @@ import type {
   MiddlewareRegistry,
   ControllerResolver,
   Method,
+  ResponseRenderer,
 } from '@kurdel/core/http';
+
+import { NoopResponseRenderer } from 'src/http/noop-response-renderer.js';
 
 /**
  * ServerModule: wires the HTTP ServerAdapter to the Router.
@@ -53,10 +56,15 @@ export class ServerModule implements AppModule<AppConfig> {
     const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
     const controllerConfigs = ioc.get<ControllerConfig[]>(TOKENS.ControllerConfigs);
     const resolver = ioc.get<ControllerResolver>(TOKENS.ControllerResolver);
+    if (!ioc.has(TOKENS.ResponseRenderer)) {
+      ioc.bind(TOKENS.ResponseRenderer).toInstance(new NoopResponseRenderer());
+    }
+    const renderer = ioc.get<ResponseRenderer>(TOKENS.ResponseRenderer);
 
     // Initialize router with controller metadata & middlewares
     router.init({
       resolver,
+      renderer,
       controllerConfigs,
       middlewares: registry.all(),
     });

@@ -12,14 +12,22 @@
     "clean": "rimraf dist ../../.cache/tsconfig.sample.react.build.tsbuildinfo",
     "build": "tsc",
     "build:force": "npm run clean && tsc --force",
-    "dev": "node dist/app.js"
+    "build:client": "vite build --mode production",
+    "build:client:dev": "vite build --mode development",
+    "dev": "cross-env NODE_ENV=development node dist/app.js"
   },
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
   "dependencies": {
     "@kurdel/core": "^1.0.0",
     "@kurdel/facade": "^1.0.0",
-    "@kurdel/template-react": "^1.0.0"
+    "@kurdel/runtime-node": "^1.0.0",
+    "@kurdel/template-react": "^1.0.0",
+    "cross-env": "^10.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",

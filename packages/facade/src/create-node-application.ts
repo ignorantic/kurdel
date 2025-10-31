@@ -1,5 +1,6 @@
 import type { AppConfig } from '@kurdel/core/app';
-import { NativeHttpServerAdapter } from '@kurdel/runtime-node';
+import { NativeHttpServerAdapter } from '@kurdel/runtime-node/http';
+import { NodeHttpRuntimeModule } from '@kurdel/runtime-node/modules';
 
 import { createApplication } from 'src/create-application.js';
 
@@ -17,5 +18,6 @@ export function createNodeApplication(config: AppConfig) {
   return createApplication({
     ...config,
     serverAdapter,
+    modules: [...config.modules ?? [], NodeHttpRuntimeModule]
   });
 }

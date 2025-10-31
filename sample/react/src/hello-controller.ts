@@ -16,6 +16,9 @@ export class HelloController extends Controller<{ view: TemplateEngine }> {
 
   async user(ctx: HttpContext) {
     const user = { id: ctx.params.id, name: 'Ada Lovelace' };
-    return this.render('user', { user });
+    return this.render('user', {
+      title: 'Kurdel + React',
+      user,
+    });
   }
 }

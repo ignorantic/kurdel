@@ -1,10 +1,10 @@
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
-import { HttpError, type Middleware, type Controller } from '@kurdel/core/http';
+import type { Middleware, Controller, ResponseRenderer } from '@kurdel/core/http';
+import { HttpError } from '@kurdel/core/http';
 
 import { RuntimeHttpContextFactory } from 'src/http/runtime-http-context-factory.js';
 import { RuntimeControllerPipe } from 'src/http/runtime-controller-pipe.js';
 import { RuntimeMiddlewarePipe } from 'src/http/runtime-middleware-pipe.js';
-import { RuntimeResponseRenderer } from 'src/http/runtime-response-renderer.js';
 
 /**
  * Coordinates full request execution within the runtime layer.
@@ -16,9 +16,11 @@ import { RuntimeResponseRenderer } from 'src/http/runtime-response-renderer.js';
  */
 export class RuntimeRequestOrchestrator {
   private readonly contextFactory = new RuntimeHttpContextFactory();
-  private readonly renderer = new RuntimeResponseRenderer();
 
-  constructor(private readonly globalMiddlewares: Middleware[] = []) {}
+  constructor(
+    private readonly renderer: ResponseRenderer,
+    private readonly globalMiddlewares: Middleware[] = [],
+  ) {}
 
   /**
    * Executes a request using either:

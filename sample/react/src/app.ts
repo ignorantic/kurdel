@@ -5,6 +5,7 @@ import { createNodeApplication } from '@kurdel/facade';
 import { ReactTemplateModule } from '@kurdel/template-react';
 
 import { HelloModule } from './hello-module.js';
+import { StaticFilesModule } from '@kurdel/runtime-node/modules';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -14,6 +15,7 @@ const app = await createNodeApplication({
     ReactTemplateModule.forRoot({
       baseDir: resolve(__dirname, './views'),
     }),
+    new StaticFilesModule(resolve(__dirname, './public')),
     new HelloModule(),
   ],
 });

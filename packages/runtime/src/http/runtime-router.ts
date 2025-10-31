@@ -9,7 +9,10 @@ import type {
   Router,
   Middleware,
   Controller,
+  ResponseRenderer,
+  RouterDeps,
 } from '@kurdel/core/http';
+
 import { RuntimeRequestOrchestrator } from 'src/http/runtime-request-orchestrator.js';
 
 type Entry = {
@@ -43,12 +46,6 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
   return { regex: new RegExp(`^/${pattern}/?$`), keys };
 }
 
-interface RouterDeps {
-  resolver: ControllerResolver;
-  controllerConfigs: ControllerConfig[];
-  middlewares?: Middleware[];
-}
-
 /**
  * RuntimeRouter is responsible for:
  * - Matching incoming requests to controller actions
@@ -59,11 +56,14 @@ export class RuntimeRouter implements Router {
   private entries: Entry[] = [];
 
   private resolver!: ControllerResolver;
+  
+  private renderer!: ResponseRenderer;
 
   public middlewares: Middleware[] = [];
 
-  public init({ resolver, controllerConfigs, middlewares = [] }: RouterDeps): void {
+  public init({ resolver, renderer, controllerConfigs, middlewares = [] }: RouterDeps): void {
     this.resolver = resolver;
+    this.renderer = renderer;
     this.middlewares.push(...middlewares);
 
     controllerConfigs.forEach(cfg => {
@@ -86,7 +86,7 @@ export class RuntimeRouter implements Router {
   public resolve(method: Method, url: string, scope: Container) {
     const pathname = (url ?? '/').split('?')[0].replace(/\\/g, '/');
 
-    const orchestrator = new RuntimeRequestOrchestrator(this.middlewares);
+    const orchestrator = new RuntimeRequestOrchestrator(this.renderer, this.middlewares);
 
     for (const entry of this.entries) {
       if (entry.method !== method) continue;

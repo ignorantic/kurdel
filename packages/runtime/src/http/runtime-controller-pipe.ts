@@ -8,11 +8,11 @@ import { RuntimeMiddlewarePipe } from 'src/http/runtime-middleware-pipe.js';
 export class RuntimeControllerPipe {
   constructor(private readonly globalMiddlewares: Middleware[] = []) {}
 
-  async run(
+  async run<TReadable = unknown>(
     controller: Controller<any>,
-    ctx: HttpContext,
+    ctx: HttpContext<unknown, Record<string, string>, TReadable>,
     actionName: string
-  ): Promise<ActionResult | void> {
+  ): Promise<ActionResult<TReadable> | void> {
     const handler = controller.getAction(actionName);
 
     if (typeof handler !== 'function') {
@@ -22,6 +22,6 @@ export class RuntimeControllerPipe {
     const allMiddlewares = [...this.globalMiddlewares, ...controller.getMiddlewares()];
     const pipe = new RuntimeMiddlewarePipe(allMiddlewares);
 
-    return pipe.run(ctx, async () => handler.call(controller, ctx));
+    return pipe.run<TReadable>(ctx, async () => (await handler.call(controller, ctx))  as ActionResult<TReadable>);
   }
 }

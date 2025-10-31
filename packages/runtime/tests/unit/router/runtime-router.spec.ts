@@ -13,10 +13,12 @@ import { RuntimeRouter } from 'src/http/runtime-router.js';
 import { FakeContainer } from './fake-container.js';
 import { FakeResolver } from './fake-resolver.js';
 import { FakeController } from './fake-controller.js';
+import { FakeResponseRenderer } from './fake-response-renderer.js';
 
 function makeRouter(configs: ControllerConfig[], mws: Middleware[] = []) {
   const root = new FakeContainer();
   const resolver = new FakeResolver(root);
+  const renderer = new FakeResponseRenderer();
 
   root.set(FakeController as any, new FakeController({ tag: 'root', calls: [] }));
 
@@ -26,6 +28,8 @@ function makeRouter(configs: ControllerConfig[], mws: Middleware[] = []) {
 
   router.init({
     resolver,
+    renderer,
+    middlewares: [],
     controllerConfigs: configs,
   });
 

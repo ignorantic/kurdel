@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NativeHttpServerAdapter } from 'src/native-http-server-adapter.js';
+import { NativeHttpServerAdapter } from 'src/http/native-http-server-adapter.js';
 
 // Mock runtime controller executor
 vi.mock('@kurdel/runtime/http', () => ({

@@ -1,2 +1,2 @@
-export * from './native-http-server-adapter.js';
-export * from './native-req-res-adapters.js';
+export * as http from './http/index.js';
+export * as modules from './modules/index.js';

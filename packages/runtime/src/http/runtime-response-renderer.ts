@@ -1,17 +1,19 @@
-import type { ActionResult, JsonValue } from '@kurdel/core/http';
+import type { ActionResult, JsonValue, ResponseRenderer } from '@kurdel/core/http';
 import { HttpError } from '@kurdel/core/http';
 import type { HttpResponse } from '@kurdel/common';
-
-import { renderActionResult } from 'src/http/render-action-result.js';
 
 /**
  * Handles rendering of ActionResult into HttpResponse
  * and unified error translation.
  */
-export class RuntimeResponseRenderer {
+export class RuntimeResponseRenderer implements ResponseRenderer {
+  constructor(
+    private readonly platformRender: (res: HttpResponse, result: ActionResult) => void
+  ) {}
+
   render(res: HttpResponse, result: ActionResult | void): void {
     if (!res.sent && result) {
-      renderActionResult(res, result);
+      this.platformRender(res, result);
     }
   }
 
@@ -19,7 +21,7 @@ export class RuntimeResponseRenderer {
     if (res.sent) return;
 
     if (err instanceof HttpError) {
-      renderActionResult(res, {
+      this.platformRender(res, {
         kind: 'json',
         status: err.status,
         body: {
@@ -28,7 +30,7 @@ export class RuntimeResponseRenderer {
         },
       });
     } else {
-      renderActionResult(res, {
+      this.platformRender(res, {
         kind: 'json',
         status: 500,
         body: { error: 'Internal Server Error' },

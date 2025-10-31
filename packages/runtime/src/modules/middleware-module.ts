@@ -5,8 +5,8 @@ import type { AppModule, ProviderConfig } from '@kurdel/core/app';
 import type { Middleware, MiddlewareRegistry } from '@kurdel/core/http';
 
 import { RuntimeMiddlewareRegistry } from 'src/http/runtime-middleware-registry.js';
-import { errorHandler } from 'src/http/middlewares/error-handle.js';
-import { jsonBodyParser } from 'src/http/middlewares/json-body-parser.js';
+import { errorHandler } from 'src/middlewares/error-handle.js';
+import { jsonBodyParser } from 'src/middlewares/json-body-parser.js';
 
 /**
  * MiddlewareModule

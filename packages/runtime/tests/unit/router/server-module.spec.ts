@@ -30,6 +30,7 @@ describe('ServerModule', () => {
     const fakeRegistry = { all: vi.fn().mockReturnValue([]) };
     const fakeControllerConfigs: ControllerConfig[] = [];
     const fakeResolver = {};
+    const fakeResponseRenderer = {};
 
     const fakeAdapter = {
       on: vi.fn((cb: (req: any, res: any) => void | Promise<void>) => {
@@ -47,6 +48,7 @@ describe('ServerModule', () => {
     ioc.set(TOKENS.MiddlewareRegistry as any, fakeRegistry);
     ioc.set(TOKENS.ControllerConfigs as any, fakeControllerConfigs);
     ioc.set(TOKENS.ControllerResolver as any, fakeResolver);
+    ioc.set(TOKENS.ResponseRenderer as any, fakeResponseRenderer);
     ioc.set(TOKENS.ServerAdapter as any, fakeAdapter);
 
     // Run the module register hook

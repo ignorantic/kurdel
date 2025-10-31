@@ -13,6 +13,7 @@ const toInstance = vi.fn();
 const ioc = {
   bind: vi.fn(() => ({ toInstance })),
   get: vi.fn(() => ({ toInstance })),
+  has: vi.fn(),
 } as any;
 
 const registry = { all: () => [] };

@@ -1,5 +1,6 @@
 import type { AppConfig } from '@kurdel/core/app';
 import { ExpressServerAdapter } from '@kurdel/runtime-express';
+import { NodeHttpRuntimeModule } from '@kurdel/runtime-node/modules';
 
 import { createApplication } from 'src/create-application.js';
 
@@ -17,5 +18,6 @@ export function createExpressApplication(config: AppConfig) {
   return createApplication({
     ...config,
     serverAdapter,
+    modules: [...config.modules ?? [], NodeHttpRuntimeModule]
   });
 }

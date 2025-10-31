@@ -33,7 +33,10 @@ import type { ControllerConfig } from 'src/http/controller-config.js';
  * }
  * ```
  */
-export interface HttpModule<TConfig = AppConfig> extends AppModule<TConfig> {
+export interface HttpModule<
+  TConfig = AppConfig,
+  out TReadable = unknown  
+> extends AppModule<TConfig> {
   /**
    * Models that should be registered
    * through the ModelModule
@@ -50,5 +53,5 @@ export interface HttpModule<TConfig = AppConfig> extends AppModule<TConfig> {
    * Middleware that should be registered
    * through the MiddlewareModule
    */
-  readonly middlewares?: Middleware[];
+  readonly middlewares?: Middleware<unknown, TReadable>[];
 }

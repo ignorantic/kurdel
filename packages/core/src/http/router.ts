@@ -4,10 +4,12 @@ import type { HttpRequest, HttpResponse } from '@kurdel/common';
 import type { Method } from 'src/http/types.js';
 import type { ControllerConfig } from 'src/http/controller-config.js';
 import type { ControllerResolver } from 'src/http/controller-resolver.js';
+import type { ResponseRenderer } from 'src/http/response-renderer.js';
 import type { Middleware } from 'src/http/middleware.js';
 
 export interface RouterDeps {
   resolver: ControllerResolver;
+  renderer: ResponseRenderer;
   controllerConfigs: ControllerConfig[];
   middlewares: Middleware[];
 }
