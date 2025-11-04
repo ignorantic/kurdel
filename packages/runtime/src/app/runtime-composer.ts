@@ -1,5 +1,6 @@
 import type { AppConfig, AppModule } from '@kurdel/core/app';
 import type { HttpModule, ControllerConfig, Middleware } from '@kurdel/core/http';
+import type { Identifier } from '@kurdel/ioc';
 import type { ModelList } from '@kurdel/core/db';
 
 import { LifecycleModule } from 'src/modules/lifecycle-module.js';
@@ -9,55 +10,110 @@ import { MiddlewareModule } from 'src/modules/middleware-module.js';
 import { ControllerModule } from 'src/modules/controller-module.js';
 import { ServerModule } from 'src/modules/server-module.js';
 
+export class ModuleValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ModuleValidationError';
+  }
+}
+
 /**
- * Composes the full runtime module pipeline for a Kurdel application.
+ * Builds the complete runtime module chain for a Kurdel application.
  *
- * Responsibilities:
- * - Collect HTTP declarations (models, controllers, middlewares) from user-defined HttpModules.
- * - Assemble built-in framework modules in the correct order.
- * - Return a flat list of AppModules ready for initialization by the ModuleLoader.
+ * ## Responsibilities
+ * - Collects all HTTP declarations (models, controllers, middlewares)
+ *   from user-defined {@link HttpModule}s.
+ * - Assembles built-in framework modules in a deterministic order.
+ * - Performs validation of provider uniqueness across all modules
+ *   via {@link RuntimeComposer.validateUniqueProviders}.
+ * - Returns a flat, fully ordered list of {@link AppModule}s ready for
+ *   initialization by the {@link ModuleLoader}.
  *
- * Default pipeline:
- *   1. LifecycleModule   → provides OnStart / OnShutdown hooks
- *   2. DatabaseModule    → internal DB abstractions (optional wiring)
- *   3. User modules      → may register custom providers or hooks
- *   4. ModelModule       → registers collected model definitions
- *   5. MiddlewareModule  → registers collected middlewares
- *   6. ControllerModule  → registers collected controllers
- *   7. ServerModule      → wires ServerAdapter to router and request scope
+ * ## Default composition order
+ *  1. LifecycleModule   → provides OnStart / OnShutdown hooks
+ *  2. DatabaseModule    → internal DB abstractions (optional wiring)
+ *  3. User modules      → may register custom providers or hooks
+ *  4. ModelModule       → registers collected model definitions
+ *  5. MiddlewareModule  → registers collected middlewares
+ *  6. ControllerModule  → registers collected controllers
+ *  7. ServerModule      → wires ServerAdapter to router and request scope
  *
- * Design notes:
- * - Composition is static and deterministic (no dynamic discovery at runtime).
- * - All user modules are preserved between DatabaseModule and ModelModule.
- * - Intended to keep RuntimeApplication constructor minimal and declarative.
+ * ## Design notes
+ * - Composition is **static and deterministic** — no runtime discovery or reflection.
+ * - User modules that expose HTTP artifacts (`HttpModule`) are still kept
+ *   in the pipeline to preserve their own providers or lifecycle hooks.
+ * - All provider registrations are checked for **unique token ownership**.
  */
 export class RuntimeComposer {
   /**
-   * Compose the complete runtime module list for the given configuration.
+   * Composes the ordered module pipeline for a given {@link AppConfig}.
    *
-   * @param config - The application configuration object.
-   * @returns Ordered list of built-in and user-defined modules.
+   * @param config - Application configuration including user modules.
+   * @returns Ordered list of {@link AppModule} instances to initialize.
+   *
+   * @throws {ModuleValidationError}
+   * Thrown if multiple modules register providers for the same token.
    */
   static compose(config: AppConfig): AppModule[] {
-    // Extract only user modules that expose HTTP artifacts (controllers, models, middlewares)
-    const httpModules = (config.modules ?? []).filter(
-      (m): m is HttpModule => 'models' in m || 'controllers' in m || 'middlewares' in m
+    const modules = config.modules ?? [];
+
+    // Extract HttpModules that declare HTTP-related artifacts
+    const httpModules = modules.filter(
+      (m): m is HttpModule =>
+        'models' in m || 'controllers' in m || 'middlewares' in m
     );
 
-    // Aggregate HTTP declarations from user HttpModules
+    // Aggregate HTTP declarations
     const allModels: ModelList = httpModules.flatMap(m => m.models ?? []);
-    const allControllers: ControllerConfig[] = httpModules.flatMap(m => m.controllers ?? []);
-    const allMiddlewares: Middleware[] = httpModules.flatMap(m => m.middlewares ?? []);
+    const allControllers: ControllerConfig[] = httpModules.flatMap(
+      m => m.controllers ?? []
+    );
+    const allMiddlewares: Middleware[] = httpModules.flatMap(
+      m => m.middlewares ?? []
+    );
 
-    // Compose pipeline in deterministic order
-    return [
+    // Deterministic module pipeline
+    const pipeline: AppModule[] = [
       new LifecycleModule(),
       new DatabaseModule(),
-      ...(config.modules ?? []),
+      ...modules,
       new ModelModule(allModels),
       new MiddlewareModule(allMiddlewares),
       new ControllerModule(allControllers),
       new ServerModule(config),
     ];
+
+    // Validate token uniqueness before container build
+    this.validateUniqueProviders(pipeline);
+
+    return pipeline;
+  }
+
+  /**
+   * Ensures that no two modules register the same provider token.
+   *
+   * @param modules - List of all modules in the pipeline.
+   * @throws {ModuleValidationError}
+   * Thrown when duplicate token ownership is detected.
+   */
+  private static validateUniqueProviders(modules: AppModule[]): void {
+    const tokenToModule = new Map<Identifier<any>, string>();
+
+    for (const mod of modules) {
+      const moduleName = mod.constructor?.name ?? 'AnonymousModule';
+
+      for (const provider of mod.providers ?? []) {
+        const token = provider.provide;
+        const owner = tokenToModule.get(token);
+
+        if (owner) {
+          throw new ModuleValidationError(
+            `Duplicate provider for token "${String(token)}" between modules "${owner}" and "${moduleName}".`
+          );
+        }
+
+        tokenToModule.set(token, moduleName);
+      }
+    }
   }
 }
