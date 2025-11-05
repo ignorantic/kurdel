@@ -88,7 +88,7 @@ export class RuntimeComposer {
       new ModelModule(allModels),
       new MiddlewareModule(allMiddlewares),
       new ControllerModule(allControllers),
-      new ServerModule(config),
+      new ServerModule(),
     ];
 
     // Sort deterministically by priority + index

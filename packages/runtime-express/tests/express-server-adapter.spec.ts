@@ -4,8 +4,8 @@ import express from 'express';
 
 import type { HttpRequest } from '@kurdel/common';
 
-import { ExpressServerAdapter } from 'src/express-server-adapter.js';
-import { adaptExpressRequest } from 'src/express-req-res-adapters.js';
+import { ExpressServerAdapter } from 'src/http/express-server-adapter.js';
+import { adaptExpressRequest } from 'src/http/express-req-res-adapters.js';
 
 describe('ExpressServerAdapter', () => {
   let adapter: ExpressServerAdapter;

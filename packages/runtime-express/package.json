@@ -4,7 +4,9 @@
   "description": "framework",
   "type": "module",
   "exports": {
-    ".": "./lib/index.js"
+    ".": "./lib/index.js",
+    "./http": "./lib/http/index.js",
+    "./modules": "./lib/modules/index.js"
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

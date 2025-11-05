@@ -1,23 +1,35 @@
 import type { AppConfig } from '@kurdel/core/app';
-import { NativeHttpServerAdapter } from '@kurdel/runtime-node/http';
-import { NodeHttpRuntimeModule } from '@kurdel/runtime-node/modules';
+import { NodePlatformModule } from '@kurdel/runtime-node/modules';
 
 import { createApplication } from 'src/create-application.js';
 
 /**
- * Factory for Node.js runtime environment.
+ * Factory for initializing a Kurdel application on the native Node.js platform.
  *
- * Responsibilities:
- * - Instantiates a platform-specific ServerAdapter (`NativeHttpServerAdapter`)
- * - Provides it to the runtime-level Application
- * - Keeps the rest of the framework completely platform-agnostic
+ * ## Responsibilities
+ * - Registers the Node-specific platform module (`NodePlatformModule`), which provides:
+ *   - `NativeHttpServerAdapter` — platform-specific `ServerAdapter` implementation
+ *   - `NodeResponseRenderer` — renderer for native Node.js HTTP responses
+ * - Bootstraps a fully platform-agnostic Kurdel `RuntimeApplication` instance
+ *
+ * ## Usage
+ * ```ts
+ * import { createNodeApplication } from '@kurdel/facade';
+ *
+ * const app = await createNodeApplication({
+ *   modules: [MyHttpModule],
+ *   db: false,
+ * });
+ *
+ * const server = app.listen(3000, () => console.log('Running on native Node.js'));
+ * ```
+ *
+ * @param config - Application configuration object (controllers, db, modules, etc.)
+ * @returns Fully configured application instance using the Node.js runtime.
  */
-export function createNodeApplication(config: AppConfig) {
-  const serverAdapter = new NativeHttpServerAdapter();
-
+export function createNodeApplication({ modules = [], ...config }: AppConfig) {
   return createApplication({
     ...config,
-    serverAdapter,
-    modules: [...config.modules ?? [], NodeHttpRuntimeModule]
+    modules: [...modules, NodePlatformModule]
   });
 }

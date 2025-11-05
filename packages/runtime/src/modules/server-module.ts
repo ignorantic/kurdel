@@ -1,5 +1,5 @@
 import type { Container } from '@kurdel/ioc';
-import type { AppConfig, AppModule, ProviderConfig } from '@kurdel/core/app';
+import type { AppConfig, AppModule } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
 import type {
   ServerAdapter,
@@ -27,28 +27,12 @@ export class ServerModule implements AppModule<AppConfig> {
     registry: TOKENS.MiddlewareRegistry,
     controllerConfigs: TOKENS.ControllerConfigs,
     controllerResolver: TOKENS.ControllerResolver,
+    server: TOKENS.ServerAdapter,
   };
 
   readonly exports = {
     server: TOKENS.ServerAdapter,
   };
-
-  readonly providers: ProviderConfig[];
-
-  constructor(private readonly config: AppConfig) {
-    const { serverAdapter } = config;
-    if (!serverAdapter)
-      throw new Error(
-        'Missing serverAdapter in AppConfig. Provide one via createNodeApplication()'
-      );
-
-    this.providers = [
-      {
-        provide: TOKENS.ServerAdapter,
-        useInstance: serverAdapter,
-      },
-    ];
-  }
 
   async register(ioc: Container): Promise<void> {
     const adapter = ioc.get<ServerAdapter>(TOKENS.ServerAdapter);

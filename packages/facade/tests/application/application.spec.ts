@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-
+import { describe, it, expect, vi } from 'vitest';
 import { type AppModule } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
 import { createApplication } from 'src/create-application.js';
 
 const TOKEN_A = Symbol('A');
@@ -8,10 +8,21 @@ const TOKEN_B = Symbol('B');
 const TOKEN_FACTORY = Symbol('factory');
 const TOKEN_SINGLETON = Symbol('factory-singleton');
 
-const fakeAdapter = {
-  on: vi.fn(),
-  listen: vi.fn(),
-  close: vi.fn(),
+/**
+ * Minimal test adapter mock
+ * Required only because RuntimeComposer expects a ServerAdapter token.
+ */
+const AdapterModule: AppModule = {
+  providers: [
+    {
+      provide: TOKENS.ServerAdapter,
+      useInstance: {
+        on: vi.fn(),
+        listen: vi.fn(),
+        close: vi.fn(),
+      },
+    },
+  ],
 };
 
 describe('Application', () => {
@@ -21,21 +32,26 @@ describe('Application', () => {
       async register() {}
     }
 
-    // no module provides TOKEN_A
     await expect(() =>
-      createApplication({ serverAdapter: fakeAdapter, db: false, modules: [new ImportingModule()] })
+      createApplication({
+        db: false,
+        modules: [AdapterModule, new ImportingModule()],
+      })
     ).rejects.toThrow(/Module ImportingModule missing dependency/);
   });
 
-  it('should throw if expected export not registered', async () => {
+  it('should throw if declared export is not bound in the container', async () => {
     class BadModule implements AppModule {
       readonly exports = { b: TOKEN_B };
       async register() {}
     }
 
     await expect(() =>
-      createApplication({ serverAdapter: fakeAdapter, db: false, modules: [new BadModule()] })
-    ).rejects.toThrow(/Module did not register expected export/);
+      createApplication({
+        db: false,
+        modules: [AdapterModule, new BadModule()],
+      })
+    ).rejects.toThrow(/did not register expected export/);
   });
 
   it('should support useFactory without singleton', async () => {
@@ -46,21 +62,20 @@ describe('Application', () => {
         {
           provide: TOKEN_FACTORY,
           useFactory: () => ({ n: ++counter }),
-          isSingleton: false,
         },
       ];
       async register() {}
     }
 
     const app = await createApplication({
-      serverAdapter: fakeAdapter,
       db: false,
-      modules: [new FactoryModule()],
+      modules: [AdapterModule, new FactoryModule()],
     });
     const ioc = app.getContainer();
+
     const first = ioc.get<{ n: number }>(TOKEN_FACTORY);
     const second = ioc.get<{ n: number }>(TOKEN_FACTORY);
-    expect(first.n).not.toBe(second.n); // should be new each time
+    expect(first.n).not.toBe(second.n);
   });
 
   it('should support useFactory with singleton', async () => {
@@ -78,13 +93,13 @@ describe('Application', () => {
     }
 
     const app = await createApplication({
-      serverAdapter: fakeAdapter,
       db: false,
-      modules: [new FactoryModule()],
+      modules: [AdapterModule, new FactoryModule()],
     });
     const ioc = app.getContainer();
+
     const first = ioc.get<{ n: number }>(TOKEN_SINGLETON);
     const second = ioc.get<{ n: number }>(TOKEN_SINGLETON);
-    expect(first.n).toBe(second.n); // same instance
+    expect(first.n).toBe(second.n);
   });
 });

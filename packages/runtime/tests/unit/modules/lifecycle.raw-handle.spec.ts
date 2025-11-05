@@ -1,41 +1,44 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import type { ServerAdapter } from '@kurdel/core/http';
-import type { AppConfig } from '@kurdel/core/app';
-
+import { TOKENS } from '@kurdel/core/tokens';
 import { RuntimeApplication } from 'src/app/runtime-application.js';
 import { LifecycleModule } from 'src/modules/lifecycle-module.js';
 
 /**
- * Verifies that RunningServer.raw() is proxied from the adapter when available.
+ * Verifies that RunningServer.raw() correctly proxies to ServerAdapter.raw()
+ * when available, and remains undefined otherwise.
  */
 describe('Application lifecycle - RunningServer.raw()', () => {
   it('exposes raw() when adapter provides it', async () => {
-    // Minimal adapter with raw() returning a sentinel object
     const sentinel = { name: 'raw-server' };
 
     class TestAdapter implements ServerAdapter<unknown, typeof sentinel> {
-      private handler?: (req: unknown, res: typeof sentinel) => void | Promise<void>;
-
-      on(cb: (req: unknown, res: typeof sentinel) => void | Promise<void>) {
-        this.handler = cb;
-      }
-
+      on = vi.fn();
       listen(_: number, hostOrCb?: string | (() => void), cb?: () => void) {
         const done = (typeof hostOrCb === 'function' ? hostOrCb : cb) ?? (() => {});
-        // immediately signal "ready"
         done();
       }
-
+      close = vi.fn(async () => {});
       raw<T = unknown>(): T | undefined {
         return sentinel as unknown as T;
       }
     }
 
+    const AdapterModule = {
+      providers: [
+        {
+          provide: TOKENS.ServerAdapter,
+          useFactory: () => new TestAdapter(),
+          singleton: true,
+        },
+      ],
+    };
+
     const app = new RuntimeApplication({
-      modules: [new LifecycleModule()],
-      serverAdapter: new TestAdapter(),
+      modules: [new LifecycleModule(), AdapterModule],
       db: false,
-    } as AppConfig);
+    });
+
     await app.bootstrap();
 
     const running = app.listen(0, () => {});
@@ -47,24 +50,30 @@ describe('Application lifecycle - RunningServer.raw()', () => {
 
   it('does not expose raw() when adapter lacks it', async () => {
     class TestAdapter implements ServerAdapter<unknown, unknown> {
-      private handler?: (req: unknown, res: unknown) => void | Promise<void>;
-
-      on(cb: (req: unknown, res: unknown) => void | Promise<void>) {
-        this.handler = cb;
-      }
-
-      listen(port: number, hostOrCb?: string | (() => void), cb?: () => void) {
+      on = vi.fn();
+      listen(_: number, hostOrCb?: string | (() => void), cb?: () => void) {
         const done = (typeof hostOrCb === 'function' ? hostOrCb : cb) ?? (() => {});
-        // immediately signal "ready"
         done();
       }
+      close = vi.fn(async () => {});
+      // no raw()
     }
 
+    const AdapterModule = {
+      providers: [
+        {
+          provide: TOKENS.ServerAdapter,
+          useFactory: () => new TestAdapter(),
+          singleton: true,
+        },
+      ],
+    };
+
     const app = new RuntimeApplication({
-      modules: [new LifecycleModule()],
-      serverAdapter: new TestAdapter(),
+      modules: [new LifecycleModule(), AdapterModule],
       db: false,
-    } as AppConfig);
+    });
+
     await app.bootstrap();
 
     const running = app.listen(0, () => {});

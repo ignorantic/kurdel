@@ -1,86 +1,75 @@
 import { describe, it, expect, vi } from 'vitest';
-import { type AppConfig } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
 import type { ServerAdapter } from '@kurdel/core/http';
-
 import { RuntimeApplication } from 'src/app/runtime-application.js';
 import { LifecycleModule } from 'src/modules/lifecycle-module.js';
 
 /**
- * Verifies that:
- *  - OnStart hooks run before the user onReady callback.
- *  - close() runs OnShutdown hooks in reverse order.
- *  - adapter.listen is called once, and adapter.close is called on close().
+ * Verifies correct startup/shutdown hook ordering and adapter wiring.
+ *
+ * Expected flow:
+ *   OnStart hooks → user onReady callback → OnShutdown hooks (reverse order)
  */
 describe('Application lifecycle – order & wiring', () => {
   it('runs OnStart before user callback and OnShutdown in reverse after close()', async () => {
-    // Fake adapter that just invokes its callback immediately
     const listenSpy = vi.fn<(port: number) => void>();
     const closeSpy = vi.fn<() => Promise<void>>().mockResolvedValue();
 
     class TestAdapter implements ServerAdapter {
-      private handler?: (req: unknown, res: unknown) => void | Promise<void>;
-
-      on(cb: (req: unknown, res: unknown) => void | Promise<void>) {
-        this.handler = cb;
-      }
-
+      on = vi.fn();
       listen(port: number, hostOrCb?: string | (() => void), cb?: () => void) {
         const done = (typeof hostOrCb === 'function' ? hostOrCb : cb) ?? (() => {});
         listenSpy(port);
-        // immediately signal "ready"
-        done();
+        done(); // immediately signal "ready"
       }
-
       async close(): Promise<void> {
         await closeSpy();
       }
     }
 
-    const app = new RuntimeApplication({
-      modules: [new LifecycleModule()],
-      serverAdapter: new TestAdapter(),
-      db: false,
-    } as AppConfig);
+    // Adapter provider module
+    const AdapterModule = {
+      providers: [
+        {
+          provide: TOKENS.ServerAdapter,
+          useFactory: () => new TestAdapter(),
+          singleton: true,
+        },
+      ],
+    };
 
-    // Inject adapter instance into IoC before bootstrap
+    // Construct the app with lifecycle + adapter modules
+    const app = new RuntimeApplication({
+      modules: [new LifecycleModule(), AdapterModule],
+      db: false,
+    });
+
     await app.bootstrap();
     const ioc = app.getContainer();
 
-    // Prepare lifecycle hooks
+    // Lifecycle hooks setup
     const order: string[] = [];
-    ioc.get(TOKENS.OnStart).push(async () => {
-      order.push('start:1');
-    });
-    ioc.get(TOKENS.OnStart).push(async () => {
-      order.push('start:2');
-    });
-    ioc.get(TOKENS.OnShutdown).push(async () => {
-      order.push('stop:1');
-    });
-    ioc.get(TOKENS.OnShutdown).push(async () => {
-      order.push('stop:2');
-    });
+    ioc.get(TOKENS.OnStart).push(async () => order.push('start:1'));
+    ioc.get(TOKENS.OnStart).push(async () => order.push('start:2'));
+    ioc.get(TOKENS.OnShutdown).push(async () => order.push('stop:1'));
+    ioc.get(TOKENS.OnShutdown).push(async () => order.push('stop:2'));
 
-    const userReady = vi.fn(() => {
-      order.push('user:ready');
-    });
+    const userReady = vi.fn(() => order.push('user:ready'));
 
-    // Start
+    // Start the app
     const running = app.listen(0, userReady);
 
-    // Give the onReady chain time to finish:
-    // Promise.then(runHooks[awaits]) -> next tick -> user callback.
+    // Allow event loop to tick (simulate async callback scheduling)
     await new Promise(r => setTimeout(r, 0));
 
-    // Expectations after listen(): OnStart hooks must be before user cb
+    // ✅ Verify startup sequence
     expect(listenSpy).toHaveBeenCalledTimes(1);
     expect(order).toEqual(['start:1', 'start:2', 'user:ready']);
 
-    // Close (graceful)
+    // Graceful shutdown
     await running.close();
 
-    // Adapter closed once, and shutdown hooks fired in reverse order
+    // ✅ Verify shutdown sequence (reverse order)
     expect(closeSpy).toHaveBeenCalledTimes(1);
     expect(order).toEqual(['start:1', 'start:2', 'user:ready', 'stop:2', 'stop:1']);
   });
