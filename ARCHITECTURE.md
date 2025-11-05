@@ -92,6 +92,91 @@ Kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 
 ---
 
+## ⚙️ Module Priorities
+
+Kurdel runtime composes all application modules in a deterministic order
+based on their **priority level**.  
+Lower values initialize earlier in the pipeline.
+
+This mechanism ensures that user-defined providers (services, repositories, etc.)
+are registered before the HTTP router and controller resolution begin.
+
+| Priority | Enum Constant | Typical Module | Purpose |
+|-----------|----------------|----------------|----------|
+| `10` | `ModulePriority.Lifecycle` | `LifecycleModule` | Framework lifecycle hooks (`OnStart`, `OnShutdown`) |
+| `20` | `ModulePriority.Database` | `DatabaseModule` | Internal DB abstractions and connections |
+| `30` | `ModulePriority.User` | *User / Feature modules* | Application-level providers, services, and hooks |
+| `40` | `ModulePriority.Model` | `ModelModule` | Registers ORM / model definitions |
+| `50` | `ModulePriority.Middleware` | `MiddlewareModule` | Registers HTTP middleware chains |
+| `60` | `ModulePriority.Controller` | `ControllerModule` | Registers controllers and route bindings |
+| `65` | `ModulePriority.Platform` | `NodeHttpRuntimeModule` | Platform-specific bindings (e.g. ResponseRenderer) |
+| `70` | `ModulePriority.Server` | `ServerModule` | Wires the platform adapter and starts HTTP routing |
+| `100` | `ModulePriority.Custom` *(default)* | — | Fallback for modules without explicit priority |
+
+> 🧭 **Design rule:**  
+> Custom application modules should usually use `ModulePriority.User`  
+> unless they explicitly extend the framework lifecycle.
+
+### Example
+
+```ts
+import { ModulePriority } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
+import { UserService } from './user.service.js';
+
+export const UserModule: AppModule = {
+  priority: ModulePriority.User,
+  providers: [
+    { provide: UserService, useClass: UserService },
+  ],
+  controllers: [
+    { use: UserController },
+  ],
+};
+```
+
+---
+
+### Runtime Composition Flow
+
+```
+LifecycleModule (10)
+└─► DatabaseModule (20)
+    └─► UserModules (30)
+        └─► ModelModule (40)
+            └─► MiddlewareModule (50)
+                └─► ControllerModule (60)
+                    └─► NodeHttpRuntimeModule (65)
+                        └─► ServerModule (70)
+```
+
+Each module layer has a clearly defined purpose:
+
+* Early layers initialize infrastructure and data sources.
+* Mid layers register business logic and HTTP behaviors.
+* Late layers wire the runtime and platform-specific integrations.
+
+---
+
+### Validation Rules
+
+Kurdel automatically validates the final module chain:
+
+* 🧩 **Unique provider tokens** — each `provide` key may only appear once across modules
+  (detected by `RuntimeComposer.validateUniqueProviders()`).
+* 🧩 **Stable priority ordering** — modules are sorted deterministically by priority and declaration order.
+* 🧩 **Platform modules** (e.g. Node, Bun, Express) always run *before* the generic `ServerModule`.
+
+---
+
+> **Tip:**
+> When in doubt, give your custom module `priority: ModulePriority.User` —
+> this guarantees that its services will be available to controllers and middleware.
+
+```
+
+---
+
 ## 🧩 Naming Rules
 
 | Type | Prefix | Example |

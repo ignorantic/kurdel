@@ -9,6 +9,7 @@ import { ModelModule } from 'src/modules/model-module.js';
 import { MiddlewareModule } from 'src/modules/middleware-module.js';
 import { ControllerModule } from 'src/modules/controller-module.js';
 import { ServerModule } from 'src/modules/server-module.js';
+import { ModulePriority } from 'src/app/module-priority.js';
 
 export class ModuleValidationError extends Error {
   constructor(message: string) {
@@ -46,6 +47,19 @@ export class ModuleValidationError extends Error {
  */
 export class RuntimeComposer {
   /**
+   * Default priority map for built-in modules.
+   * Lower = initialized earlier.
+   */
+  private static readonly DEFAULT_PRIORITIES = new Map<string, number>([
+    ['LifecycleModule', ModulePriority.Lifecycle],
+    ['DatabaseModule', ModulePriority.Database],
+    ['ModelModule', ModulePriority.Model],
+    ['MiddlewareModule', ModulePriority.Middleware],
+    ['ControllerModule', ModulePriority.Controller],
+    ['ServerModule', ModulePriority.Server],
+  ]);
+
+  /**
    * Composes the ordered module pipeline for a given {@link AppConfig}.
    *
    * @param config - Application configuration including user modules.
@@ -73,7 +87,7 @@ export class RuntimeComposer {
     );
 
     // Deterministic module pipeline
-    const pipeline: AppModule[] = [
+    const unsorted: AppModule[] = [
       new LifecycleModule(),
       new DatabaseModule(),
       ...modules,
@@ -83,10 +97,30 @@ export class RuntimeComposer {
       new ServerModule(config),
     ];
 
+    // Sort deterministically by priority + index
+    const pipeline = RuntimeComposer.sortByPriority(unsorted);
+
     // Validate token uniqueness before container build
     this.validateUniqueProviders(pipeline);
 
     return pipeline;
+  }
+
+  /**
+   * Deterministically sorts modules by priority.
+   */
+  private static sortByPriority(modules: AppModule[]): AppModule[] {
+    return modules
+      .map((m, index) => ({
+        mod: m,
+        order: index,
+        prio:
+          m.priority ??
+          RuntimeComposer.DEFAULT_PRIORITIES.get(m.constructor.name) ??
+          ModulePriority.User,
+      }))
+      .sort((a, b) => (a.prio === b.prio ? a.order - b.order : a.prio - b.prio))
+      .map(e => e.mod);
   }
 
   /**
