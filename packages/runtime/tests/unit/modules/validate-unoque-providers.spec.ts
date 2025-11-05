@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import type { AppModule } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
 
-import { RuntimeComposer, ModuleValidationError } from 'src/app/runtime-composer.js';
+import { RuntimeComposer } from 'src/app/runtime-composer.js';
+import { ModuleValidationError } from 'src/app/errors/module-validation-error.js';
 
 describe('RuntimeComposer.validateUniqueProviders', () => {
   it('should throw if two modules provide the same token', () => {

@@ -10,13 +10,7 @@ import { MiddlewareModule } from 'src/modules/middleware-module.js';
 import { ControllerModule } from 'src/modules/controller-module.js';
 import { ServerModule } from 'src/modules/server-module.js';
 import { ModulePriority } from 'src/app/module-priority.js';
-
-export class ModuleValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ModuleValidationError';
-  }
-}
+import { ModuleValidationError } from 'src/app/errors/module-validation-error.js';
 
 /**
  * Builds the complete runtime module chain for a Kurdel application.

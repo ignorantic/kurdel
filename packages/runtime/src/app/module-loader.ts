@@ -2,7 +2,7 @@ import type { AppModule, AppConfig } from '@kurdel/core/app';
 import type { Container } from '@kurdel/ioc';
 
 import { ProviderRegistrar } from 'src/app/provider-registrar.js';
-import { ModuleValidationError } from 'src/app/runtime-composer.js';
+import { ModuleValidationError } from 'src/app/errors/module-validation-error.js';
 
 /**
  * Loads and initializes all application modules.

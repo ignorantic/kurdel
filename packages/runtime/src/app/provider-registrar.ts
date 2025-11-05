@@ -1,7 +1,7 @@
 import type { ProviderConfig } from '@kurdel/core/app';
 import type { Container } from '@kurdel/ioc';
 
-import { ProviderConfigurationError } from 'src/app/errrors/provider-configuration-error.js';
+import { ProviderConfigurationError } from 'src/app/errors/provider-configuration-error.js';
 
 /**
  * Registers dependency providers in the IoC container according to DI semantics.
