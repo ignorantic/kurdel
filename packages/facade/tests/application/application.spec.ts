@@ -24,7 +24,7 @@ describe('Application', () => {
     // no module provides TOKEN_A
     await expect(() =>
       createApplication({ serverAdapter: fakeAdapter, db: false, modules: [new ImportingModule()] })
-    ).rejects.toThrow(/Missing dependency/);
+    ).rejects.toThrow(/Module ImportingModule missing dependency/);
   });
 
   it('should throw if expected export not registered', async () => {
