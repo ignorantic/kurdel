@@ -1,8 +1,8 @@
 import type { Container } from '@kurdel/ioc';
 
-import type { RunningServer } from 'src/http/running-server.js';
+import type { RunningServer } from 'src/http/index.js';
 
-import type { AppModule } from 'src/app/app-module.js';
+import type { AppModule } from 'src/app/index.js';
 
 /**
  * Public application contract.

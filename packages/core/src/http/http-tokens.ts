@@ -1,12 +1,14 @@
 import { createGlobalToken } from '@kurdel/ioc';
 
-import type { ServerAdapter } from 'src/http/server-adapter.js';
-import type { Router } from 'src/http/router.js';
-import type { Controller } from 'src/http/controller.js';
-import type { ControllerConfig } from 'src/http/controller-config.js';
-import type { MiddlewareRegistry } from 'src/http/middleware-registry.js';
-import type { ControllerResolver } from 'src/http/controller-resolver.js';
-import type { ResponseRenderer } from 'src/http/response-renderer.js';
+import type {
+  ServerAdapter,
+  Router,
+  Controller,
+  ControllerConfig,
+  MiddlewareRegistry,
+  ControllerResolver,
+  ResponseRenderer,
+} from 'src/http/index.js';
 
 export const HTTP_TOKENS = {
   ServerAdapter: createGlobalToken<ServerAdapter>('@kurdel/core/hhtp:server-adapter'),

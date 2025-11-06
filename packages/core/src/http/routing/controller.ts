@@ -1,8 +1,11 @@
-import type { ActionResult, HtmlResult } from 'src/http/action-result.js';
-import type { HttpContext } from 'src/http/http-context.js';
-import type { Middleware } from 'src/http/middleware.js';
-import type { RouteConfig } from 'src/http/route.js';
-import type { TemplateEngine } from 'src/template/template-engine.js';
+import type {
+  ActionResult,
+  HtmlResult,
+  HttpContext,
+  Middleware,
+  RouteConfig,
+} from 'src/http/index.js';
+import type { TemplateEngine } from 'src/template/index.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export abstract class Controller<TDeps extends Record<string, any> = {}> {

@@ -9,8 +9,8 @@ import {
   InternalServerError,
   NotImplemented,
   ServiceUnavailable,
-} from 'src/http/http-results.js';
-import { HttpError } from 'src/http/http-error.js';
+  HttpError,
+} from 'src/http/index.js';
 
 describe('http-results (HttpError factories)', () => {
   it.each([

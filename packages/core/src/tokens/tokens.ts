@@ -1,6 +1,6 @@
-import { HTTP_TOKENS } from 'src/http/http-tokens.js';
-import { APP_TOKENS } from 'src/app/app-tokens.js';
-import { TemplateEngineToken } from 'src/template/template-tokens.js';
+import { HTTP_TOKENS } from 'src/http/index.js';
+import { APP_TOKENS } from 'src/app/index.js';
+import { TemplateEngineToken } from 'src/template/index.js';
 
 export const TOKENS = {
   ...HTTP_TOKENS,

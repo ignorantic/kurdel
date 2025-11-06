@@ -1,4 +1,4 @@
-import type { JsonValue } from 'src/http/types.js';
+import type { JsonValue } from 'src/http/index.js';
 
 /**
  * Base shape for all HTTP responses returned by controller actions.

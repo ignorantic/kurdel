@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { ActionResult } from 'src/http/types.js';
-import type { HttpContext } from 'src/http/http-context.js';
-import { route, type RouteConfig } from 'src/http/route.js';
-import { Controller } from 'src/http/controller.js';
+import type { ActionResult, HttpContext, RouteConfig } from 'src/http/index.js';
+import { route, Controller } from 'src/http/index.js';
 
 // Simple pure controller used to verify different ActionResult kinds.
 class UsersController extends Controller {

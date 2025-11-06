@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import type { ActionResult } from 'src/http/types.js';
-import type { HttpContext } from 'src/http/http-context.js';
-import type { RouteConfig } from 'src/http/route.js';
-import { Controller } from 'src/http/controller.js';
+import type { ActionResult, HttpContext, RouteConfig } from 'src/http/index.js';
+import { Controller } from 'src/http/index.js';
 
 // simple deferred helper used for deterministic synchronization
 function deferred<T = void>() {

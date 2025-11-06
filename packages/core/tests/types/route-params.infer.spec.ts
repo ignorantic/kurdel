@@ -1,5 +1,5 @@
 import { describe, it, expectTypeOf } from 'vitest';
-import type { RouteParams } from 'src/http/route.js';
+import type { RouteParams } from 'src/http/index.js';
 
 describe('RouteParams<> inference', () => {
   it('infers single param', () => {

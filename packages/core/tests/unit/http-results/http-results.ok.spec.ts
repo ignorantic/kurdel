@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { Ok, Created, NoContent, Redirect, Json } from 'src/http/http-results.js';
+import { Ok, Created, NoContent, Redirect, Json } from 'src/http/index.js';
 
 describe('http-results success helpers', () => {
   it('Ok should wrap value with status 200', () => {

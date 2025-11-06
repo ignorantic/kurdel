@@ -1,8 +1,7 @@
 import { describe, it, expect, expectTypeOf } from 'vitest';
 
-import type { ActionResult } from 'src/http/types.js';
-import type { HttpContext } from 'src/http/http-context.js';
-import { route, ROUTE_META, type RouteParams } from 'src/http/route.js';
+import type { ActionResult, HttpContext, RouteParams } from 'src/http/index.js';
+import { route, ROUTE_META } from 'src/http/index.js';
 
 type Deps = { n: number };
 

@@ -1,6 +1,5 @@
-import type { ActionResult, HtmlResult } from 'src/http/action-result.js';
-import type { JsonValue } from 'src/http/types.js';
-import { HttpError } from 'src/http/http-error.js';
+import type { ActionResult, HtmlResult, JsonValue } from 'src/http/index.js';
+import { HttpError } from 'src/http/index.js';
 
 // success
 export const Ok = (body: JsonValue = { message: 'OK' }): ActionResult => ({

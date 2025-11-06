@@ -1,7 +1,6 @@
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
 
-import type { JsonValue, Query } from 'src/http/types.js';
-import type { ActionResult } from 'src/http/action-result.js';
+import type { JsonValue, Query, ActionResult } from 'src/http/index.js';
 
 export interface HttpContext<TBody = unknown, TParams = Record<string, string>, TReadable = unknown> {
   req: HttpRequest;

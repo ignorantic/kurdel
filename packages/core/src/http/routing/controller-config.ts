@@ -1,8 +1,7 @@
 import type { Newable } from '@kurdel/common';
 import type { Identifier } from '@kurdel/ioc';
 
-import type { Middleware } from 'src/http/middleware.js';
-import type { Controller } from 'src/http/controller.js';
+import type { Middleware, Controller } from 'src/http/index.js';
 
 export interface ControllerConfig {
   /** Controller class */
