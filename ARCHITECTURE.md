@@ -10,7 +10,7 @@ Kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 
 @kurdel/common          → Shared primitives and base HTTP types
 @kurdel/core            → Contracts / tokens / interfaces
-@kurdel/runtime         → Core runtime (routing, middlewares, controllers)
+@kurdel/runtime         → Core runtime (routing, middleware, orchestration)
 @kurdel/runtime-node    → Native Node.js HTTP adapter
 @kurdel/runtime-express → Express adapter
 @kurdel/template-ejs    → EJS template engine integration (SSR)
@@ -26,14 +26,14 @@ Kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 
 ## 🧠 Core Principles
 
-- **Separation of what vs how**  
-  - `core` defines *what* (contracts, tokens, types)  
-  - `runtime` defines *how* (implementations and orchestration)
+- **Separation of What vs How**  
+  - `core` defines *what* — contracts, tokens, and abstract types  
+  - `runtime` defines *how* — concrete behavior and orchestration  
 
-- **SOLID architecture** — each package does one thing and depends only on contracts  
-- **Explicit DI** — no decorators, no hidden magic  
-- **Request-scoped IoC** — every request has its own dependency graph  
-- **Typed end-to-end** — from HTTP request to controller result  
+- **SOLID architecture** — each package has a single clear purpose  
+- **Explicit DI** — no decorators or implicit injections  
+- **Request-scoped IoC** — every HTTP request has an isolated dependency scope  
+- **Fully typed flow** — from request to response renderer  
 - **Zero hidden coupling** — all dependencies are declared explicitly  
 
 ---
@@ -42,16 +42,16 @@ Kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 
 | Layer | Package | Example | Description |
 |--------|----------|----------|-------------|
-| **Common primitives** | `@kurdel/common` | `HttpRequest`, `HttpResponse`, `Result` | Shared low-level types and helpers |
-| **Contracts / API** | `@kurdel/core` | `Application`, `Controller`, `ServerAdapter`, `TOKENS` | Core framework contracts |
-| **Runtime** | `@kurdel/runtime` | `RuntimeApplication`, `RuntimeRouter`, `RuntimeControllerExecutor` | HTTP execution and orchestration |
-| **Platform Adapters** | `@kurdel/runtime-node`, `@kurdel/runtime-express` | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Platform-specific server bindings |
-| **Template Engines** | `@kurdel/template-ejs` | `EjsTemplateModule` | Server-side rendering integration (EJS) |
-| **Facade** | `@kurdel/facade` | `createNodeApplication()` | Public entry points for application setup |
-| **IoC Container** | `@kurdel/ioc` | `createContainer`, `createToken` | Lightweight DI framework |
-| **Database** | `@kurdel/db` | `Model`, `DbConnector` | Data layer abstraction |
-| **Migrations** | `@kurdel/migrations` | `MigrationRunner`, `MigrationConfig` | Schema migration system |
-| **CLI / Tooling** | `@kurdel/pirx` | `pirx generate`, `pirx db:migrate` | Developer tools and project scaffolding |
+| **Common primitives** | `@kurdel/common` | `HttpRequest`, `HttpResponse` | Shared low-level types |
+| **Contracts / API** | `@kurdel/core` | `Controller`, `ServerAdapter`, `TOKENS` | Core framework interfaces |
+| **Runtime** | `@kurdel/runtime` | `RuntimeRouter`, `RuntimeRequestOrchestrator` | Request execution and orchestration |
+| **Platform Adapters** | `@kurdel/runtime-node`, `@kurdel/runtime-express` | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Platform bindings |
+| **Template Engines** | `@kurdel/template-ejs` | `EjsTemplateModule` | Server-side rendering |
+| **Facade** | `@kurdel/facade` | `createNodeApplication()` | Simplified application entry points |
+| **IoC Container** | `@kurdel/ioc` | `createContainer`, `bind()` | Dependency injection system |
+| **Database** | `@kurdel/db` | `Model`, `DbConnector` | Data layer abstractions |
+| **Migrations** | `@kurdel/migrations` | `MigrationRunner` | Schema migration tools |
+| **CLI / Tooling** | `@kurdel/pirx` | `pirx db:migrate` | Developer utilities |
 
 ---
 
@@ -64,139 +64,75 @@ Kurdel is a **modular, strongly-typed** TypeScript framework built on explicit c
 │               ├─► @kurdel/core
 │               ├─► @kurdel/template-ejs
 │               └─► @kurdel/ioc
-
+│
 @kurdel/runtime ─┬─► @kurdel/core
 │                ├─► @kurdel/common
 │                └─► @kurdel/ioc
-
-@kurdel/core ───────► @kurdel/common
-@kurdel/db ─────────► @kurdel/common
-@kurdel/migrations ─► @kurdel/db
-@kurdel/pirx ───────► @kurdel/migrations
+│
+@kurdel/core ────────► @kurdel/common
+@kurdel/db ──────────► @kurdel/common
+@kurdel/migrations ──► @kurdel/db
+@kurdel/pirx ────────► @kurdel/migrations
 
 ```
 
-> `@kurdel/facade` contains no logic — only high-level composition.  
-> `@kurdel/common` sits at the bottom and has zero dependencies.
+> `@kurdel/facade` orchestrates all dependencies but contains no runtime logic.  
+> `@kurdel/common` sits at the very bottom with zero dependencies.
+
+---
+
+## 🚦 Runtime Flow (Post-Decomposition)
+
+```
+
+Request
+├─► ServerAdapter.on(req, res)
+├─► RuntimeRequestOrchestrator.execute()
+├─► RuntimeRouter.resolve() → finds RouteMatch
+├─► RuntimeHttpContextFactory.create()
+├─► RuntimeControllerPipe / RuntimeMiddlewarePipe
+└─► ResponseRenderer.render()
+
+```
+
+### Key responsibilities
+
+| Component | Role |
+|------------|------|
+| **RuntimeRouter** | Resolves routes and path params only |
+| **RuntimeRequestOrchestrator** | Coordinates the full request lifecycle |
+| **RuntimeMiddlewarePipe** | Sequentially executes global and scoped middlewares |
+| **RuntimeControllerPipe** | Executes controller middlewares + target action |
+| **ResponseRenderer** | Converts `ActionResult` → HTTP response |
+| **ServerModule** | Wires together router, orchestrator, and adapter |
 
 ---
 
 ## 🧱 Application Lifecycle
 
-1. **Configuration** — user defines `AppModule` with controllers, middlewares, and templates  
-2. **Bootstrap** — `RuntimeApplication` wires modules, middlewares, and providers  
-3. **Server Start** — platform adapter (`Node`, `Express`, etc.) starts listening  
-4. **Request Handling** — router builds per-request scope and executes controller  
-5. **Rendering (optional)** — template engine (e.g. EJS) handles SSR responses  
-6. **Lifecycle Hooks** — `OnStart` / `OnShutdown` hooks run automatically  
+1. **Configuration** — define `AppModule` with imports, providers, and controllers  
+2. **Bootstrap** — `RuntimeApplication` builds IoC container and validates modules  
+3. **Server start** — `ServerModule` subscribes orchestrator to adapter events  
+4. **Request handling** — orchestrator creates per-request scope and context  
+5. **Routing** — router finds controller + action and params  
+6. **Execution** — middleware chain and controller logic run  
+7. **Rendering** — renderer outputs the final response  
 
 ---
 
 ## ⚙️ Module Priorities
 
-Kurdel runtime composes all application modules in a deterministic order
-based on their **priority level**.  
-Lower values initialize earlier in the pipeline.
-
-This mechanism ensures that user-defined providers (services, repositories, etc.)
-are registered before the HTTP router and controller resolution begin.
-
-| Priority | Enum Constant | Typical Module | Purpose |
-|-----------|----------------|----------------|----------|
-| `10` | `ModulePriority.Lifecycle` | `LifecycleModule` | Framework lifecycle hooks (`OnStart`, `OnShutdown`) |
-| `20` | `ModulePriority.Database` | `DatabaseModule` | Internal DB abstractions and connections |
-| `30` | `ModulePriority.User` | *User / Feature modules* | Application-level providers, services, and hooks |
-| `40` | `ModulePriority.Model` | `ModelModule` | Registers ORM / model definitions |
-| `50` | `ModulePriority.Middleware` | `MiddlewareModule` | Registers HTTP middleware chains |
-| `60` | `ModulePriority.Controller` | `ControllerModule` | Registers controllers and route bindings |
-| `65` | `ModulePriority.Platform` | `NodeHttpRuntimeModule` | Platform-specific bindings (e.g. ResponseRenderer) |
-| `70` | `ModulePriority.Server` | `ServerModule` | Wires the platform adapter and starts HTTP routing |
-| `100` | `ModulePriority.Custom` *(default)* | — | Fallback for modules without explicit priority |
-
-> 🧭 **Design rule:**  
-> Custom application modules should usually use `ModulePriority.User`  
-> unless they explicitly extend the framework lifecycle.
-
-### Example
-
-```ts
-import { ModulePriority } from '@kurdel/core/app';
-import { TOKENS } from '@kurdel/core/tokens';
-import { UserService } from './user.service.js';
-
-export const UserModule: AppModule = {
-  priority: ModulePriority.User,
-  providers: [
-    { provide: UserService, useClass: UserService },
-  ],
-  controllers: [
-    { use: UserController },
-  ],
-};
-```
-
----
-
-### Runtime Composition Flow
-
-```
-LifecycleModule (10)
-└─► DatabaseModule (20)
-    └─► UserModules (30)
-        └─► ModelModule (40)
-            └─► MiddlewareModule (50)
-                └─► ControllerModule (60)
-                    └─► NodeHttpRuntimeModule (65)
-                        └─► ServerModule (70)
-```
-
-Each module layer has a clearly defined purpose:
-
-* Early layers initialize infrastructure and data sources.
-* Mid layers register business logic and HTTP behaviors.
-* Late layers wire the runtime and platform-specific integrations.
-
----
-
-### Validation Rules
-
-Kurdel automatically validates the final module chain:
-
-* 🧩 **Unique provider tokens** — each `provide` key may only appear once across modules
-  (detected by `RuntimeComposer.validateUniqueProviders()`).
-* 🧩 **Stable priority ordering** — modules are sorted deterministically by priority and declaration order.
-* 🧩 **Platform modules** (e.g. Node, Bun, Express) always run *before* the generic `ServerModule`.
-
----
-
-> **Tip:**
-> When in doubt, give your custom module `priority: ModulePriority.User` —
-> this guarantees that its services will be available to controllers and middleware.
-
-```
-
----
-
-## 🧩 Naming Rules
-
-| Type | Prefix | Example |
-|------|---------|---------|
-| Contract implementation | `Runtime` | `RuntimeApplication`, `RuntimeRouter` |
-| Platform adapter | `Native` / `Express` | `NativeHttpServerAdapter`, `ExpressServerAdapter` |
-| Template engine | engine name | `EjsTemplateModule`, `HandlebarsTemplateModule` *(planned)* |
-| Framework module | *(none)* | `ServerModule`, `ControllerModule` |
-| CLI or tooling | `pirx` | `pirx db:migrate` |
-| Test / mock | `Test` / `Fake` | `FakeController`, `TestServerAdapter` |
-
----
-
-## 🧰 Extensibility
-
-- All runtime contracts (router, controller resolver, etc.) can be overridden via IoC  
-- Modules can register custom providers or override core implementations  
-- Template engines implement the `TemplateEngine` interface and can be plugged in dynamically  
-- `pirx` CLI supports plugin commands  
-- Planned adapters: **Edge**, **Bun**, **Deno**, **Cloudflare Workers**
+| Priority | Enum | Typical Module | Purpose |
+|-----------|-------|----------------|----------|
+| `10` | `Lifecycle` | `LifecycleModule` | Start/stop hooks |
+| `20` | `Database` | `DatabaseModule` | DB setup |
+| `30` | `User` | Application modules | User-level providers |
+| `40` | `Model` | `ModelModule` | Model registration |
+| `50` | `Middleware` | `MiddlewareModule` | Global middleware registration |
+| `60` | `Controller` | `ControllerModule` | Controllers and routes |
+| `65` | `Platform` | `NodePlatformModule`, `ExpressPlatformModule` | Adapter + renderer |
+| `70` | `Server` | `ServerModule` | Connects adapter + orchestrator |
+| `100` | `Custom` | — | Default for unknown modules |
 
 ---
 
@@ -205,76 +141,37 @@ Kurdel automatically validates the final module chain:
 ```
 
 src/
-runtime-application.ts
+  app/
+    runtime-application.ts
 http/
-runtime-router.ts
-runtime-controller-resolver.ts
-runtime-controller-executor.ts
+  runtime-router.ts
+  runtime-request-orchestrator.ts
+  runtime-controller-pipe.ts
+  runtime-middleware-pipe.ts
+  runtime-http-context-factory.ts
 modules/
-server-module.ts
-controller-module.ts
-lifecycle-module.ts
-middleware-module.ts
+  server-module.ts
+  controller-module.ts
+  lifecycle-module.ts
+  middleware-module.ts
 
 ```
 
 ---
 
-## 🧩 Database & Migrations
+## 🧩 Summary of the Refactor
 
-### `@kurdel/db`
-Provides:
-- `DbConnector` interface and model abstractions  
-- Base `Model` class with CRUD helpers  
-- Optional model auto-registration module  
-
-### `@kurdel/migrations`
-Provides:
-- Migration registry and runner  
-- CLI commands (`pirx db:migrate`, `pirx db:rollback`)  
-- Storage backends: filesystem, SQL, JSON  
+✅ Router is now **pure** — it only resolves routes and parameters.  
+✅ Orchestrator is **central** — it manages middleware, controller, and rendering.  
+✅ Middleware chains are unified through reusable `RuntimeMiddlewarePipe`.  
+✅ Global middlewares are no longer part of the router — they live in `ServerModule`.  
+✅ Test suite migrated to integration-level route orchestration coverage.  
 
 ---
 
-## 🧮 CLI and Developer Tools
-
-### `@kurdel/pirx`
-Provides:
-- `pirx new` — scaffold new apps  
-- `pirx db:migrate` — run migrations  
-- `pirx inspect` — inspect IoC bindings  
-- `pirx build` — coordinate monorepo builds  
-
----
-
-## 🧩 Public Imports
-
-Users import from stable entry points only:
-
-```ts
-import { createNodeApplication } from '@kurdel/facade';
-import { Controller, route, Ok } from '@kurdel/core/http';
-import { EjsTemplateModule } from '@kurdel/template-ejs';
-import type { AppModule } from '@kurdel/core/app';
-```
-
----
-
-## 🧩 Summary
-
-✅ **`common`** — primitives
-✅ **`core`** — contracts
-✅ **`runtime`** — execution logic
-✅ **`template-ejs`** — SSR rendering
-✅ **`facade`** — public API
-✅ **`ioc`** — dependency injection
-✅ **`db` / `migrations`** — persistence layer
-✅ **`pirx`** — CLI and tooling
-
----
-
-> Kurdel follows a **strict layered model**:
-> business logic never leaks upward, abstractions always depend inward.
+> **Result:**  
+> The runtime layer is now more testable, composable, and platform-agnostic —  
+> no implicit routing behavior or hidden dependencies remain.
 
 ---
 
