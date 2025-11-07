@@ -1,8 +1,21 @@
 import { describe, it, expect, vi } from 'vitest';
+
 import type { ServerAdapter } from '@kurdel/core/http';
 import { TOKENS } from '@kurdel/core/tokens';
+
 import { RuntimeApplication } from 'src/app/runtime-application.js';
 import { LifecycleModule } from 'src/modules/lifecycle-module.js';
+import { NoopResponseRenderer } from 'src/http/noop-response-renderer.js';
+
+const RendererModule = {
+  providers: [
+    {
+      provide: TOKENS.ResponseRenderer,
+      useFactory: () => new NoopResponseRenderer(),
+      singleton: true,
+    },
+  ],
+};
 
 /**
  * Verifies that RunningServer.raw() correctly proxies to ServerAdapter.raw()
@@ -35,7 +48,7 @@ describe('Application lifecycle - RunningServer.raw()', () => {
     };
 
     const app = new RuntimeApplication({
-      modules: [new LifecycleModule(), AdapterModule],
+      modules: [new LifecycleModule(), AdapterModule, RendererModule],
       db: false,
     });
 
@@ -70,7 +83,7 @@ describe('Application lifecycle - RunningServer.raw()', () => {
     };
 
     const app = new RuntimeApplication({
-      modules: [new LifecycleModule(), AdapterModule],
+      modules: [new LifecycleModule(), AdapterModule, RendererModule],
       db: false,
     });
 

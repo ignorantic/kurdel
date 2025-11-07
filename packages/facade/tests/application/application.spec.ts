@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
+
 import { type AppModule } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
+import { NoopResponseRenderer } from '@kurdel/runtime/http';
+
 import { createApplication } from 'src/create-application.js';
 
 const TOKEN_A = Symbol('A');
@@ -25,6 +28,16 @@ const AdapterModule: AppModule = {
   ],
 };
 
+const RendererModule = {
+  providers: [
+    {
+      provide: TOKENS.ResponseRenderer,
+      useFactory: () => new NoopResponseRenderer(),
+      singleton: true,
+    },
+  ],
+};
+
 describe('Application', () => {
   it('should throw if required import is missing', async () => {
     class ImportingModule implements AppModule {
@@ -35,7 +48,7 @@ describe('Application', () => {
     await expect(() =>
       createApplication({
         db: false,
-        modules: [AdapterModule, new ImportingModule()],
+        modules: [AdapterModule, RendererModule, new ImportingModule()],
       })
     ).rejects.toThrow(/Module ImportingModule missing dependency/);
   });
@@ -49,7 +62,7 @@ describe('Application', () => {
     await expect(() =>
       createApplication({
         db: false,
-        modules: [AdapterModule, new BadModule()],
+        modules: [AdapterModule, RendererModule, new BadModule()],
       })
     ).rejects.toThrow(/did not register expected export/);
   });
@@ -69,7 +82,7 @@ describe('Application', () => {
 
     const app = await createApplication({
       db: false,
-      modules: [AdapterModule, new FactoryModule()],
+      modules: [AdapterModule, RendererModule, new FactoryModule()],
     });
     const ioc = app.getContainer();
 
@@ -94,7 +107,7 @@ describe('Application', () => {
 
     const app = await createApplication({
       db: false,
-      modules: [AdapterModule, new FactoryModule()],
+      modules: [AdapterModule, RendererModule, new FactoryModule()],
     });
     const ioc = app.getContainer();
 

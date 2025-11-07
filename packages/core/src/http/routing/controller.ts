@@ -20,11 +20,6 @@ export abstract class Controller<TDeps extends Record<string, any> = {}> {
     this.middlewares.push(mw);
   }
 
-  /** Exposed for runtime to build the pipeline. */
-  getMiddlewares(): Middleware[] {
-    return this.middlewares;
-  }
-
   /** Exposed for runtime to resolve an action. */
   getAction(actionName: string) {
     return this.routes[actionName];

@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
+
 import { TOKENS } from '@kurdel/core/tokens';
 import type { ServerAdapter } from '@kurdel/core/http';
+
 import { RuntimeApplication } from 'src/app/runtime-application.js';
 import { LifecycleModule } from 'src/modules/lifecycle-module.js';
+import { NoopResponseRenderer } from 'src/http/noop-response-renderer.js';
 
 /**
  * Verifies correct startup/shutdown hook ordering and adapter wiring.
@@ -38,9 +41,20 @@ describe('Application lifecycle – order & wiring', () => {
       ],
     };
 
+    // Renderer provider module
+    const RendererModule = {
+      providers: [
+        {
+          provide: TOKENS.ResponseRenderer,
+          useFactory: () => new NoopResponseRenderer(),
+          singleton: true,
+        },
+      ],
+    };
+
     // Construct the app with lifecycle + adapter modules
     const app = new RuntimeApplication({
-      modules: [new LifecycleModule(), AdapterModule],
+      modules: [new LifecycleModule(), AdapterModule, RendererModule],
       db: false,
     });
 

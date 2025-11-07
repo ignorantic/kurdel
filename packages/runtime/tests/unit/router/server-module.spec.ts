@@ -30,7 +30,7 @@ describe('ServerModule', () => {
     const fakeRegistry = { all: vi.fn().mockReturnValue([]) };
     const fakeControllerConfigs: ControllerConfig[] = [];
     const fakeResolver = {};
-    const fakeResponseRenderer = {};
+    const fakeResponseRenderer = { render: vi.fn() };
 
     const fakeAdapter = {
       on: vi.fn((cb: (req: any, res: any) => void | Promise<void>) => {

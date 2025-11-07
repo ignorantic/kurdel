@@ -1,14 +1,20 @@
 import type { HttpContext, Controller, Middleware, ActionResult } from '@kurdel/core/http';
-
 import { RuntimeMiddlewarePipe } from 'src/http/runtime-middleware-pipe.js';
 
 /**
- * Executes a controller action inside a composed middleware pipeline.
+ * RuntimeControllerPipe
+ *
+ * Executes a controller action within a pre-assembled middleware chain.
+ *
+ * Notes:
+ * - The list of middlewares is prepared upstream (e.g. by RuntimeRequestOrchestrator)
+ * - ControllerPipe does not merge middlewares itself
+ * - If the action is missing, produces a 404 text result
  */
-export class RuntimeControllerPipe {
-  constructor(private readonly globalMiddlewares: Middleware[] = []) {}
+export class RuntimeControllerPipe<TReadable = unknown> {
+  constructor(private readonly middlewares: readonly Middleware<HttpContext<any, any, TReadable>>[] = []) {}
 
-  async run<TReadable = unknown>(
+  async run(
     controller: Controller<any>,
     ctx: HttpContext<unknown, Record<string, string>, TReadable>,
     actionName: string
@@ -16,12 +22,16 @@ export class RuntimeControllerPipe {
     const handler = controller.getAction(actionName);
 
     if (typeof handler !== 'function') {
-      return ctx.text(404, `Action '${actionName}' not found in '${controller.constructor.name}'.`);
+      return ctx.text(
+        404,
+        `Action '${actionName}' not found in '${controller.constructor.name}'.`
+      );
     }
 
-    const allMiddlewares = [...this.globalMiddlewares, ...controller.getMiddlewares()];
-    const pipe = new RuntimeMiddlewarePipe(allMiddlewares);
+    const pipe = new RuntimeMiddlewarePipe(this.middlewares as  Middleware[]);
 
-    return pipe.run<TReadable>(ctx, async () => (await handler.call(controller, ctx))  as ActionResult<TReadable>);
+    return pipe.run(ctx, async () =>
+      (await handler.call(controller, ctx)) as ActionResult<TReadable>
+    );
   }
 }

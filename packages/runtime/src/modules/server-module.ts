@@ -7,21 +7,29 @@ import type {
   ControllerConfig,
   MiddlewareRegistry,
   ControllerResolver,
-  Method,
   ResponseRenderer,
 } from '@kurdel/core/http';
 
 import { NoopResponseRenderer } from 'src/http/noop-response-renderer.js';
+import { RuntimeRequestOrchestrator } from 'src/http/runtime-request-orchestrator.js';
+import { ModulePriority } from 'src/app/module-priority.js';
 
 /**
  * ServerModule: wires the HTTP ServerAdapter to the Router.
  *
- * Responsibilities:
- * - Provides a platform-agnostic ServerAdapter (injected via AppConfig)
- * - Initializes Router with all controllers and middlewares
- * - Delegates actual HTTP handling to the adapter (no Node/Bun specifics here)
+ * ## Responsibilities
+ * - Binds the platform-agnostic `ServerAdapter` (provided externally)
+ * - Initializes the `Router` with controller metadata and global middlewares
+ * - Creates the `RuntimeRequestOrchestrator` to handle per-request execution
+ * - Subscribes the orchestrator to incoming HTTP requests from the adapter
+ *
+ * ## Design Notes
+ * - The module itself contains **no platform-specific logic**
+ * - Orchestrator fully owns request lifecycle (scope, middleware, controller, render)
  */
 export class ServerModule implements AppModule<AppConfig> {
+  readonly priority = ModulePriority.Server;
+
   readonly imports = {
     router: TOKENS.Router,
     registry: TOKENS.MiddlewareRegistry,
@@ -40,35 +48,31 @@ export class ServerModule implements AppModule<AppConfig> {
     const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
     const controllerConfigs = ioc.get<ControllerConfig[]>(TOKENS.ControllerConfigs);
     const resolver = ioc.get<ControllerResolver>(TOKENS.ControllerResolver);
+    const renderer = ioc.get<ResponseRenderer>(TOKENS.ResponseRenderer);
+
+    // --- ensure a response renderer exists
     if (!ioc.has(TOKENS.ResponseRenderer)) {
       ioc.bind(TOKENS.ResponseRenderer).toInstance(new NoopResponseRenderer());
     }
-    const renderer = ioc.get<ResponseRenderer>(TOKENS.ResponseRenderer);
 
-    // Initialize router with controller metadata & middlewares
-    router.init({
-      resolver,
-      renderer,
-      controllerConfigs,
-      middlewares: registry.all(),
-    });
+    // --- initialize router once with all metadata
+    router.init(resolver, controllerConfigs);
 
+    // --- compose orchestrator for request lifecycle
+    const orchestrator = new RuntimeRequestOrchestrator(router, renderer, registry.all());
+
+    // --- connect adapter to orchestrator
     adapter.on(async (req, res) => {
       const scope = ioc.createScope?.() ?? ioc;
 
-      (req as any).__ioc = scope;
-
-      const method = (req.method as Method) ?? 'GET';
-      const url = req.url ?? '/';
-
-      const handler = router.resolve(method, url, scope);
-      if (!handler) {
-        if (typeof res.status === 'number') (res as any).statusCode = 404;
-        (res as any).end?.();
-        return;
+      try {
+        await orchestrator.execute(req, res, scope);
+      } catch (err) {
+        // fallback-level error safety
+        console.error(`[ServerModule] Uncaught error in orchestrator for ${req.method} ${req.url}:`, err);
+        if ((res as any).statusCode !== 500) (res as any).statusCode = 500;
+        renderer.render(res, { status: 500, kind: 'text', body: 'Internal Server Error' });
       }
-
-      await Promise.resolve(handler(req, res));
     });
   }
 }

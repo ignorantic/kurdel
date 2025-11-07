@@ -64,7 +64,7 @@ describe('Kurdel EJS Demo E2E', () => {
   it('renders 404 page for missing route', async () => {
     const res = await request(server.raw()).get('/missing-page');
     expect(res.status).toBe(404);
-    expect(res.text).toContain('404');
+    expect(res.text).toContain('Not Found');
   });
 
   it('renders 500 page for internal error', async () => {

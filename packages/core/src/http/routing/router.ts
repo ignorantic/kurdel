@@ -1,34 +1,38 @@
 import type { Container } from '@kurdel/ioc';
-import type { HttpRequest, HttpResponse } from '@kurdel/common';
-
 import type {
   Method,
   ControllerConfig,
   ControllerResolver,
-  ResponseRenderer,
-  Middleware,
+  RouteMatch,
 } from 'src/http/index.js';
 
-export interface RouterDeps {
-  resolver: ControllerResolver;
-  renderer: ResponseRenderer;
-  controllerConfigs: ControllerConfig[];
-  middlewares: Middleware[];
-}
-
+/**
+ * A minimal HTTP router contract.
+ *
+ * Responsibilities:
+ * - Register routes at bootstrap (`init`)
+ * - Resolve a request (method + path) to an executable handler
+ * - Leave actual execution (middlewares, controller action, rendering)
+ *   to higher orchestration layers.
+ */
 export interface Router {
-  middlewares: Middleware[];
-
-  /** Prepare routes (called once at bootstrap) */
-  init(deps: RouterDeps): void;
+  /**
+   * Initializes the routing table and prepares route lookup.
+   * Called exactly once during application bootstrap.
+   */
+  init(resolver: ControllerResolver, controllerConfigs: ControllerConfig[]): void;
 
   /**
-   * Find a handler for method+url; returns a callable or null
-   * adapter вызовет его как handler(req, res)
+   * Attempts to resolve a route for the given HTTP method and URL.
+   *
+   * Returns a {@link RouteMatch} describing which controller/action to execute,
+   * or `null` if no route matches.
+   *
+   * The returned object is later executed by RuntimeRequestOrchestrator.
    */
   resolve(
     method: Method,
     url: string,
     scope: Container
-  ): ((req: HttpRequest, res: HttpResponse) => Promise<void> | void) | null;
+  ): RouteMatch | null;
 }

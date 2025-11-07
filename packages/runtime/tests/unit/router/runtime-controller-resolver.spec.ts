@@ -7,7 +7,7 @@ class Sample {
   constructor(public name: string) {}
 }
 
-describe('ControllerResolverImpl', () => {
+describe('RuntimeControllerResolver', () => {
   it('resolves from request scope first, then falls back to root', () => {
     const root = new FakeContainer();
     const scope = root.createScope();
