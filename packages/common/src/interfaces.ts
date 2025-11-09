@@ -27,7 +27,7 @@ export interface HttpResponse {
 
   /** End the response stream (optional final data chunk). */
   end?(chunk?: any): void;
-  
+
   /** Marks the response as already sent. */
   sent: boolean;
 

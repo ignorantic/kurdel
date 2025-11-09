@@ -45,7 +45,7 @@ export type ProviderConfig<T = any> =
 export interface AppModule<TConfig = AppConfig> {
   /** Determines initialization order. Lower = earlier. */
   readonly priority?: number;
-  
+
   /** Tokens or modules this one depends on */
   readonly imports?: Identifier<any>[] | Record<string, Identifier<any>>;
 

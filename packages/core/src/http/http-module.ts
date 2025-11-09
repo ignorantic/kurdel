@@ -2,7 +2,7 @@ import type { ModelList } from 'src/db/model.js';
 import type { AppModule } from 'src/app/app-module.js';
 import type { AppConfig } from 'src/app/app-config.js';
 
-import type { Middleware, ControllerConfig } from 'src/http/index.js';
+import type { Middleware, ControllerConfig, MiddlewareRegistration } from 'src/http/index.js';
 
 /**
  * HttpModule
@@ -32,10 +32,8 @@ import type { Middleware, ControllerConfig } from 'src/http/index.js';
  * }
  * ```
  */
-export interface HttpModule<
-  TConfig = AppConfig,
-  out TReadable = unknown  
-> extends AppModule<TConfig> {
+export interface HttpModule<TConfig = AppConfig, out TReadable = unknown>
+  extends AppModule<TConfig> {
   /**
    * Models that should be registered
    * through the ModelModule
@@ -49,8 +47,20 @@ export interface HttpModule<
   readonly controllers?: ControllerConfig[];
 
   /**
-   * Middleware that should be registered
-   * through the MiddlewareModule
+   * Global middlewares provided by this module.
+   *
+   * Middlewares may be defined either as raw functions:
+   * ```ts
+   * readonly middlewares = [loggingMiddleware];
+   * ```
+   *
+   * or as structured registrations with zone and priority:
+   * ```ts
+   * readonly middlewares = [
+   *   { use: loggingMiddleware, zone: 'post', priority: 10 },
+   *   { use: corsMiddleware, zone: 'pre', priority: 0 },
+   * ];
+   * ```
    */
-  readonly middlewares?: Middleware<unknown, TReadable>[];
+  readonly middlewares?: Array<Middleware<unknown, TReadable> | MiddlewareRegistration>;
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { Method, ControllerConfig } from '@kurdel/core/http';
+import type { ControllerConfig } from '@kurdel/core/http';
 
 import { RuntimeRouter } from 'src/http/runtime-router.js';
 import { RuntimeRequestOrchestrator } from 'src/http/runtime-request-orchestrator.js';
@@ -8,12 +8,14 @@ import { FakeContainer } from './fake-container.js';
 import { FakeResolver } from './fake-resolver.js';
 import { FakeController } from './fake-controller.js';
 import { FakeResponseRenderer } from './fake-response-renderer.js';
+import { RuntimeMiddlewareRegistry } from 'src/http/runtime-middleware-registry.js';
 
 function makeEnvironment(configs: ControllerConfig[] = []) {
   const root = new FakeContainer();
   const resolver = new FakeResolver(root);
   const renderer = new FakeResponseRenderer();
   const router = new RuntimeRouter();
+  const registry = new RuntimeMiddlewareRegistry();
 
   // Temporary root controller for route compilation
   root.set(FakeController as any, new FakeController({ tag: 'root', calls: [] }));
@@ -22,7 +24,7 @@ function makeEnvironment(configs: ControllerConfig[] = []) {
   router.init(resolver, configs);
 
   // No global middlewares for now
-  const orchestrator = new RuntimeRequestOrchestrator(router, renderer, []);
+  const orchestrator = new RuntimeRequestOrchestrator(router, renderer, registry);
   return { router, renderer, orchestrator, root };
 }
 

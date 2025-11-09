@@ -1,9 +1,4 @@
-import type {
-  Controller,
-  HttpContext,
-  Method,
-  Middleware,
-} from 'src/http/index.js';
+import type { Controller, Method } from 'src/http/index.js';
 
 export interface RouteMatch {
   controller: Controller<any>;
@@ -11,6 +6,5 @@ export interface RouteMatch {
   action: string;
   path: string;
   params: Record<string, string>;
-  middlewares: Middleware<HttpContext>[];
   meta?: Record<string, any>;
 }

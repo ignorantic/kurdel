@@ -24,7 +24,7 @@ export class UserController extends Controller<Deps> {
     getAll: route({ method: 'GET', path: '/' })(this.getAll),
   };
 
-  async create (ctx: HttpContext<{ name: string, role: string }, unknown>): Promise<ActionResult> {
+  async create (ctx: HttpContext<{ name: string, role: string }>): Promise<ActionResult> {
     const { name, role } = ctx.body ?? {};
 
     if (typeof name !== 'string') {

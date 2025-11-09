@@ -30,6 +30,6 @@ import { createApplication } from 'src/create-application.js';
 export function createNodeApplication({ modules = [], ...config }: AppConfig) {
   return createApplication({
     ...config,
-    modules: [...modules, NodePlatformModule]
+    modules: [...modules, NodePlatformModule],
   });
 }

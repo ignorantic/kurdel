@@ -14,10 +14,7 @@ import type { Middleware, HttpContext, ActionResult } from '@kurdel/core/http';
  * - Fallback to `next()` if file not found
  */
 export function serveStaticMiddleware(rootDir: string): Middleware<unknown, NodeJS.ReadableStream> {
-  return async (
-    ctx: HttpContext,
-    next
-  ): Promise<void | ActionResult<NodeJS.ReadableStream>> => {
+  return async (ctx: HttpContext, next): Promise<void | ActionResult<NodeJS.ReadableStream>> => {
     try {
       // Normalize path to prevent traversal (`..`)
       const urlPath = decodeURIComponent(ctx.url.pathname ?? '/');

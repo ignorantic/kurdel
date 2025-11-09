@@ -14,27 +14,23 @@ describe('RuntimeComposer.validateUniqueProviders', () => {
       providers: [{ provide: TOKENS.ResponseRenderer, useInstance: {} }],
     };
 
-    expect(() =>
-      (RuntimeComposer as any).validateUniqueProviders([modA, modB])
-    ).toThrow(ModuleValidationError);
+    expect(() => (RuntimeComposer as any).validateUniqueProviders([modA, modB])).toThrow(
+      ModuleValidationError
+    );
   });
 
   it('should pass when tokens are unique', () => {
     const modA: AppModule = { providers: [{ provide: 'A', useInstance: {} }] };
     const modB: AppModule = { providers: [{ provide: 'B', useInstance: {} }] };
 
-    expect(() =>
-      (RuntimeComposer as any).validateUniqueProviders([modA, modB])
-    ).not.toThrow();
+    expect(() => (RuntimeComposer as any).validateUniqueProviders([modA, modB])).not.toThrow();
   });
 
   it('should not fail if modules have no providers', () => {
     const modA: AppModule = {};
     const modB: AppModule = {};
 
-    expect(() =>
-      (RuntimeComposer as any).validateUniqueProviders([modA, modB])
-    ).not.toThrow();
+    expect(() => (RuntimeComposer as any).validateUniqueProviders([modA, modB])).not.toThrow();
   });
 
   it('should include module names in error message', () => {

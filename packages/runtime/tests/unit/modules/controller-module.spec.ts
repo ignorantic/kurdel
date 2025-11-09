@@ -5,33 +5,42 @@ import { Controller, type MiddlewareRegistry } from '@kurdel/core/http';
 import { ControllerModule } from 'src/modules/controller-module.js';
 
 describe('ControllerModule', () => {
-  it('should provide Router and CONTROLLER_CLASSES', () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    class TestController extends Controller<{}> {
+  it('should provide Router and ControllerConfigs', () => {
+    class TestController extends Controller<any> {
       readonly routes = {};
     }
 
     const module = new ControllerModule([{ use: TestController }]);
 
-    const routerProvider = module.providers.find(p => 'provide' in p);
-    const controllersProvider = module.providers.find(
-      p => 'provide' in p && p.provide === TOKENS.ControllerClasses
-    );
+    const routerProvider = module.providers.find(p => p.provide === TOKENS.Router);
+    const configsProvider = module.providers.find(p => p.provide === TOKENS.ControllerConfigs);
 
     expect(routerProvider).toBeDefined();
-    expect(controllersProvider?.useInstance).toContain(TestController);
+    expect(configsProvider).toBeDefined();
+    expect(configsProvider?.useInstance).toContainEqual({ use: TestController });
   });
 
-  it('should register local middlewares', async () => {
+  it('should register controller-level middlewares', async () => {
     const mw = vi.fn();
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    class TestController extends Controller<{}> {
+
+    class TestController extends Controller<any> {
       readonly routes = {};
     }
 
-    const fakeRegistry = { useFor: vi.fn(), all: () => [] } as unknown as MiddlewareRegistry;
+    const fakeRegistry = {
+      useFor: vi.fn(),
+      all: vi.fn(() => []),
+      for: vi.fn(() => []),
+    } as unknown as MiddlewareRegistry;
+
+    const fakeRouter = { init: vi.fn() };
+
     const fakeIoc = {
-      get: vi.fn(() => fakeRegistry),
+      get: vi.fn(token => {
+        if (token === TOKENS.MiddlewareRegistry) return fakeRegistry;
+        if (token === TOKENS.Router) return fakeRouter;
+        return undefined;
+      }),
       bind: vi.fn(() => ({
         toConstantValue: vi.fn(),
         toInstance: vi.fn(),
@@ -43,6 +52,10 @@ describe('ControllerModule', () => {
 
     await module.register(fakeIoc as any);
 
-    expect(fakeRegistry.useFor).toHaveBeenCalledWith(TestController, mw);
+    expect(fakeRegistry.useFor).toHaveBeenCalledWith(
+      TestController,
+      mw,
+      expect.objectContaining({ zone: 'pre', priority: 0 })
+    );
   });
 });

@@ -37,7 +37,9 @@ export class ModuleLoader {
       if (mod.imports) {
         for (const dep of Object.values(mod.imports)) {
           if (!this.ioc.has(dep)) {
-            throw new ModuleValidationError(`Module ${mod.constructor.name} missing dependency: ${String(dep)}`);
+            throw new ModuleValidationError(
+              `Module ${mod.constructor.name} missing dependency: ${String(dep)}`
+            );
           }
         }
       }
@@ -58,7 +60,9 @@ export class ModuleLoader {
       if (mod.exports) {
         for (const token of Object.values(mod.exports)) {
           if (!this.ioc.has(token)) {
-            throw new ModuleValidationError(`Module did not register expected export: ${String(token)}`);
+            throw new ModuleValidationError(
+              `Module did not register expected export: ${String(token)}`
+            );
           }
         }
       }

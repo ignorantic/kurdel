@@ -16,7 +16,10 @@ export function renderExpressActionResult(res: Response, r: ActionResult): void 
       break;
 
     case 'html':
-      res.status(r.status).type(r.contentType ?? 'text/html; charset=utf-8').send(r.body);
+      res
+        .status(r.status)
+        .type(r.contentType ?? 'text/html; charset=utf-8')
+        .send(r.body);
       break;
 
     case 'redirect':

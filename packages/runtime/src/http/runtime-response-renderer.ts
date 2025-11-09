@@ -7,9 +7,7 @@ import type { HttpResponse } from '@kurdel/common';
  * and unified error translation.
  */
 export class RuntimeResponseRenderer implements ResponseRenderer {
-  constructor(
-    private readonly platformRender: (res: HttpResponse, result: ActionResult) => void
-  ) {}
+  constructor(private readonly platformRender: (res: HttpResponse, result: ActionResult) => void) {}
 
   render(res: HttpResponse, result: ActionResult | void): void {
     if (!res.sent && result) {

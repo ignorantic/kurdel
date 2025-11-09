@@ -19,7 +19,7 @@ describe('ReactTemplateEngine', async () => {
           React.createElement('body', null, children)
         );
       }
-    `,
+    `
   );
 
   const writeView = async (name: string, content: string) => {

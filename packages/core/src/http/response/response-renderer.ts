@@ -4,5 +4,5 @@ import type { ActionResult } from 'src/http/index.js';
 
 export interface ResponseRenderer {
   render(res: HttpResponse, result: ActionResult | void): void;
-  handleError(res: HttpResponse, err: unknown): void
+  handleError(res: HttpResponse, err: unknown): void;
 }

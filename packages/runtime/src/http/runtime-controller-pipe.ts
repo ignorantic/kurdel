@@ -12,7 +12,9 @@ import { RuntimeMiddlewarePipe } from 'src/http/runtime-middleware-pipe.js';
  * - If the action is missing, produces a 404 text result
  */
 export class RuntimeControllerPipe<TReadable = unknown> {
-  constructor(private readonly middlewares: readonly Middleware<HttpContext<any, any, TReadable>>[] = []) {}
+  constructor(
+    private readonly middlewares: readonly Middleware<HttpContext<any, any, TReadable>>[] = []
+  ) {}
 
   async run(
     controller: Controller<any>,
@@ -22,16 +24,16 @@ export class RuntimeControllerPipe<TReadable = unknown> {
     const handler = controller.getAction(actionName);
 
     if (typeof handler !== 'function') {
-      return ctx.text(
-        404,
-        `Action '${actionName}' not found in '${controller.constructor.name}'.`
-      );
+      return ctx.text(404, `Action '${actionName}' not found in '${controller.constructor.name}'.`);
     }
 
-    const pipe = new RuntimeMiddlewarePipe(this.middlewares as  Middleware[]);
+    const pipe = new RuntimeMiddlewarePipe(this.middlewares as Middleware[]);
 
-    return pipe.run(ctx, async () =>
-      (await handler.call(controller, ctx)) as ActionResult<TReadable>
+    const result = await pipe.run(
+      ctx,
+      async () => (await handler.call(controller, ctx)) as ActionResult<TReadable>
     );
+
+    return result as ActionResult<TReadable> | void;
   }
 }

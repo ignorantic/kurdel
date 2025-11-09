@@ -32,10 +32,7 @@ export class ReactTemplateEngine implements TemplateEngine {
    * @param data - Props to pass both to Document and the view
    * @returns Rendered HTML string with <!DOCTYPE html>
    */
-  public async render(
-    view: string,
-    data: Record<string, unknown> = {}
-  ): Promise<string> {
+  public async render(view: string, data: Record<string, unknown> = {}): Promise<string> {
     // 1️⃣ Load Document (HTML shell)
     const documentPath: string = path.resolve(this.baseDir, 'document.js');
     const documentUrl: string = pathToFileURL(documentPath).href;

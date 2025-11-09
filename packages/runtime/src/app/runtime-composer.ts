@@ -1,5 +1,10 @@
 import type { AppConfig, AppModule } from '@kurdel/core/app';
-import type { HttpModule, ControllerConfig, Middleware } from '@kurdel/core/http';
+import type {
+  HttpModule,
+  ControllerConfig,
+  MiddlewareRegistration,
+  Middleware,
+} from '@kurdel/core/http';
 import type { Identifier } from '@kurdel/ioc';
 import type { ModelList } from '@kurdel/core/db';
 
@@ -67,17 +72,28 @@ export class RuntimeComposer {
 
     // Extract HttpModules that declare HTTP-related artifacts
     const httpModules = modules.filter(
-      (m): m is HttpModule =>
-        'models' in m || 'controllers' in m || 'middlewares' in m
+      (m): m is HttpModule => 'models' in m || 'controllers' in m || 'middlewares' in m
     );
 
     // Aggregate HTTP declarations
     const allModels: ModelList = httpModules.flatMap(m => m.models ?? []);
-    const allControllers: ControllerConfig[] = httpModules.flatMap(
-      m => m.controllers ?? []
-    );
-    const allMiddlewares: Middleware[] = httpModules.flatMap(
-      m => m.middlewares ?? []
+    const allControllers: ControllerConfig[] = httpModules.flatMap(m => m.controllers ?? []);
+
+    const allMiddlewares: MiddlewareRegistration[] = httpModules.flatMap(m =>
+      (m.middlewares ?? []).map((mw: Middleware | MiddlewareRegistration) =>
+        typeof mw === 'function'
+          ? {
+              use: mw,
+              zone: 'pre',
+              priority: 0,
+            }
+          : {
+              use: mw.use,
+              zone: mw.zone ?? 'pre',
+              priority: mw.priority ?? 0,
+              action: mw.action,
+            }
+      )
     );
 
     // Deterministic module pipeline

@@ -30,6 +30,6 @@ import { createApplication } from 'src/create-application.js';
 export function createExpressApplication({ modules = [], ...config }: AppConfig) {
   return createApplication({
     ...config,
-    modules: [...modules, ExpressPlatformModule]
+    modules: [...modules, ExpressPlatformModule],
   });
 }

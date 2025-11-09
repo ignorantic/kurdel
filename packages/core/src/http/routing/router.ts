@@ -1,10 +1,5 @@
 import type { Container } from '@kurdel/ioc';
-import type {
-  Method,
-  ControllerConfig,
-  ControllerResolver,
-  RouteMatch,
-} from 'src/http/index.js';
+import type { Method, ControllerConfig, ControllerResolver, RouteMatch } from 'src/http/index.js';
 
 /**
  * A minimal HTTP router contract.
@@ -30,9 +25,5 @@ export interface Router {
    *
    * The returned object is later executed by RuntimeRequestOrchestrator.
    */
-  resolve(
-    method: Method,
-    url: string,
-    scope: Container
-  ): RouteMatch | null;
+  resolve(method: Method, url: string, scope: Container): RouteMatch | null;
 }

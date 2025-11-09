@@ -1,5 +1,11 @@
 import type { Container } from '@kurdel/ioc';
-import type { ControllerConfig, Router, MiddlewareRegistry } from '@kurdel/core/http';
+import type {
+  ControllerConfig,
+  Router,
+  MiddlewareRegistry,
+  ControllerResolver,
+  MiddlewareRegistration,
+} from '@kurdel/core/http';
 import type { AppModule, ProviderConfig } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
 
@@ -8,11 +14,12 @@ import { RuntimeRouter } from 'src/http/runtime-router.js';
 import { ensureTemplateEngineBinding } from 'src/template/ensure-template-engine-binding.js';
 
 /**
- * ControllerModule
+ * ## ControllerModule
  *
- * - Registers controllers from all HttpModules
- * - Wires Router with IoCControllerResolver and MiddlewareRegistry
- * - Supports controller-level middlewares and prefix metadata
+ * Responsible for:
+ * - Registering all controller providers in the IoC container.
+ * - Instantiating and initializing the `RuntimeRouter`.
+ * - Binding declared middlewares to the `MiddlewareRegistry`.
  */
 export class ControllerModule implements AppModule {
   readonly exports = {
@@ -21,7 +28,7 @@ export class ControllerModule implements AppModule {
 
   readonly providers: ProviderConfig[];
 
-  constructor(private controllers: ControllerConfig[]) {
+  constructor(private readonly controllers: ControllerConfig[]) {
     this.providers = [
       {
         provide: TOKENS.ControllerResolver,
@@ -32,10 +39,6 @@ export class ControllerModule implements AppModule {
         provide: TOKENS.Router,
         useClass: RuntimeRouter as unknown as new (...a: any[]) => Router,
         singleton: true,
-        deps: {
-          resolver: TOKENS.ControllerResolver,
-          controllerConfigs: TOKENS.ControllerConfigs,
-        },
       },
       ...controllers.map(c => ({
         provide: c.use,
@@ -52,13 +55,40 @@ export class ControllerModule implements AppModule {
     ];
   }
 
+  /**
+   * Initializes router and middleware registry after IoC bootstrap.
+   */
   async register(ioc: Container): Promise<void> {
-    const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
-
-    this.controllers.forEach(c => {
-      c.middlewares?.forEach(mw => registry.useFor(c.use, mw));
-    });
-
+    // Ensure that a template engine is bound before controller creation.
     ensureTemplateEngineBinding(ioc);
+
+    const resolver = ioc.get<ControllerResolver>(TOKENS.ControllerResolver);
+    const router = ioc.get<RuntimeRouter>(TOKENS.Router);
+    const registry = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
+    const configs = ioc.get<ControllerConfig[]>(TOKENS.ControllerConfigs);
+
+    // Initialize router (build route table)
+    router.init(resolver, configs);
+
+    // Register controller-scoped middlewares
+    for (const cfg of this.controllers) {
+      for (const entry of cfg.middlewares ?? []) {
+        const reg: MiddlewareRegistration =
+          typeof entry === 'function'
+            ? { use: entry, zone: 'pre', priority: 0 }
+            : {
+                use: entry.use,
+                zone: entry.zone ?? 'pre',
+                priority: entry.priority ?? 0,
+                action: entry.action,
+              };
+
+        registry.useFor(cfg.use, reg.use, {
+          zone: reg.zone,
+          priority: reg.priority,
+          action: reg.action,
+        });
+      }
+    }
   }
 }

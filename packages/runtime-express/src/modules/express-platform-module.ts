@@ -37,7 +37,7 @@ export const ExpressPlatformModule: AppModule = {
       useFactory: () => new ExpressServerAdapter(),
       singleton: true,
     },
-     {
+    {
       provide: TOKENS.ResponseRenderer,
       useFactory: () => new RuntimeResponseRenderer(renderExpressResultAdapter),
       singleton: true,

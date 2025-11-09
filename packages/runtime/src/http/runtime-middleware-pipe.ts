@@ -1,29 +1,38 @@
 import type { HttpContext, Middleware, ActionResult } from '@kurdel/core/http';
 
 /**
- * Composes and executes a middleware pipeline.
- * Used both before routing and around controller actions.
+ * ## RuntimeMiddlewarePipe
+ *
+ * Executes middleware chain in declared order.
+ *
+ * - Stops on returned ActionResult
+ * - Stops on thrown error
+ * - Calls `next()` only when middleware yields `undefined`
  */
 export class RuntimeMiddlewarePipe {
   constructor(private readonly middlewares: Middleware[] = []) {}
 
-  async run<TReadable = unknown>(
+  async run(
     ctx: HttpContext,
-    terminal?: () => Promise<ActionResult<TReadable> | void>
-  ): Promise<ActionResult<TReadable> | void> {
-    const dispatch = async (): Promise<ActionResult<TReadable> | void> =>
-      terminal ? await terminal() : undefined;
+    terminal?: () => Promise<ActionResult | void>
+  ): Promise<ActionResult | void> {
+    const dispatch = async (index: number): Promise<ActionResult | void> => {
+      if (index >= this.middlewares.length) {
+        return terminal ? await terminal() : undefined;
+      }
 
-    const composed = this.middlewares.reduceRight<() => Promise<ActionResult<any> | void>>(
-      (next, mw) => {
-        return async () => {
-          const result = await mw(ctx, next);
-          return result ?? (await next());
-        };
-      },
-      dispatch
-    );
+      const mw = this.middlewares[index];
+      const result = await mw(ctx, () => dispatch(index + 1));
 
-    return composed() as Promise<ActionResult<TReadable> | void>;;
+      // 🚫 STOP: middleware returned an ActionResult
+      if (result !== undefined) {
+        return result;
+      }
+
+      // otherwise continue automatically (middleware already called next)
+      return undefined;
+    };
+
+    return dispatch(0);
   }
 }

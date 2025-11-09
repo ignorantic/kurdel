@@ -101,15 +101,12 @@ export function adaptNodeResponse(res: ServerResponse): HttpResponseWithHeaders 
         return this;
       }
 
-      const content =
-        typeof body === 'object' ? JSON.stringify(body) : String(body);
+      const content = typeof body === 'object' ? JSON.stringify(body) : String(body);
 
       if (!res.getHeader('Content-Type')) {
         res.setHeader(
           'Content-Type',
-          typeof body === 'object'
-            ? 'application/json; charset=utf-8'
-            : 'text/plain; charset=utf-8',
+          typeof body === 'object' ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8'
         );
       }
 
