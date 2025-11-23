@@ -19,7 +19,8 @@
   "dependencies": {
     "@kurdel/core": "^1.0.0",
     "@kurdel/facade": "^1.0.0",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@kurdel/migrations": "^1.0.0",

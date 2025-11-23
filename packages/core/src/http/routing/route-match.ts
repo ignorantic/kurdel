@@ -1,4 +1,4 @@
-import type { Controller, Method } from 'src/http/index.js';
+import type { Controller, Method, RouteSchema } from 'src/http/index.js';
 
 export interface RouteMatch {
   controller: Controller<any>;
@@ -7,4 +7,5 @@ export interface RouteMatch {
   path: string;
   params: Record<string, string>;
   meta?: Record<string, any>;
+  schema?: RouteSchema;
 }

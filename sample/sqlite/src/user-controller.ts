@@ -1,57 +1,55 @@
-import type {
-  RouteConfig,
-  HttpContext,
-  ActionResult,
-  RouteParams} from '@kurdel/core/http';
-import {
-  Controller,
-  route,
-  BadRequest,
-  NotFound,
-  Ok,
-  Created
-} from '@kurdel/core/http';
+import { z } from 'zod';
+import type { RouteConfig, HttpContext, ActionResult, RouteParams } from '@kurdel/core/http';
+import { Controller, route, NotFound, Ok, Created } from '@kurdel/core/http';
+
 import type { UserModel } from './user-model.js';
+import { zodAdapter } from './zod-adapter.js';
 
 type Deps = {
-  model: UserModel
+  model: UserModel;
 };
 
 export class UserController extends Controller<Deps> {
   readonly routes: RouteConfig = {
-    create: route({ method: 'POST', path: '/' })(this.create),
-    getOne: route({ method: 'GET', path: '/:id' })(this.getOne),
+    create: route({
+      method: 'POST',
+      path: '/',
+      schema: {
+        body: zodAdapter(
+          z.object({
+            name: z.string().min(2),
+            role: z.string().min(2),
+          })
+        ),
+      },
+    })(this.create),
+
+    getOne: route({
+      method: 'GET',
+      path: '/:id',
+      schema: {
+        params: zodAdapter(
+          z.object({
+            id: z.string().regex(/^\d+$/, 'id must be numeric'),
+          })
+        ),
+      },
+    })(this.getOne),
+
     getAll: route({ method: 'GET', path: '/' })(this.getAll),
   };
 
-  async create (ctx: HttpContext<{ name: string, role: string }>): Promise<ActionResult> {
-    const { name, role } = ctx.body ?? {};
-
-    if (typeof name !== 'string') {
-      throw BadRequest('Name is required');
-    }
-
-    if (typeof role !== 'string') {
-      throw BadRequest('Role is required');
-    }
+  async create(ctx: HttpContext<{ name: string; role: string }>): Promise<ActionResult> {
+    const { name, role } = ctx.body!;
 
     await this.deps.model.createUser(name, role);
     return Created({ name, role });
   }
 
-  async getOne (ctx: HttpContext<unknown, RouteParams<'/:id'>>): Promise<ActionResult> {
+  async getOne(ctx: HttpContext<unknown, RouteParams<'/:id'>>): Promise<ActionResult> {
     const { id } = ctx.params;
+    const record = await this.deps.model.getUser(Number(id));
 
-    if (typeof id !== 'string') {
-      throw BadRequest('ID is required');
-    }
-
-    const userId = Number(id);
-    if (!Number.isFinite(userId)) {
-      throw BadRequest('ID is required');
-    }
-
-    const record = await this.deps.model.getUser(userId);
     if (!record) {
       throw NotFound('User not found');
     }
@@ -59,7 +57,7 @@ export class UserController extends Controller<Deps> {
     return Ok(record);
   }
 
-  async getAll (): Promise<ActionResult> {
+  async getAll(): Promise<ActionResult> {
     const records = await this.deps.model.getUsers();
     return Ok(records);
   }

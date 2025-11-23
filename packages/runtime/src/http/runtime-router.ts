@@ -9,7 +9,32 @@ import type {
   Controller,
   Middleware,
   RouteHandler,
+  RouteSchema,
 } from '@kurdel/core/http';
+
+type Entry = {
+  /** HTTP method of the route (GET, POST, etc.) */
+  method: Method;
+
+  /** Original declared path (e.g. `/users/:id`) */
+  path: string;
+
+  /** Compiled regex for fast matching */
+  regex: RegExp;
+
+  /** Extracted param keys from path (`['id']`) */
+  keys: string[];
+
+  /** Controller IoC token */
+  token: ControllerConfig['use'];
+
+  /** Action (controller method) name */
+  action: string;
+
+  /** Optional validation schema for params/query/body */
+  schema?: RouteSchema;
+};
+
 
 /**
  * ## RuntimeRouter (symbol-based metadata)
@@ -28,14 +53,7 @@ import type {
  */
 export class RuntimeRouter implements Router {
   /** Internal table of compiled routes. */
-  private entries: {
-    method: Method;
-    path: string;
-    regex: RegExp;
-    keys: string[];
-    token: ControllerConfig['use'];
-    action: string;
-  }[] = [];
+  private entries: Entry[] = [];
 
   /** Resolver for controller instances. */
   private resolver!: ControllerResolver;
@@ -59,7 +77,10 @@ export class RuntimeRouter implements Router {
         if (!meta) continue;
 
         const fullPath = prefix + meta.path;
-        this.add(meta.method, fullPath, cfg.use, action);
+
+        const schema = meta.schema as RouteSchema | undefined;
+
+        this.add(meta.method, fullPath, cfg.use, action, schema);
       }
     }
 
@@ -92,7 +113,8 @@ export class RuntimeRouter implements Router {
         action: entry.action,
         path: entry.path,
         params,
-        middlewares: [] as Middleware[], // kept for interface compatibility
+        schema: entry.schema,
+        middlewares: [] as Middleware[],
       };
     }
 
@@ -102,7 +124,7 @@ export class RuntimeRouter implements Router {
   /**
    * Adds a single route entry to the compiled table.
    */
-  private add(method: Method, path: string, token: ControllerConfig['use'], action: string) {
+  private add(method: Method, path: string, token: ControllerConfig['use'], action: string, schema?: RouteSchema) {
     const keys: string[] = [];
     const pattern = path
       .split('/')
@@ -117,6 +139,6 @@ export class RuntimeRouter implements Router {
       .join('/');
 
     const regex = new RegExp(`^/${pattern}/?$`);
-    this.entries.push({ method, path, regex, keys, token, action });
+    this.entries.push({ method, path, regex, keys, token, action, schema });
   }
 }

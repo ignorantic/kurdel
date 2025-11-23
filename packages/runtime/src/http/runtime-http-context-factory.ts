@@ -7,8 +7,8 @@ import type { HttpContext, RouteMatch, JsonValue, ActionResult } from '@kurdel/c
  * Factory responsible for constructing per-request {@link HttpContext} instances.
  *
  * Each incoming request gets a fresh context object encapsulating:
- * - the low-level request/response abstractions;
- * - resolved route metadata (params, query, body);
+ * - low-level request/response abstractions;
+ * - resolved route metadata (params, query, body, schema);
  * - typed helpers for producing {@link ActionResult}s.
  *
  * The factory isolates context creation logic from orchestration and controller execution.
@@ -23,7 +23,7 @@ export class RuntimeHttpContextFactory {
    *
    * @param req - Incoming HTTP request abstraction.
    * @param res - Outgoing HTTP response abstraction.
-   * @param match - Resolved route metadata containing params and controller info.
+   * @param match - Resolved route metadata containing params, schema, and controller info.
    *
    * @returns A new {@link HttpContext} instance representing the current request.
    */
@@ -43,13 +43,16 @@ export class RuntimeHttpContextFactory {
       /** Parsed query parameters */
       query: req.query ?? Object.fromEntries(url.searchParams.entries()),
 
-      /** Route parameters extracted from path pattern */
+      /** Path parameters extracted from the matched route */
       params: match.params,
 
       /** Parsed request body (if available) */
       body: req.body,
 
-      /** The latest computed ActionResult (populated at runtime) */
+      /** Matched route metadata (including schema and controller) */
+      route: match,
+
+      /** The latest computed ActionResult (populated later at runtime) */
       result: undefined,
 
       // ────────────────────────────────

@@ -1,46 +1,48 @@
-# kurdel
+# **kurdel**
 
-A minimal **TypeScript-first** web framework built on **SOLID** and **IoC** principles.  
-No decorators. No reflection. Just **explicit modules**, **typed controllers**, and **request-scoped DI**.
+A minimal **TypeScript-first** web framework built on **SOLID** and **IoC** principles.
+No decorators. No reflection. Just **explicit modules**, **typed controllers**, **runtime schemas**, and **request-scoped DI**.
 
 ---
 
 ## 🧩 Architecture Overview
 
-Kurdel is a **modular monorepo** — every package is responsible for a single concern and depends only on stable contracts.
+Kurdel is a **modular monorepo** — every package has a single responsibility and depends only on stable contracts.
 
-| Package | Purpose |
-|----------|----------|
-| **`@kurdel/common`** | Shared low-level primitives: HTTP types, helpers, and base interfaces. |
-| **`@kurdel/core`** | Framework **contracts**, tokens, and type definitions — pure API layer. |
-| **`@kurdel/runtime`** | Core runtime — router, request orchestrator, middleware, and lifecycle. |
-| **`@kurdel/runtime-node`** | Native Node.js HTTP adapter + renderer. |
-| **`@kurdel/runtime-express`** | Express adapter + platform module. |
-| **`@kurdel/template-ejs`** | Integration with **EJS** templates for SSR rendering. |
-| **`@kurdel/facade`** | High-level entry point — exports `createNodeApplication()` and `createExpressApplication()`. |
-| **`@kurdel/ioc`** | Lightweight dependency injection container shared across layers. |
-| **`@kurdel/db`** | Database abstraction layer — models, connectors, and query helpers. |
-| **`@kurdel/migrations`** | Migration engine and schema management tools. |
-| **`@kurdel/pirx`** | Developer CLI for scaffolding, migrations, and project utilities. |
+| Package                       | Purpose                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| **`@kurdel/common`**          | Shared low-level primitives: HTTP types, URL/query helpers, and base interfaces. |
+| **`@kurdel/core`**            | Framework **contracts**, tokens, and public API interfaces.                      |
+| **`@kurdel/runtime`**         | Core runtime: router, orchestrator, middleware, lifecycle, and context factory.  |
+| **`@kurdel/runtime-node`**    | Native Node.js HTTP adapter and response renderer.                               |
+| **`@kurdel/runtime-express`** | Express platform adapter for Kurdel runtime.                                     |
+| **`@kurdel/template-ejs`**    | Integration with **EJS** templates for SSR.                                      |
+| **`@kurdel/template-react`**  | Integration with **React** templates for server-side rendering (JSX).            |
+| **`@kurdel/facade`**          | Public entry point — `createNodeApplication()`, `createExpressApplication()`.    |
+| **`@kurdel/ioc`**             | Lightweight, standalone dependency injection container.                          |
+| **`@kurdel/db`**              | Database abstraction layer (models, connectors, query builders).                 |
+| **`@kurdel/migrations`**      | Migration engine and schema management tools.                                    |
+| **`@kurdel/pirx`**            | Developer CLI (scaffolding, migrations, utilities).                              |
 
-> **Dependency direction:**  
-> `common → core → runtime → runtime-{platform} → facade`  
+> **Dependency direction:**
+> `common → core → runtime → runtime-{platform} → facade`
 > with `ioc`, `template-*`, `db`, `migrations`, and `pirx` as vertical extensions.
 
 ---
 
 ## ✨ Features
 
-- 🧠 **IoC by contract** — powered by `@kurdel/ioc`, fully standalone.  
-- 🧩 **No decorators** — explicit, predictable, type-safe.  
-- 🌀 **Request scope** — each request gets its own IoC container.  
-- 🔄 **Runtime orchestration** — separated router and orchestrator for clarity.  
-- ⚙️ **Lifecycle hooks** — modules can react to startup/shutdown.  
-- 🧾 **Typed routes** — controller methods and responses are fully typed.  
-- 🗄️ **Database-ready** — optional model + migration system.  
-- 🧪 **Test-friendly** — composable runtime and in-memory testing.  
-- 🧰 **CLI tooling** — `@kurdel/pirx` for scaffolding and migrations.  
-- 🎨 **SSR-ready** — EJS integration via the `TemplateEngine` interface.  
+* 🧠 **IoC by contract** — explicit, constructor-based dependency injection.
+* 🧩 **No decorators or reflection** — predictable, type-safe, testable.
+* 🌀 **Request-scoped IoC** — each request has its own isolated container.
+* ⚙️ **Runtime orchestration** — router and orchestrator clearly separated.
+* 🧾 **Schema-based validation** — route-level validation via adapters (`zodAdapter`, etc.).
+* 🔄 **Middleware zones** — `pre`, `controller`, `post`, and `final` phases.
+* 🧱 **Lifecycle hooks** — start/stop via `LifecycleModule`.
+* 🗄️ **Database-ready** — plug in any DB with `@kurdel/db`.
+* 🧪 **Test-friendly** — in-memory orchestration, zero boilerplate.
+* 🎨 **SSR-ready** — EJS and React template engines.
+* 🧰 **CLI tooling** — `@kurdel/pirx` for scaffolding and automation.
 
 ---
 
@@ -51,7 +53,8 @@ npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/common @kurdel/ioc @ku
 ```
 
 > Requires **Node ≥ 18** and **TypeScript ≥ 5**
-> Example `tsconfig.json`:
+
+Example `tsconfig.json`:
 
 ```json
 {
@@ -72,7 +75,6 @@ npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/common @kurdel/ioc @ku
 import { createNodeApplication } from '@kurdel/facade';
 import { Controller, route, Ok, type HttpContext } from '@kurdel/core/http';
 
-// 1) Controller — explicit, typed routes
 class HelloController extends Controller {
   readonly routes = {
     hello: route({ method: 'GET', path: '/hello' })(this.hello),
@@ -83,14 +85,10 @@ class HelloController extends Controller {
   }
 }
 
-// 2) Application module
-const HelloModule = {
-  controllers: [{ use: HelloController }],
-};
+const HelloModule = { controllers: [{ use: HelloController }] };
 
-// 3) Bootstrap
 const app = await createNodeApplication({ modules: [HelloModule] });
-const server = app.listen(3000, () => console.log('🚀 http://localhost:3000'));
+app.listen(3000, () => console.log('🚀 http://localhost:3000'));
 ```
 
 ---
@@ -99,7 +97,7 @@ const server = app.listen(3000, () => console.log('🚀 http://localhost:3000'))
 
 ### 🧩 Application
 
-Responsible for composing modules, initializing IoC, and starting the HTTP server.
+Composes modules, initializes IoC, and wires runtime components.
 
 ```ts
 import type { Application } from '@kurdel/core/app';
@@ -120,7 +118,7 @@ export const UserModule: AppModule = {
 
 ### 🎮 Controllers
 
-Explicitly declare routes — no decorators, no reflection.
+Explicit, type-safe routes — no decorators, no magic.
 
 ```ts
 import { Controller, route, Ok, type HttpContext } from '@kurdel/core/http';
@@ -135,11 +133,48 @@ export class UserController extends Controller {
     return Ok([{ id: 1, name: 'Ada' }]);
   }
 
-  async byId(ctx: HttpContext<{}, { id: string }>) {
+  async byId(ctx: HttpContext<unknown, { id: string }>) {
     return Ok({ id: ctx.params.id });
   }
 }
 ```
+
+---
+
+## 🧾 Route Schemas & Validation
+
+Each route may define a `schema` describing the request shape.
+
+```ts
+import { z } from 'zod';
+import { zodAdapter } from '@kurdel/runtime/middlewares';
+
+export class UserController extends Controller {
+  readonly routes = {
+    create: route({
+      method: 'POST',
+      path: '/',
+      schema: {
+        body: zodAdapter(z.object({
+          name: z.string().min(2),
+          role: z.string().min(2),
+        })),
+      },
+    })(this.create),
+  };
+
+  async create(ctx: HttpContext<{ name: string; role: string }>) {
+    return Created(ctx.body);
+  }
+}
+```
+
+### Validation flow
+
+* Schemas are declared per route.
+* The runtime automatically picks up `ctx.route.schema`.
+* A `schemaValidator` middleware validates params/query/body.
+* Adapters (like Zod or Yup) convert native errors to `ValidationError`.
 
 ---
 
@@ -149,26 +184,29 @@ export class UserController extends Controller {
 ServerAdapter.on(req, res)
  └─► RuntimeRequestOrchestrator.execute()
       ├─► RuntimeRouter.resolve(method, url)
-      │    └─► returns RouteMatch (controller, action, params)
+      │    └─► RouteMatch (controller, action, schema)
       ├─► RuntimeHttpContextFactory.create()
-      ├─► RuntimeControllerPipe / RuntimeMiddlewarePipe
-      └─► ResponseRenderer.render(result)
+      ├─► RuntimeMiddlewarePipe (pre)
+      ├─► RuntimeControllerPipe
+      ├─► RuntimeMiddlewarePipe (post)
+      ├─► ResponseRenderer.render()
+      └─► RuntimeMiddlewarePipe (final)
 ```
 
-| Component                      | Responsibility                                             |
-| ------------------------------ | ---------------------------------------------------------- |
-| **RuntimeRouter**              | Resolves routes and extracts path params.                  |
-| **RuntimeRequestOrchestrator** | Coordinates full HTTP request flow.                        |
-| **RuntimeMiddlewarePipe**      | Executes middleware sequences.                             |
-| **RuntimeControllerPipe**      | Invokes controller middlewares and actions.                |
-| **ResponseRenderer**           | Converts `ActionResult` → HTTP response.                   |
-| **ServerModule**               | Wires router, orchestrator, and platform adapter together. |
+| Component                      | Responsibility                                        |
+| ------------------------------ | ----------------------------------------------------- |
+| **RuntimeRouter**              | Resolves routes, params, and schema.                  |
+| **RuntimeHttpContextFactory**  | Builds per-request context (req, res, route, result). |
+| **RuntimeRequestOrchestrator** | Manages full lifecycle and zones.                     |
+| **RuntimeMiddlewarePipe**      | Executes global and scoped middleware sequences.      |
+| **RuntimeControllerPipe**      | Invokes controller-level middlewares and actions.     |
+| **ResponseRenderer**           | Converts `ActionResult` into an HTTP response.        |
 
 ---
 
-## 🧱 Template Engine
+## 🎨 Template Engines
 
-Kurdel ships with **EJS** integration for SSR.
+### EJS Example
 
 ```ts
 import { EjsTemplateModule } from '@kurdel/template-ejs';
@@ -179,29 +217,21 @@ const app = await createNodeApplication({
 });
 ```
 
-Controller example:
+### React Example
 
 ```ts
-import { Controller, route, View } from '@kurdel/core/http';
+import { ReactTemplateModule } from '@kurdel/template-react';
 
-export class HomeController extends Controller {
-  readonly routes = {
-    home: route({ method: 'GET', path: '/' })(this.home),
-  };
-
-  async home() {
-    return View('home', { title: 'Welcome to Kurdel!' });
-  }
-}
+const app = await createNodeApplication({
+  modules: [ReactTemplateModule.forRoot()],
+});
 ```
-
-> ✅ Works across Node and Express via shared `TemplateEngine` interface.
 
 ---
 
-## 🧩 Testing
+## 🧪 Testing
 
-Use `supertest` with `createNodeApplication()` for fully in-memory testing:
+In-memory tests using `supertest` and `createNodeApplication`:
 
 ```ts
 import request from 'supertest';
@@ -222,7 +252,6 @@ const res = await request(server.raw()).get('/ping');
 
 expect(res.status).toBe(200);
 expect(res.body).toEqual({ ok: true });
-
 await server.close();
 ```
 
@@ -232,31 +261,32 @@ await server.close();
 
 ```
 packages/
-  common/           # Shared primitives and HTTP types
-  core/             # Contracts, tokens, and interfaces
-  runtime/          # Router, orchestrator, and middleware pipelines
-  runtime-node/     # Node.js HTTP adapter
-  runtime-express/  # Express adapter
-  facade/           # Public entry points
-  ioc/              # Dependency injection container
-  template-ejs/     # EJS SSR integration
-  db/               # Database abstraction
-  migrations/       # Migration tools
-  pirx/             # Developer CLI
-samples/            # Example applications
+  common/            # Shared primitives and HTTP types
+  core/              # Contracts, tokens, and interfaces
+  runtime/           # Router, orchestrator, middleware, lifecycle
+  runtime-node/      # Node.js adapter
+  runtime-express/   # Express adapter
+  template-ejs/      # EJS SSR integration
+  template-react/    # React SSR integration
+  ioc/               # IoC container
+  facade/            # Public entry points
+  db/                # Database abstraction
+  migrations/        # Migration engine
+  pirx/              # CLI tooling
+samples/             # Example applications
 ```
 
 ---
 
 ## 🚧 Roadmap
 
-* 🪶 Handlebars / Mustache template engines
-* ⚡ Bun and Deno runtime adapters
-* 🧩 Route validation and constraints
-* 🧠 Improved middleware composition registry
-* 🧰 Pirx workflow automation (`pirx build`, `pirx dev`)
+* ⚡ Bun, Deno, and Cloudflare adapters
+* 🧩 More schema adapters (Yup, AJV)
+* 🧱 Improved module dependency graph visualization
+* 🧰 Pirx workspace automation (`pirx build`, `pirx dev`)
 * 🧪 In-memory HTTP adapter for unit testing
+* 🎨 Hot-reloadable React SSR pipeline
 
 ---
 
-© Andrii Sorokin · MIT License
+© 2025 Andrii Sorokin · MIT License

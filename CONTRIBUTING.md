@@ -1,37 +1,48 @@
-# Contributing to kurdel
+# Contributing to **kurdel**
 
-**Kurdel** is a **TypeScript-first web framework** built on explicit IoC and SOLID principles.  
-To keep the architecture clean, predictable, and type-safe, please follow the conventions below.
+**Kurdel** is a **TypeScript-first modular web framework** built on explicit IoC, SOLID design, and deterministic runtime composition.
+This document outlines the conventions and rules for contributing new features or improvements.
 
 ---
 
 ## 🧱 Architecture Layers
 
-Kurdel is a **monorepo** of modular, independent workspaces:
+Kurdel is a **monorepo** of cohesive, self-contained workspaces:
 
-| Package | Purpose |
-|----------|----------|
-| **@kurdel/common** | Shared primitives and base HTTP types. |
-| **@kurdel/core** | Contracts, tokens, and public framework interfaces. |
-| **@kurdel/runtime** | Core runtime: router, orchestrator, controllers, middleware, lifecycle. |
-| **@kurdel/runtime-node** | Native Node.js HTTP adapter and renderer. |
-| **@kurdel/runtime-express** | Express adapter and platform module. |
-| **@kurdel/template-ejs** | EJS template engine integration (SSR). |
-| **@kurdel/facade** | High-level entry points (`createNodeApplication`, etc.). |
-| **@kurdel/ioc** | Standalone dependency-injection container. |
-| **@kurdel/db** | Database abstractions and model base classes. |
-| **@kurdel/migrations** | Migration engine and schema management. |
-| **@kurdel/pirx** | Developer CLI (scaffolding, migrations, utilities). |
-| **samples/** | Example applications and integration demos. |
+| Package                     | Purpose                                                    |
+| --------------------------- | ---------------------------------------------------------- |
+| **@kurdel/common**          | Shared primitives and HTTP abstractions.                   |
+| **@kurdel/core**            | Public contracts, tokens, and framework interfaces.        |
+| **@kurdel/runtime**         | Core runtime: router, orchestrator, middleware, lifecycle. |
+| **@kurdel/runtime-node**    | Native Node.js HTTP adapter and renderer.                  |
+| **@kurdel/runtime-express** | Express-based platform adapter.                            |
+| **@kurdel/template-ejs**    | EJS template engine integration (SSR).                     |
+| **@kurdel/template-react**  | React template engine integration (SSR  + JSX rendering).  |
+| **@kurdel/facade**          | Public entry points (`createNodeApplication`, etc.).       |
+| **@kurdel/ioc**             | Lightweight dependency-injection container.                |
+| **@kurdel/db**              | Database abstractions and connectors.                      |
+| **@kurdel/migrations**      | Migration and schema management layer.                     |
+| **@kurdel/pirx**            | Developer CLI (scaffolding, migrations, utilities).        |
+| **samples/**                | Integration examples and demo apps.                        |
 
-> `@kurdel/facade` contains **no logic** — it only composes modules.  
+> `@kurdel/facade` contains **no runtime logic** — it only orchestrates composition.
 > `@kurdel/common` sits at the base and has **zero dependencies**.
+
+---
+
+## 🧩 Architectural Rules
+
+* **Explicit Composition:** no decorators, no reflection.
+* **Type-First Contracts:** `@kurdel/core` defines *what*, `@kurdel/runtime` defines *how*.
+* **Scoped IoC:** each HTTP request gets its own container scope.
+* **Zero Hidden Coupling:** all runtime dependencies are declared.
+* **Extensible Runtime:** adapters and modules can be swapped freely.
 
 ---
 
 ## 📂 Code Style & Structure
 
-All packages use **TypeScript ≥ 5** and native **ES Modules**:
+All packages use **TypeScript ≥ 5.0** and **ES Modules**:
 
 ```json
 {
@@ -41,66 +52,51 @@ All packages use **TypeScript ≥ 5** and native **ES Modules**:
     "moduleResolution": "bundler"
   }
 }
-````
+```
 
-### Typical layout
+### Typical Layout
 
 ```
 src/
-  app/         # Application composition and bootstrap
-  http/        # Runtime HTTP orchestration (router, orchestrator, pipes)
-  modules/     # IoC modules (server, controllers, lifecycle)
-  cli/         # CLI commands (pirx)
-index.ts       # Public barrel export
+  app/         # Application bootstrap and module composition
+  http/        # Runtime orchestration (router, orchestrator, middleware)
+  modules/     # Built-in IoC modules (server, lifecycle, controller, db)
+  middlewares/ # Built-in validation or platform middlewares
+index.ts       # Public API entry
 ```
 
-**Inside `@kurdel/runtime`:**
+**Naming conventions:**
 
-* Implementations of `@kurdel/core` contracts use the `Runtime*` prefix
-  → `RuntimeApplication`, `RuntimeRouter`, `RuntimeRequestOrchestrator`
-* Platform adapters use `Native*` or `Express*`
-  → `NativeHttpServerAdapter`, `ExpressServerAdapter`
-* IoC modules have **no prefix** (`ServerModule`, `LifecycleModule`, …)
-* Template engines implement the `TemplateEngine` interface
-
----
-
-## 🧩 Naming Conventions
-
-| Type                    | Example                                               | Description                          |
-| ----------------------- | ----------------------------------------------------- | ------------------------------------ |
-| Contract implementation | `RuntimeRouter`, `RuntimeRequestOrchestrator`         | Implements `@kurdel/core` interfaces |
-| Platform adapter        | `NativeHttpServerAdapter`, `ExpressServerAdapter`     | Binds runtime to Node/Express        |
-| Framework module        | `ServerModule`, `LifecycleModule`, `ControllerModule` | IoC composition modules              |
-| Template engine         | `EjsTemplateModule`                                   | Provides SSR via `TemplateEngine`    |
-| CLI / tooling           | `pirx db:migrate`                                     | Commands in `@kurdel/pirx`           |
-| Token / interface       | `Application`, `ServerAdapter`, `TOKENS`              | Declared in `@kurdel/core`           |
+| Category                | Example                                           | Notes                               |
+| ----------------------- | ------------------------------------------------- | ----------------------------------- |
+| Contract implementation | `RuntimeRouter`, `RuntimeRequestOrchestrator`     | Implements `@kurdel/core` contracts |
+| Platform adapter        | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Binds runtime to platform           |
+| Framework module        | `ServerModule`, `LifecycleModule`                 | IoC-level composition               |
+| Template engine         | `EjsTemplateModule`                               | SSR via `TemplateEngine`            |
+| CLI                     | `pirx db:migrate`                                 | Developer tooling                   |
+| Validation adapter      | `zodAdapter`, `createValidator`                   | Schema-level validation             |
+| Middleware              | `schemaValidator`, `loggingMiddleware`            | Executed by middleware pipe         |
 
 ---
 
 ## 🧪 Testing
 
-All tests use **Vitest** and run fully in-process.
+Tests use **Vitest**, run **in-process**, and cover unit → integration → E2E.
 
-| Type            | Location               | Description                             |
-| --------------- | ---------------------- | --------------------------------------- |
-| **Unit**        | `tests/unit/**`        | Small-scope logic (IoC, routing, pipes) |
-| **Integration** | `tests/integration/**` | Runtime + orchestrator + adapter flow   |
-| **E2E**         | `tests/e2e/**`         | Real HTTP adapters (Node / Express)     |
+| Type            | Location               | Focus                          |
+| --------------- | ---------------------- | ------------------------------ |
+| **Unit**        | `tests/unit/**`        | Core logic, IoC, and pipes     |
+| **Integration** | `tests/integration/**` | Router + orchestrator flow     |
+| **E2E**         | `tests/e2e/**`         | Real adapters (Node / Express) |
 
 Guidelines:
 
-* ✅ Use in-memory or stubbed adapters (no real ports).
-* ✅ Prefer local fakes (`FakeController`, `FakeResolver`).
-* ✅ Keep tests deterministic and quiet (no logs).
+* ✅ Use **fake adapters** or in-memory mocks — no open ports.
+* ✅ Keep tests deterministic and isolated.
+* ✅ No console output in CI.
+* ✅ Prefer **schema-based** validation tests instead of manual field checks.
 
-Run all tests:
-
-```bash
-npm test
-```
-
-Run for one package:
+Example:
 
 ```bash
 npm run test -w @kurdel/runtime
@@ -110,97 +106,135 @@ npm run test -w @kurdel/runtime
 
 ## 🧱 Commits
 
-Follow **[Conventional Commits](https://www.conventionalcommits.org/)**:
+Follow **[Conventional Commits](https://www.conventionalcommits.org/)**.
 
-| Type       | Example                                            | Purpose         |
-| ---------- | -------------------------------------------------- | --------------- |
-| `feat`     | `feat(runtime): add orchestrator error handling`   | New feature     |
-| `fix`      | `fix(core): correct HttpContext typings`           | Bug fix         |
-| `refactor` | `refactor(runtime): split router and orchestrator` | Internal change |
-| `test`     | `test(runtime): add integration coverage`          | Test-related    |
-| `docs`     | `docs(contributing): update workflow section`      | Documentation   |
-| `chore`    | `chore(build): update tsconfig paths`              | Maintenance     |
+| Type       | Example                                              | Purpose           |
+| ---------- | ---------------------------------------------------- | ----------------- |
+| `feat`     | `feat(runtime): add schema validation middleware`    | New feature       |
+| `fix`      | `fix(core): correct HttpContext typings`             | Bug fix           |
+| `refactor` | `refactor(runtime): extract MiddlewareRegistry`      | Structural change |
+| `test`     | `test(facade): cover application bootstrap`          | Testing           |
+| `docs`     | `docs(contributing): update schema validation rules` | Documentation     |
+| `chore`    | `chore(repo): update tsconfig paths`                 | Maintenance       |
 
 ---
 
-## 🧰 Build & Workspace Commands
+## 🧰 Build & Workspace Rules
 
 Kurdel uses **Lerna + Nx** for dependency-aware builds.
 
-Build everything:
+Build all:
 
 ```bash
 npx lerna run build
 ```
 
-Build one package:
+Build single package:
 
 ```bash
 npm run build -w @kurdel/core
-npm run build -w @kurdel/runtime
 ```
 
-### Build Rules
+**Rules:**
 
-* Each package **must build independently**.
-* No `src/` cross-imports between packages — use public exports.
-* Type paths are rewritten via **tsc-alias**.
-* Compiled output always goes to `/lib`.
+* Every package must build **independently**.
+* No cross-imports from other packages’ `src/`.
+* Use public exports only.
+* Output goes to `/lib`.
+* Type aliases rewritten via **tsc-alias**.
 
 ---
 
-## 🧭 Pull Requests
+## 🧭 Pull Request Checklist
 
 Before submitting:
 
-1. ✅ Run all tests (`npm test`)
-2. 🧱 Build passes (`npm run build`)
-3. 🧹 Code formatted (`npm run format`)
-4. 🧾 API docs or changelog updated
-5. 🔍 Commits are small and scoped
+1. ✅ All tests pass (`npm test`)
+2. 🔧 Builds succeed (`npm run build`)
+3. 🧹 Code formatted and linted
+4. 🧾 API docs or changelog updated if relevant
+5. 🧩 Commits are small and descriptive
+6. 📘 New runtime components are covered by tests
 
 ---
 
-## 🤝 Development Tips
+## 🤝 Development Guidelines
 
-* Use **absolute imports** (`src/...`) inside packages.
-* Prefer **constructor injection**.
-* All IoC tokens/interfaces live in `@kurdel/core`.
-* No decorators — injection must be explicit.
-* Runtime modules stay **prefix-free** and composable.
-* Don’t leak runtime logic into `@kurdel/facade` or `@kurdel/pirx`.
-* Template engines implement `TemplateEngine` and register via IoC.
-* Global middlewares are now owned by `ServerModule`, not `Router`.
+* Use **constructor injection** only — no decorators.
+* Register **all providers** via `AppModule.providers`.
+* Global middlewares belong to `ServerModule`, not `Router`.
+* Validation runs automatically via route schemas (`RouteSchema`).
+* Middleware zones: `pre`, `controller`, `post`, `final`.
+* Keep the runtime **platform-agnostic** — adapters live in `@kurdel/runtime-node` or `@kurdel/runtime-express`.
+* **Adapters** and **validators** must be optional peer dependencies.
+* **Database** access is abstracted via `IDatabase` token.
 
 ---
 
-## 🧭 Development Workflow
+## 🧩 Validation & Schemas
+
+Runtime now supports **route-level schemas** and **library adapters** (Zod, Yup, AJV, etc.):
+
+```ts
+readonly routes = {
+  create: route({
+    method: 'POST',
+    path: '/',
+    schema: {
+      body: zodAdapter(z.object({
+        name: z.string().min(2),
+        role: z.string().min(2),
+      })),
+    },
+  })(this.create),
+};
+```
+
+Adapters use the generic `createValidator(parse, mapError)` helper:
+
+```ts
+import { ZodError, type ZodSchema } from 'zod';
+import { createValidator } from '@kurdel/runtime/middlewares';
+
+export const zodAdapter = <T>(schema: ZodSchema<T>) =>
+  createValidator(
+    data => schema.parse(data),
+    err => err instanceof ZodError
+      ? new ValidationError(err.issues[0]?.message ?? 'Invalid', undefined, err.issues)
+      : null,
+  );
+```
+
+---
+
+## 🧭 Developer Workflow
 
 ```bash
 # Install dependencies
 npm install
 
-# Build all packages
+# Build everything
 npx lerna run build
 
-# Run tests
+# Run all tests
 npm test
 
-# Start a sample app (e.g. EJS or React)
-npm run dev -w @kurdel/sample-ejs
+# Run single workspace
+npm run dev -w @kurdel/sample-sqlite
 ```
 
 ---
 
 ## 🪶 Notes
 
-* Kurdel favors **explicit composition**, **predictability**, and **type safety**.
-* Each feature is a self-contained **IoC module**, not global state.
-* Packages are buildable and testable **in isolation**.
-* The new `RuntimeRequestOrchestrator` coordinates routing, middleware, controller, and rendering.
-* `RuntimeRouter` is now pure and resolves routes only.
+* Kurdel prioritizes **explicit composition**, **predictability**, and **type safety**.
+* Each feature is an isolated **IoC module**, not global state.
+* Runtime logic is **pure** and **deterministic** — no side effects.
+* `RuntimeRequestOrchestrator` coordinates routing, middleware, and controller execution.
+* `RuntimeRouter` now resolves routes only.
+* Validation is handled via pluggable schema adapters.
 * Future adapters: **Bun**, **Edge**, **Deno**, **Cloudflare Workers**.
 
 ---
 
-© Andrii Sorokin · MIT License
+© 2025 Andrii Sorokin · MIT License

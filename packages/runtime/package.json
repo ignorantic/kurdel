@@ -6,7 +6,8 @@
   "exports": {
     ".": "./lib/index.js",
     "./app": "./lib/app/index.js",
-    "./http": "./lib/http/index.js"
+    "./http": "./lib/http/index.js",
+    "./middlewares": "./lib/middlewares/index.js"
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

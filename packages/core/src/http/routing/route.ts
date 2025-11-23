@@ -1,8 +1,12 @@
-import type { Method, HttpContext, ActionResult } from 'src/http/index.js';
+import type { Method, HttpContext, ActionResult, RouteSchema } from 'src/http/index.js';
 
 export const ROUTE_META = Symbol('@kurdel/core:route-meta');
 
-export type RouteMeta<P extends string = string> = { method: Method; path: P };
+export type RouteMeta<P extends string = string> = {
+  method: Method;
+  path: P;
+  schema?: RouteSchema;
+};
 
 type Split<S extends string> = S extends ''
   ? []

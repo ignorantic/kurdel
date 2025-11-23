@@ -1,5 +1,5 @@
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
-import type { JsonValue, Query, ActionResult } from 'src/http/index.js';
+import type { JsonValue, Query, ActionResult, RouteMatch } from 'src/http/index.js';
 
 /**
  * ## HttpContext
@@ -39,17 +39,24 @@ export interface HttpContext<
   /**
    * Parsed query parameters of the current request.
    */
-  readonly query: Query;
+  query: Query;
 
   /**
    * Path parameters extracted from the matched route.
    */
-  readonly params: TParams;
+  params: TParams;
 
   /**
    * Parsed request body (if available and supported by middleware).
    */
   body?: TBody;
+
+
+  /**
+   * Matched route information, including schema and controller metadata.
+   * Useful for validation or dynamic response generation.
+   */
+  route?: RouteMatch;
 
   /**
    * The last computed {@link ActionResult} for this request.
