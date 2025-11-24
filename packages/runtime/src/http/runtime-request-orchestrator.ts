@@ -1,4 +1,4 @@
-import type { HttpRequest, HttpResponse, Newable } from '@kurdel/common';
+import type { HttpRequest, HttpResponse } from '@kurdel/common';
 import type { Container } from '@kurdel/ioc';
 import type {
   ResponseRenderer,
@@ -7,27 +7,30 @@ import type {
   RouteMatch,
   MiddlewareRegistry,
   Controller,
-  ActionResult,
   MiddlewareZone,
 } from '@kurdel/core/http';
+import { HttpError } from '@kurdel/core/http';
 
+import { ControllerActionMissingResultError } from 'src/app/errors/controller-action-missing-result-error.js';
 import { RuntimeHttpContextFactory } from 'src/http/runtime-http-context-factory.js';
 import { RuntimeControllerPipe } from 'src/http/runtime-controller-pipe.js';
 import { RuntimeMiddlewarePipe } from 'src/http/runtime-middleware-pipe.js';
 
 /**
- * ## RuntimeRequestOrchestrator (v3.1)
+ * ## RuntimeRequestOrchestrator
  *
- * Executes the full request lifecycle using zoned middleware pipelines.
+ * Strict, deterministic pipeline:
+ * resolve → validate → pre → controller → render → post → error → final
  *
  * Zones:
- * - `pre`:    runs before controller
- * - `post`:   runs after successful render
- * - `error`:  runs on exceptions
- * - `final`:  always runs, even after errors or early exits
+ * - `pre`    before controller (may short-circuit)
+ * - `post`   after successful render only
+ * - `error`  on exceptions
+ * - `final`  always executed
  */
 export class RuntimeRequestOrchestrator {
   private readonly contextFactory = new RuntimeHttpContextFactory();
+  private readonly controllerPipe = new RuntimeControllerPipe();
 
   constructor(
     private readonly router: Router,
@@ -44,81 +47,106 @@ export class RuntimeRequestOrchestrator {
 
     // 2️⃣ 404 fallback
     if (!routeMatch) {
-      return this.render404(req, res);
+      this.renderer.handleError(res, new HttpError(404, 'Not Found'));
+      return;
     }
 
-    // 3️⃣ Build context
+    // 3️⃣ Build HttpContext
     const ctx = this.contextFactory.create(req, res, routeMatch);
 
+    // 4️⃣ Validation (before PRE)
+    const schema = routeMatch.schema;
+
     try {
-      // 4️⃣ PRE middlewares
-      const prePipe = new RuntimeMiddlewarePipe(this.collect('pre', routeMatch));
-      const preResult = await prePipe.run(ctx);
+      if (schema?.body) {
+        ctx.body = await schema.body.validate(ctx.body);
+      }
+      if (schema?.params) {
+        ctx.params = await schema.params.validate(ctx.params);
+      }
+      if (schema?.query) {
+        ctx.query = await schema.query.validate(ctx.query);
+      }
+    } catch (err) {
+      this.renderer.handleError(res, err);
+      await this.runFinal(ctx, routeMatch);
+      return;
+    }
+
+    try {
+      // 5️⃣ PRE middleware (may short-circuit)
+      const preResult = await this.runZone('pre', ctx, routeMatch);
       if (preResult) {
         ctx.result = preResult;
         this.renderer.render(res, preResult);
+        await this.runFinal(ctx, routeMatch);
         return;
       }
 
-      // 5️⃣ Controller execution
-      let result: ActionResult<unknown> | void;
-      if (routeMatch.controller && routeMatch.action) {
-        const controllerPipe = new RuntimeControllerPipe();
-        result = await controllerPipe.run(routeMatch.controller, ctx, routeMatch.action);
-        if (result) {
-          ctx.result = result;
-          this.renderer.render(res, result);
-        }
+      // 6️⃣ Controller execution
+      const result = await this.controllerPipe.run(routeMatch.controller, ctx, routeMatch.action);
+
+      if (typeof result === 'undefined') {
+        throw new ControllerActionMissingResultError(routeMatch.controller, routeMatch.action);
       }
 
-      // 6️⃣ POST middlewares (executed after controller render)
-      const postPipe = new RuntimeMiddlewarePipe(this.collect('post', routeMatch));
-      const postResult = await postPipe.run(ctx);
-      if (postResult && !res.sent) {
-        ctx.result = postResult;
-        this.renderer.render(res, postResult);
+      ctx.result = result;
+
+      // 7️⃣ Render controller result
+      this.renderer.render(res, result);
+
+      // 8️⃣ POST only if render happened
+      if (res.sent) {
+        await this.runZone('post', ctx, routeMatch);
       }
+
     } catch (err) {
-      // 7️⃣ ERROR middlewares
-      const errorPipe = new RuntimeMiddlewarePipe(this.collect('error', routeMatch));
-      try {
-        const errorResult = await errorPipe.run(ctx);
-        if (errorResult && !res.sent) {
-          ctx.result = errorResult;
-          this.renderer.render(res, errorResult);
-          return;
-        }
-      } catch {
-        /* nested error ignored */
-      }
+      // 9️⃣ ERROR middleware zone
+      const errorResult = await this.runZone('error', ctx, routeMatch, err);
 
-      // 8️⃣ Fallback render for unhandled error
-      if (!res.sent) {
+      if (errorResult && !res.sent) {
+        this.renderer.render(res, errorResult);
+      } else if (!res.sent) {
         this.renderer.handleError(res, err);
       }
+
     } finally {
-      // 9️⃣ FINAL middlewares (always executed)
-      const finalPipe = new RuntimeMiddlewarePipe(this.collect('final', routeMatch));
-      await finalPipe.run(ctx);
+      // 🔟 FINAL always executed
+      await this.runFinal(ctx, routeMatch);
     }
   }
 
-  /** Collects middlewares for the given zone and route (global + controller). */
-  private collect(zone: MiddlewareZone, route: RouteMatch) {
-    const controller = route.controller?.constructor as unknown as Newable<Controller>;
+  /** Collects middlewares for a given zone. */
+  private collect(zone: MiddlewareZone, match: RouteMatch) {
+    const ctor = match.controller?.constructor as new () => Controller;
+
     return [
       ...this.registry.all(zone),
-      ...(controller ? this.registry.for(controller, zone, route.action) : []),
-    ].map(r => r.use);
+      ...(ctor ? this.registry.for(ctor, zone, match.action) : []),
+    ].map(m => m.use);
   }
 
-  /** Renders a plain 404 response (used when no route matches). */
-  private render404(_req: HttpRequest, res: HttpResponse) {
-    if ('status' in res && typeof (res as any).status === 'function') {
-      (res as any).status(404).send('Not Found');
-    } else {
-      (res as any).statusCode = 404;
-      (res as any).end?.('Not Found');
+  /** Runs a middleware zone. */
+  private async runZone(
+    zone: MiddlewareZone,
+    ctx: any,
+    match: RouteMatch,
+    error?: unknown
+  ) {
+    const fns = this.collect(zone, match);
+    if (!fns.length) return;
+
+    const pipe = new RuntimeMiddlewarePipe(fns);
+    
+    if (zone === 'error' && error !== undefined) {
+      ctx.error = error;
     }
+
+    return pipe.run(ctx);
+  }
+
+  /** Runs FINAL zone. */
+  private async runFinal(ctx: any, match: RouteMatch) {
+    return this.runZone('final', ctx, match);
   }
 }

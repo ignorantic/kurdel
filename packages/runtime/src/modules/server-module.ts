@@ -69,10 +69,12 @@ export class ServerModule implements AppModule<AppConfig> {
         await orchestrator.execute(req, res, scope);
       } catch (err) {
         // fallback-level error safety
-        console.error(
-          `[ServerModule] Uncaught error in orchestrator for ${req.method} ${req.url}:`,
-          err
-        );
+        if (process.env.NODE_ENV !== 'test') {
+          console.error(
+            `[ServerModule] Uncaught error in orchestrator for ${req.method} ${req.url}:`,
+            err
+          );
+        }
         if ((res as any).statusCode !== 500) (res as any).statusCode = 500;
         renderer.render(res, { status: 500, kind: 'text', body: 'Internal Server Error' });
       }
