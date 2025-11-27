@@ -6,6 +6,5 @@ export interface RouteMatch {
   action: string;
   path: string;
   params: Record<string, string>;
-  meta?: Record<string, any>;
   schema?: RouteSchema;
 }
