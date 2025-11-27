@@ -13,7 +13,7 @@ import type { Middleware } from '@kurdel/core/http';
  *   }
  */
 export const jsonBodyParser: Middleware = async (ctx, next) => {
-  const contentType = ctx.req.headers['content-type'] ?? '';
+  const contentType = ctx.req.headers?.['content-type'] ?? '';
   if (!contentType.includes('application/json')) {
     return next();
   }

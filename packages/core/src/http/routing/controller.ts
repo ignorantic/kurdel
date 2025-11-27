@@ -59,7 +59,7 @@ export abstract class Controller<TDeps extends Record<string, any> = {}> {
    * Optionally overridden in tests or custom adapters,
    * but normally invoked through RuntimeControllerExecutor.
    */
-  async handle(actionName: string, ctx: HttpContext): Promise<ActionResult> {
+  async handle(actionName: string, ctx: HttpContext): Promise<ActionResult | void> {
     const fn = this.resolveAction(actionName);
     if (typeof fn !== 'function') {
       throw new Error(`Action '${actionName}' not found in ${this.constructor.name}`);

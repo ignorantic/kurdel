@@ -1,12 +1,29 @@
+/**
+ * RuntimeRequestOrchestrator — Full Unit Test Suite
+ *
+ * Covers:
+ *   1️⃣ 404 fallback
+ *   2️⃣ PRE middleware short-circuit
+ *   3️⃣ Controller execution + render
+ *   4️⃣ POST middleware only after successful render
+ *   5️⃣ Skip POST when render fails
+ *   6️⃣ ERROR middleware when controller throws
+ *   7️⃣ Error fallback when ERROR middleware does not handle
+ *   8️⃣ ControllerActionMissingResultError (undefined return)
+ *   9️⃣ FINAL middleware always runs
+ */
+
 import { describe, it, expect, vi } from 'vitest';
 
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
-import { type Router, type MiddlewareRegistry, type ActionResult, Controller, route } from '@kurdel/core/http';
 
 import { RuntimeRequestOrchestrator } from 'src/http/runtime-request-orchestrator.js';
+import { TestController } from 'tests/utils/test-controller.js';
+import { makeFakeMiddlewareRegistry, mw } from 'tests/utils/fake-middleware-registry.js';
+import { makeMockRenderer, makeMockRouter } from 'tests/utils/mock-makers.js';
 
 //
-// Test doubles
+// Helpers
 //
 
 const makeReq = (over: Partial<HttpRequest> = {}): HttpRequest => ({
@@ -17,29 +34,16 @@ const makeReq = (over: Partial<HttpRequest> = {}): HttpRequest => ({
   ...over,
 });
 
-const makeRes = (): HttpResponse => {
-  return {
-    sent: false,
-    statusCode: 200,
-    end: vi.fn().mockImplementation(function () {
-      (this as any).sent = true;
-    }),
-    send: vi.fn().mockImplementation(function () {
-      (this as any).sent = true;
-    }),
-  } as any;
-};
-
-const makeRenderer = () => ({
-  render: vi.fn((res: HttpResponse, result: ActionResult) => {
-    res.sent = true;
-    res.send?.(JSON.stringify(result));
+const makeRes = (): HttpResponse => ({
+  sent: false,
+  statusCode: 200,
+  end: vi.fn().mockImplementation(function (this: HttpResponse) {
+    (this as any).sent = true;
   }),
-  handleError: vi.fn((res: HttpResponse, err: any) => {
-    res.sent = true;
-    res.send?.(JSON.stringify({ error: err.message ?? 'err' }));
+  send: vi.fn().mockImplementation(function (this: HttpResponse) {
+    (this as any).sent = true;
   }),
-});
+} as any);
 
 const makeMatch = (over: any = {}) => ({
   params: {},
@@ -51,62 +55,29 @@ const makeMatch = (over: any = {}) => ({
   ...over,
 });
 
-const makeRouter = (match: any) =>
-  ({
-    resolve: vi.fn().mockReturnValue(match),
-  }) as unknown as Router;
-
-const makeRegistry = (zones: Record<string, any[]> = {}) =>
-  ({
-    all: (zone: string) => zones[zone] ?? [],
-    for: () => [],
-  }) as unknown as MiddlewareRegistry;
-
-//
-// Fake middleware builder
-//
-const mw = (fn: (ctx: any) => any) => ({ use: fn });
-
-//
-// Fake controller
-//
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export class TestController extends Controller<{}> {
-  readonly routes = {
-    ok: route({ path: '/ok', method: 'GET' })(this.ok),
-    throws: route({ path: '/throws', method: 'GET' })(this.throws),
-    undefined: route({ path: '/undefined', method: 'GET' })(this.undefinedReturn),
-  };
-
-  async ok() {
-    return { kind: 'text', status: 200, body: 'OK' };
-  }
-
-  async throws() {
-    throw new Error('boom');
-  }
-
-  async undefinedReturn() {
-    return undefined;
-  }
-}
-
-//
-// Build orchestrator
-//
 const build = (opts: any = {}) => {
-  const router = opts.router ?? makeRouter(opts.match ?? null);
-  const renderer = opts.renderer ?? makeRenderer();
-  const registry = opts.registry ?? makeRegistry();
+  const router = opts.router ?? makeMockRouter(opts.match ?? null);
+  const renderer = opts.renderer ?? makeMockRenderer();
+  const registry = opts.registry ?? makeFakeMiddlewareRegistry();
   const scope = opts.scope ?? {};
-  const orchestrator = new RuntimeRequestOrchestrator(router, renderer, registry);
+
+  const orchestrator = new RuntimeRequestOrchestrator(
+    router,
+    renderer,
+    registry,
+  );
+
   return { orchestrator, router, renderer, registry, scope };
 };
 
 //
-// TESTS
+// --------------------------------
+//  S U I T E   S T A R T S   H E R E
+// --------------------------------
 //
+
 describe('RuntimeRequestOrchestrator', () => {
+  // 1️⃣ — 404 fallback
   it('returns 404 if no route matched', async () => {
     const { orchestrator, renderer } = build({ match: null });
     const req = makeReq();
@@ -118,9 +89,13 @@ describe('RuntimeRequestOrchestrator', () => {
     expect(res.sent).toBe(true);
   });
 
+  // 2️⃣ — PRE short-circuit
   it('runs PRE middleware and short-circuits', async () => {
-    const pre = mw(() => ({ kind: 'text', status: 200, body: 'PRE' }));
-    const registry = makeRegistry({ pre: [pre] });
+    const pre = mw(
+      async () => ({ kind: 'text', status: 200, body: 'PRE' }),
+      { zone: 'pre' },
+    );
+    const registry = makeFakeMiddlewareRegistry({ global: { pre: [pre] } });
 
     const match = makeMatch({
       controller: new TestController({}),
@@ -139,6 +114,7 @@ describe('RuntimeRequestOrchestrator', () => {
     );
   });
 
+  // 3️⃣ — Controller → Render
   it('executes controller and renders result', async () => {
     const match = makeMatch({
       controller: new TestController({}),
@@ -157,14 +133,15 @@ describe('RuntimeRequestOrchestrator', () => {
     );
   });
 
+  // 4️⃣ — POST only after successful render
   it('runs POST only after successful render', async () => {
-    const postFn = vi.fn();
-    const post = mw(() => {
-      postFn();
+    const postSpy = vi.fn();
+    const post = mw(async () => {
+      postSpy();
       return undefined;
-    });
+    }, { zone: 'post' });
 
-    const registry = makeRegistry({ post: [post] });
+    const registry = makeFakeMiddlewareRegistry({ global: { post: [post] } });
 
     const match = makeMatch({
       controller: new TestController({}),
@@ -177,14 +154,15 @@ describe('RuntimeRequestOrchestrator', () => {
 
     await orchestrator.execute(req, res, {} as any);
 
-    expect(postFn).toHaveBeenCalled();
+    expect(postSpy).toHaveBeenCalled();
   });
 
+  // 5️⃣ — Skip POST when render fails
   it('skips POST if render failed early', async () => {
-    const postFn = vi.fn();
-    const post = mw(() => postFn());
+    const postSpy = vi.fn();
+    const post = mw(() => postSpy(), { zone: 'post' });
 
-    const registry = makeRegistry({ post: [post] });
+    const registry = makeFakeMiddlewareRegistry({ global: { post: [post] } });
 
     const renderer = {
       render: vi.fn(() => {
@@ -206,17 +184,18 @@ describe('RuntimeRequestOrchestrator', () => {
 
     await orchestrator.execute(req, res, {} as any);
 
-    expect(postFn).not.toHaveBeenCalled();
+    expect(postSpy).not.toHaveBeenCalled();
   });
 
+  // 6️⃣ — ERROR middleware when controller throws
   it('executes ERROR middleware when controller throws', async () => {
-    const errMwFn = vi.fn();
-    const errMw = mw((ctx: any) => {
-      errMwFn();
+    const errSpy = vi.fn();
+    const errMw = mw(async () => {
+      errSpy();
       return { kind: 'text', status: 500, body: 'ERR-MW' };
-    });
+    }, { zone: 'error' });
 
-    const registry = makeRegistry({ error: [errMw] });
+    const registry = makeFakeMiddlewareRegistry({ global: { error: [errMw] } });
 
     const match = makeMatch({
       controller: new TestController({}),
@@ -229,22 +208,23 @@ describe('RuntimeRequestOrchestrator', () => {
 
     await orchestrator.execute(req, res, {} as any);
 
-    expect(errMwFn).toHaveBeenCalled();
+    expect(errSpy).toHaveBeenCalled();
     expect(renderer.render).toHaveBeenCalledWith(
       res,
       expect.objectContaining({ body: 'ERR-MW' }),
     );
   });
 
+  // 7️⃣ — Fallback if ERROR middleware does not handle
   it('falls back to renderer.handleError if ERROR middleware does not handle', async () => {
-    const registry = makeRegistry({ error: [] });
+    const registry = makeFakeMiddlewareRegistry({ global: { error: [] } });
 
     const match = makeMatch({
       controller: new TestController({}),
       action: 'throws',
     });
 
-    const { orchestrator, renderer } = build({ match });
+    const { orchestrator, renderer } = build({ match, registry });
     const req = makeReq();
     const res = makeRes();
 
@@ -253,6 +233,7 @@ describe('RuntimeRequestOrchestrator', () => {
     expect(renderer.handleError).toHaveBeenCalled();
   });
 
+  // 8️⃣ — ControllerActionMissingResultError
   it('throws ControllerActionMissingResultError when controller returns undefined', async () => {
     const match = makeMatch({
       controller: new TestController({}),
@@ -268,11 +249,12 @@ describe('RuntimeRequestOrchestrator', () => {
     expect(renderer.handleError).toHaveBeenCalled();
   });
 
+  // 9️⃣ — FINAL always runs
   it('runs FINAL middleware regardless of outcome', async () => {
-    const finalFn = vi.fn();
-    const final = mw(() => finalFn());
+    const finalSpy = vi.fn();
+    const final = mw(() => finalSpy(), { zone: 'final' });
 
-    const registry = makeRegistry({ final: [final] });
+    const registry = makeFakeMiddlewareRegistry({ global: { final: [final] } });
 
     const match = makeMatch({
       controller: new TestController({}),
@@ -285,6 +267,6 @@ describe('RuntimeRequestOrchestrator', () => {
 
     await orchestrator.execute(req, res, {} as any);
 
-    expect(finalFn).toHaveBeenCalled();
+    expect(finalSpy).toHaveBeenCalled();
   });
 });

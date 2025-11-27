@@ -4,10 +4,10 @@ import type { ControllerConfig } from '@kurdel/core/http';
 import { RuntimeRouter } from 'src/http/runtime-router.js';
 import { RuntimeRequestOrchestrator } from 'src/http/runtime-request-orchestrator.js';
 
-import { FakeContainer } from './fake-container.js';
-import { FakeResolver } from './fake-resolver.js';
-import { FakeController } from './fake-controller.js';
-import { FakeResponseRenderer } from './fake-response-renderer.js';
+import { FakeContainer } from 'tests/utils/fake-container.js';
+import { FakeResolver } from '../utils/fake-resolver.js';
+import { FakeController } from '../utils/fake-controller.js';
+import { FakeResponseRenderer } from '../utils/fake-response-renderer.js';
 import { RuntimeMiddlewareRegistry } from 'src/http/runtime-middleware-registry.js';
 
 function makeEnvironment(configs: ControllerConfig[] = []) {

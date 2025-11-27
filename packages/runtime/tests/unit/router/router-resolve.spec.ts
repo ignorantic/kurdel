@@ -1,36 +1,26 @@
-// Ensures ServerModule:
-//  - initializes Router with resolver + controller configs + global middlewares
-//  - hooks adapter.on(cb)
-//  - creates per-request scope and passes it into router.resolve(method, url, scope)
-//  - DOES NOT write req.__ioc
-
 import { describe, it, expect, vi } from 'vitest';
 
-import { type AppConfig } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
-import { type ControllerConfig } from '@kurdel/core/http';
 
 import { ServerModule } from 'src/modules/server-module.js';
 
-import { FakeContainer } from './fake-container.js';
+import { FakeContainer } from 'tests/utils/fake-container.js';
+import {
+  makeMockControllerConfigs,
+  makeMockControllerResolver,
+  makeMockRenderer,
+  makeMockRouter,
+} from 'tests/utils/mock-makers.js';
+import { makeFakeMiddlewareRegistry } from 'tests/utils/fake-middleware-registry.js';
 
-describe('ServerModule', () => {
+describe('Router', () => {
   it('wires adapter to router and passes request scope into router.resolve', async () => {
     const ioc = new FakeContainer();
-
-    const fakeRouter = {
-      init: vi.fn(),
-      resolve: vi.fn().mockReturnValue(async (req: any, res: any) => {
-        // Simulate a successful handler
-        res.statusCode = 204;
-        res.end();
-      }),
-    };
-
-    const fakeRegistry = { all: vi.fn().mockReturnValue([]) };
-    const fakeControllerConfigs: ControllerConfig[] = [];
-    const fakeResolver = {};
-    const fakeResponseRenderer = { render: vi.fn() };
+    const fakeRouter = makeMockRouter();
+    const fakeRegistry = makeFakeMiddlewareRegistry();
+    const fakeControllerConfigs = makeMockControllerConfigs();
+    const fakeResolver = makeMockControllerResolver();
+    const fakeResponseRenderer = makeMockRenderer();
 
     const fakeAdapter = {
       on: vi.fn((cb: (req: any, res: any) => void | Promise<void>) => {
@@ -52,7 +42,7 @@ describe('ServerModule', () => {
     ioc.set(TOKENS.ServerAdapter as any, fakeAdapter);
 
     // Run the module register hook
-    const mod = new ServerModule({ serverAdapter: fakeAdapter } as AppConfig);
+    const mod = new ServerModule();
     await mod.register(ioc as any);
 
     // Router.init called with deps from container

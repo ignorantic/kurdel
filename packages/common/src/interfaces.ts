@@ -2,10 +2,10 @@
 export interface HttpRequest {
   method: string;
   url: string;
-  headers: Record<string, string | string[]>;
+  headers?: Record<string, string | string[]>;
   body?: unknown;
   query: Record<string, string | string[]>;
-  params: Record<string, string>;
+  params?: Record<string, string>;
 }
 
 /** A minimal, platform-independent HTTP response abstraction. */

@@ -1,5 +1,4 @@
-import type { HttpResponse } from '@kurdel/common';
-import type { ActionResult, ResponseRenderer } from '@kurdel/core/http';
+import type { ResponseRenderer } from '@kurdel/core/http';
 
 /** No-op renderer used for non-platform runtime tests. */
 export class FakeResponseRenderer implements ResponseRenderer {
@@ -16,3 +15,4 @@ export class FakeResponseRenderer implements ResponseRenderer {
     res.send(`${code} ${err?.message ?? 'Error'}`);
   }
 }
+
