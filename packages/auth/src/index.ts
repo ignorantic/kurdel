@@ -1,4 +1,5 @@
-export * from './middleware/create-auth-middleware.js';
+export * from './middleware/index.js';
+export * from './repositories/index.js'
 export * from './strategies/index.js'
 export * from './auth-module.js';
 export * from './auth-strategy-registry.js';

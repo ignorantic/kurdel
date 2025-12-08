@@ -1,27 +1,39 @@
-import type { AuthUser, HttpRequest } from '@kurdel/common';
+import type { AuthUser } from '@kurdel/common';
 
 import type { AuthStrategy } from 'src/auth-strategy.js';
+import type { ApiKeyRepository } from 'src/repositories/api-key-repository.js';
 
 export interface ApiKeyStrategyOptions {
-  header: string;      // e.g. "x-api-key"
-  keys: Record<string, AuthUser>; // key → user
+  /**
+   * Name of the request header containing the API key.
+   * Example: `"x-api-key"`.
+   */
+  header: string;
+
+  /**
+   * Repository responsible for resolving users by API key.
+   */
+  repo: ApiKeyRepository;
 }
 
 /**
  * ## ApiKeyStrategy
  *
- * Looks up the request header and resolves user by API key.
+ * Simple authentication mechanism based on a static API key.
+ *
+ * This strategy is *storage-agnostic*: it does not know where keys
+ * are stored — persistent DB, cache, or memory. All lookups are
+ * delegated to the injected `ApiKeyRepository`.
  */
 export class ApiKeyStrategy implements AuthStrategy {
-  constructor(private readonly opts: ApiKeyStrategyOptions) {}
+  constructor(private readonly options: ApiKeyStrategyOptions) {}
 
-  async authenticate(req: HttpRequest): Promise<AuthUser | null> {
-    const value = req.headers?.[this.opts.header];
-    if (!value) return null;
+  async authenticate(req: any): Promise<AuthUser | null> {
+    const key = req.headers?.[this.options.header];
 
-    // Express-style arrays OR strings
-    const key = Array.isArray(value) ? value[0] : value;
+    if (!key || typeof key !== 'string') return null;
 
-    return this.opts.keys[key] ?? null;
+    // Delegated lookup — repository decides where the key lives.
+    return await this.options.repo.findByKey(key);
   }
 }
