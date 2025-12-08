@@ -1,6 +1,6 @@
 import type { AppModule } from '@kurdel/core/app';
+import { ModulePriority } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
-import { ModulePriority } from '@kurdel/runtime/app';
 import { RuntimeResponseRenderer } from '@kurdel/runtime/http';
 
 import { ExpressServerAdapter } from 'src/http/express-server-adapter.js';

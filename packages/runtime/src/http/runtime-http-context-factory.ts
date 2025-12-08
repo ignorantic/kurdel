@@ -1,36 +1,60 @@
 import type { HttpRequest, HttpResponse } from '@kurdel/common';
-import type { HttpContext, RouteMatch, JsonValue, ActionResult } from '@kurdel/core/http';
+import type { Container } from '@kurdel/ioc';
+import type {
+  HttpContext,
+  RouteMatch,
+  JsonValue,
+  ActionResult,
+} from '@kurdel/core/http';
 
 /**
  * ## RuntimeHttpContextFactory
  *
- * Factory responsible for constructing per-request {@link HttpContext} instances.
+ * Responsible for constructing per-request {@link HttpContext} objects.
  *
- * Each incoming request gets a fresh context object encapsulating:
- * - low-level request/response abstractions;
- * - resolved route metadata (params, query, body, schema);
- * - typed helpers for producing {@link ActionResult}s.
+ * Each incoming request receives a fresh, isolated context encapsulating:
+ * - HTTP request/response wrappers provided by the adapter
+ * - parsed URL, query, params, body
+ * - matched route metadata (controller/action/schema/auth)
+ * - a request-scoped IoC container
+ * - typed constructors for {@link ActionResult}
  *
- * The factory isolates context creation logic from orchestration and controller execution.
- *
- * @remarks
- * The produced context is immutable except for the optional `result` field,
- * which is populated later by the runtime orchestrator or renderer.
+ * The context object is immutable except for `result`,
+ * which is later populated by the orchestrator and renderer.
  */
 export class RuntimeHttpContextFactory {
   /**
-   * Creates a fully initialized {@link HttpContext} for a given request and route match.
+   * Constructs a fully initialized {@link HttpContext} instance.
    *
-   * @param req - Incoming HTTP request abstraction.
-   * @param res - Outgoing HTTP response abstraction.
-   * @param match - Resolved route metadata containing params, schema, and controller info.
-   *
-   * @returns A new {@link HttpContext} instance representing the current request.
+   * @param req    - incoming HTTP request
+   * @param res    - outgoing HTTP response
+   * @param match  - router resolution result
+   * @param scope  - request-scoped IoC container
    */
-  create(req: HttpRequest, res: HttpResponse, match: RouteMatch): HttpContext {
+  create(
+    req: HttpRequest,
+    res: HttpResponse,
+    match: RouteMatch,
+    scope: Container
+  ): HttpContext {
     const url = new URL(req.url ?? '/', 'http://internal');
 
+    const query =
+      req.query ??
+      Object.fromEntries(url.searchParams.entries());
+
     return {
+      /**
+       * Request-scoped IoC container.
+       *
+       * Used by:
+       * - authentication strategies
+       * - per-request services (logger, db, tracing)
+       * - custom middlewares
+       * - controllers needing scoped dependencies
+       */
+      scope,
+
       /** Underlying request object */
       req,
 
@@ -41,7 +65,7 @@ export class RuntimeHttpContextFactory {
       url,
 
       /** Parsed query parameters */
-      query: req.query ?? Object.fromEntries(url.searchParams.entries()),
+      query,
 
       /** Path parameters extracted from the matched route */
       params: match.params,
@@ -51,6 +75,12 @@ export class RuntimeHttpContextFactory {
 
       /** Matched route metadata (including schema and controller) */
       route: match,
+
+      /**
+       * Authenticated user (if authentication middleware succeeded).
+       * Populated later in the pipeline.
+       */
+      user: undefined,
 
       /** The latest computed ActionResult (populated later at runtime) */
       result: undefined,

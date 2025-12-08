@@ -10,5 +10,5 @@
     "types": ["vitest/globals"],
     "noEmit": true
   },
-  "include": ["src", "tests", "**/*.ts", "../core/src/app/module-priority.ts"]
+  "include": ["src", "tests", "**/*.ts", "../common/src/auth-user.ts"]
 }

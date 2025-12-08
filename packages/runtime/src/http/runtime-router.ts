@@ -8,6 +8,7 @@ import type {
   Controller,
   RouteSchema,
   RouteMatch,
+  RouteAuth,
 } from '@kurdel/core/http';
 import { ROUTE_META } from '@kurdel/core/http';
 
@@ -21,6 +22,7 @@ interface Entry {
   keys: string[];
   token: ControllerConfig['use'];
   action: string;
+  auth?: RouteAuth;
   schema?: RouteSchema;
 }
 
@@ -54,6 +56,16 @@ function compilePath(path: string): { regex: RegExp; keys: string[] } {
   return { regex, keys };
 }
 
+export function mergeAuth(base?: RouteAuth, override?: RouteAuth): RouteAuth | undefined {
+  if (!base && !override) return undefined;
+
+  return {
+    public: override?.public ?? base?.public,
+    strategy: override?.strategy ?? base?.strategy,
+    roles: override?.roles ?? base?.roles,
+  };
+}
+
 /**
  * ## RuntimeRouter
  *
@@ -83,7 +95,7 @@ export class RuntimeRouter implements Router {
   public init(resolver: ControllerResolver, controllerConfigs: ControllerConfig[]): void {
     this.resolver = resolver;
 
-    for (const { use: ControllerClass, prefix = '' } of controllerConfigs) {
+    for (const { use: ControllerClass, prefix = '', auth: ctrlAuth = {} } of controllerConfigs) {
       /**
        * We instantiate the controller *only* to read its static `routes` definition.
        *
@@ -104,7 +116,9 @@ export class RuntimeRouter implements Router {
         const fullPath = joinPaths(prefix, meta.path);
         const { method, schema } = meta;
 
-        this.addEntry(method, fullPath, ControllerClass, action, schema);
+        const auth = mergeAuth(ctrlAuth, meta.auth);
+
+        this.addEntry(method, fullPath, ControllerClass, action, auth, schema);
       }
     }
 
@@ -142,6 +156,7 @@ export class RuntimeRouter implements Router {
         action: entry.action,
         path: entry.path,
         params,
+        auth: entry.auth,
         schema: entry.schema,
       };
     }
@@ -157,7 +172,8 @@ export class RuntimeRouter implements Router {
     path: string,
     token: ControllerConfig['use'],
     action: string,
-    schema?: RouteSchema
+    auth?: RouteAuth,
+    schema?: RouteSchema,
   ): void {
     const { regex, keys } = compilePath(path);
 
@@ -168,6 +184,7 @@ export class RuntimeRouter implements Router {
       keys,
       token,
       action,
+      auth,
       schema,
     });
   }

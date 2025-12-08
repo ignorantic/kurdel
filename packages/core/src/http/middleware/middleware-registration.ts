@@ -1,6 +1,16 @@
 import type { Middleware } from 'src/http/index.js';
 
-export type MiddlewareZone = 'pre' | 'post' | 'error' | 'final';
+/**
+ * Middleware execution zones in the Kurdel runtime pipeline.
+ *
+ * Now includes:
+ * - `auth`  → executes after validation, before PRE
+ * - `pre`   → before controller
+ * - `post`  → after render
+ * - `error` → on exceptions
+ * - `final` → always
+ */
+export type MiddlewareZone = 'auth' | 'pre' | 'post' | 'error' | 'final';
 
 /**
  * Describes a single middleware registration entry.

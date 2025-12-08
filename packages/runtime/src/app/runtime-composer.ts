@@ -1,4 +1,4 @@
-import type { AppConfig, AppModule } from '@kurdel/core/app';
+import { ModulePriority, type AppConfig, type AppModule } from '@kurdel/core/app';
 import type {
   HttpModule,
   ControllerConfig,
@@ -14,7 +14,6 @@ import { ModelModule } from 'src/modules/model-module.js';
 import { MiddlewareModule } from 'src/modules/middleware-module.js';
 import { ControllerModule } from 'src/modules/controller-module.js';
 import { ServerModule } from 'src/modules/server-module.js';
-import { ModulePriority } from 'src/app/module-priority.js';
 import { ModuleValidationError } from 'src/app/errors/module-validation-error.js';
 
 /**
@@ -48,11 +47,11 @@ export class RuntimeComposer {
     const unsorted: AppModule[] = [
       new LifecycleModule(),
       new DatabaseModule(),
-      ...modules,
       new ModelModule(models),
       new MiddlewareModule(middlewares),
       new ControllerModule(controllers),
       new ServerModule(),
+      ...modules,
     ];
 
     const pipeline = this.sortByPriority(unsorted);

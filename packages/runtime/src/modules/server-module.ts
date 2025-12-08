@@ -1,5 +1,5 @@
 import type { Container } from '@kurdel/ioc';
-import type { AppConfig, AppModule } from '@kurdel/core/app';
+import { ModulePriority, type AppConfig, type AppModule } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
 import type {
   ServerAdapter,
@@ -12,7 +12,6 @@ import type {
 
 import { NoopResponseRenderer } from 'src/http/noop-response-renderer.js';
 import { RuntimeRequestOrchestrator } from 'src/http/runtime-request-orchestrator.js';
-import { ModulePriority } from 'src/app/module-priority.js';
 
 /**
  * ServerModule: wires the HTTP ServerAdapter to the Router.

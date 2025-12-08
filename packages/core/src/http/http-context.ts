@@ -1,5 +1,12 @@
-import type { HttpRequest, HttpResponse } from '@kurdel/common';
-import type { JsonValue, Query, ActionResult, RouteMatch } from 'src/http/index.js';
+import type { AuthUser, HttpRequest, HttpResponse } from '@kurdel/common';
+import type { Container } from '@kurdel/ioc';
+
+import type {
+  JsonValue,
+  Query,
+  ActionResult,
+  RouteMatch,
+} from 'src/http/index.js';
 
 /**
  * ## HttpContext
@@ -20,6 +27,18 @@ export interface HttpContext<
   /** Streamable response type (e.g. for SSR or files) */
   TReadable = unknown,
 > {
+  /**
+   * Request-scoped dependency container.
+   *
+   * Allows middleware and controllers to resolve:
+   * - auth registry
+   * - user service
+   * - db session/transaction
+   * - logger
+   * - anything else bound in this scope
+   */
+  readonly scope: Container;
+
   /**
    * Underlying HTTP request abstraction provided by the active adapter.
    */
@@ -51,13 +70,20 @@ export interface HttpContext<
    */
   body?: TBody;
 
-
   /**
    * Matched route information, including schema and controller metadata.
    * Useful for validation or dynamic response generation.
    */
   route?: RouteMatch;
 
+  /**
+   * Authenticated user associated with this request.
+   *
+   * Populated by authentication middleware (auth zone).
+   * Undefined for public routes or when authentication is not required.
+   */
+  user?: AuthUser;
+  
   /**
    * The last computed {@link ActionResult} for this request.
    *

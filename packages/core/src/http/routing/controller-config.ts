@@ -1,7 +1,8 @@
 import type { Newable } from '@kurdel/common';
 import type { Identifier } from '@kurdel/ioc';
+import type { MiddlewareRegistration, RouteAuth } from '@kurdel/core/http';
+
 import type { Controller, Middleware } from 'src/http/index.js';
-import type { MiddlewareRegistration } from '@kurdel/core/http';
 
 /**
  * Declares how a controller should be registered and instantiated.
@@ -24,4 +25,6 @@ export interface ControllerConfig {
 
   /** Optional route prefix applied to all controller routes */
   prefix?: string;
+
+  auth?: RouteAuth;
 }
