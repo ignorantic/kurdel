@@ -3,9 +3,8 @@ import { ModulePriority, type AppModule, type ProviderConfig } from '@kurdel/cor
 import type { MiddlewareRegistry } from '@kurdel/core/http';
 import { TOKENS } from '@kurdel/core/tokens';
 
-import type { AuthStrategy } from 'src/auth-strategy.js';
-import { AuthStrategyRegistry } from 'src/auth-strategy-registry.js';
-import { createAuthMiddleware } from 'src/middleware/create-auth-middleware.js';
+import type { AuthStrategy } from 'src/domain/index.js';
+import { AuthStrategyRegistry, createAuthMiddleware } from 'src/runtime/index.js';
 import { AUTH_TOKENS } from 'src/tokens.js';
 
 /**

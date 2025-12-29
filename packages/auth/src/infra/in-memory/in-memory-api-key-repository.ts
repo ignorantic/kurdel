@@ -1,6 +1,6 @@
 import type { AuthUser } from '@kurdel/common';
 
-import type { ApiKeyRepository } from 'src/repositories/api-key-repository.js';
+import type { ApiKeyRepository } from 'src/repositories/index.js';
 
 /**
  * ## InMemoryApiKeyRepository

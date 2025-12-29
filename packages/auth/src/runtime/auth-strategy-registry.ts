@@ -1,4 +1,4 @@
-import type { AuthStrategy } from './auth-strategy.js';
+import type { AuthStrategy } from 'src/domain/index.js';
 
 /**
  * ## AuthStrategyRegistry

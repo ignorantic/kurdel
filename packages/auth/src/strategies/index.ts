@@ -1,2 +1,2 @@
-export * from './dummy-strategy.js'
-export * from './api-key-strategy.js'
+export * from './api-key/index.js'
+export * from './jwt/index.js'

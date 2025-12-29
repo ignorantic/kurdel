@@ -1,6 +1,6 @@
 import type { Middleware } from '@kurdel/core/http';
 
-import type { AuthStrategyRegistry } from 'src/auth-strategy-registry.js';
+import type { AuthStrategyRegistry } from 'src/runtime/index.js';
 
 export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware {
   return async (ctx, next) => {

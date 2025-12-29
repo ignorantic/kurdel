@@ -1,7 +1,7 @@
 import type { AuthUser } from '@kurdel/common';
 
-import type { AuthStrategy } from 'src/auth-strategy.js';
-import type { ApiKeyRepository } from 'src/repositories/api-key-repository.js';
+import type { AuthStrategy } from 'src/domain/index.js';
+import type { ApiKeyRepository } from 'src/repositories/index.js';
 
 export interface ApiKeyStrategyOptions {
   /**
