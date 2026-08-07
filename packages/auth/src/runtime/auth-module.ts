@@ -3,9 +3,11 @@ import { ModulePriority, type AppModule, type ProviderConfig } from '@kurdel/cor
 import type { MiddlewareRegistry } from '@kurdel/core/http';
 import { TOKENS } from '@kurdel/core/tokens';
 
-import type { AuthStrategy } from 'src/domain/index.js';
+import type { AuthStrategyProvider } from 'src/domain/index.js';
 import { AuthStrategyRegistry, createAuthMiddleware } from 'src/runtime/index.js';
+import { InMemoryJwtRepository } from 'src/infra/index.js';
 import { AUTH_TOKENS } from 'src/tokens.js';
+import { JwtService } from 'src/strategies/index.js';
 
 /**
  * ## AuthModuleConfig
@@ -26,13 +28,7 @@ import { AUTH_TOKENS } from 'src/tokens.js';
  */
 export interface AuthModuleConfig {
   /** List of user-provided authentication strategies. */
-  strategies?: Array<{
-    /** Strategy lookup key (e.g. `"api-key"`, `"jwt"`). */
-    name: string;
-
-    /** A concrete strategy instance implementing AuthStrategy. */
-    use: AuthStrategy;
-  }>;
+  strategies?: AuthStrategyProvider[];
 }
 
 /**
@@ -68,6 +64,26 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
       useClass: AuthStrategyRegistry,
       singleton: true,
     },
+    {
+      provide: AUTH_TOKENS.JwtRepository,
+      useFactory: () => new InMemoryJwtRepository([
+        { id: '1', roles: ['root'] },
+        { id: '2', roles: ['admin'] },
+        { id: '3', roles: ['user'] },
+        { id: '4', roles: ['guest'] },
+      ]),
+      singleton: true,
+    },
+    {
+      provide: AUTH_TOKENS.JwtService,
+      useFactory: () => new JwtService({
+        secret: 'dev-secret',
+        issuer: 'kurdel',
+        audience: 'sample-jwt',
+        expiresIn: undefined, // verification only
+      }),
+      singleton: true,
+    },
   ];
 
   constructor(private readonly config: AuthModuleConfig = {}) {}
@@ -82,7 +98,12 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
 
     // register user strategies
     for (const s of this.config.strategies ?? []) {
-      registry.register(s.name, s.use);
+      if ('use' in s) {
+        registry.register(s.name, s.use);
+      } else {
+        const strategy = s.useFactory(ioc);
+        registry.register(s.name, strategy);
+      }
     }
 
     // register system auth middleware

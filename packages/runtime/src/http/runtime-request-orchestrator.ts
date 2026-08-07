@@ -64,14 +64,12 @@ export class RuntimeRequestOrchestrator {
 
     try {
       // --- 4️⃣ AUTH zone ---
-      if (!routeMatch.auth?.public) {
-        const authResult = await this.runZone('auth', ctx, routeMatch);
-        if (authResult) {
-          ctx.result = authResult;
-          this.renderer.render(res, authResult);
-          await this.runFinal(ctx, routeMatch);
-          return;
-        }
+      const authResult = await this.runZone('auth', ctx, routeMatch);
+      if (authResult) {
+        ctx.result = authResult;
+        this.renderer.render(res, authResult);
+        await this.runFinal(ctx, routeMatch);
+        return;
       }
 
       // --- 5️⃣ PRE middleware ---

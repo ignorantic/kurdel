@@ -5,7 +5,7 @@ import type { AuthStrategyRegistry } from 'src/runtime/index.js';
 export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware {
   return async (ctx, next) => {
     const meta = ctx.route?.auth;
-    if (!meta) {
+    if (!meta || meta.public) {
       // public route
       return next();
     }
@@ -22,6 +22,7 @@ export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware
       }
 
       user = await strat.authenticate(ctx.req);
+      console.log('Authenticated user:', user);
       if (!user) {
         return ctx.json(401, { error: 'Unauthorized' });
       }

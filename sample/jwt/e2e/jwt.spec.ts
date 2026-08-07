@@ -3,12 +3,7 @@ import request from 'supertest';
 import type { Server } from 'http';
 
 import { createNodeApplication } from '@kurdel/facade';
-import {
-  AuthModule,
-  InMemoryJwtRepository,
-  JwtService,
-  JwtStrategy,
-} from '@kurdel/auth';
+import { AUTH_TOKENS, AuthModule, JwtStrategy } from '@kurdel/auth';
 import type { RunningServer } from '@kurdel/core/http';
 
 import { JwtAuthModule } from '../src/jwt-auth-module.js';
@@ -21,19 +16,6 @@ describe('Sample JWT Application — E2E', () => {
   // ─────────────────────────────────────────────
   // Test data
   // ─────────────────────────────────────────────
-
-  const repo = new InMemoryJwtRepository([
-    { id: '1', roles: ['root'] },
-    { id: '2', roles: ['admin'] },
-    { id: '3', roles: ['user'] },
-    { id: '4', roles: ['guest'] },
-  ]);
-
-  const jwt = new JwtService({
-    secret: 'dev-secret',
-    issuer: 'kurdel',
-    audience: 'sample-jwt',
-  });
 
   const tokens = {
     root:
@@ -58,7 +40,11 @@ describe('Sample JWT Application — E2E', () => {
           strategies: [
             {
               name: 'jwt',
-              use: new JwtStrategy(jwt, repo),
+              useFactory: (c) =>
+                new JwtStrategy(
+                  c.get(AUTH_TOKENS.JwtService),
+                  c.get(AUTH_TOKENS.JwtRepository),
+                ),
             },
           ],
         }),
@@ -124,5 +110,6 @@ describe('Sample JWT Application — E2E', () => {
   it('GET /secure/login → public even under secure controller', async () => {
     const res = await agent.get('/secure/login');
     expect(res.status).toBe(200);
+    expect(res.body.ok).toBeTruthy();
   });
 });

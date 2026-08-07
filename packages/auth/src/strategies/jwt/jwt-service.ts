@@ -1,3 +1,4 @@
+import { log } from 'node:console';
 import crypto from 'node:crypto';
 
 /**
@@ -94,9 +95,9 @@ export class JwtService {
     }
 
     const [headerB64, payloadB64, signature] = parts;
-    const computedSig = this.signSegment(`${headerB64}.${payloadB64}`);
+    const computedSign = this.signSegment(`${headerB64}.${payloadB64}`);
 
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(computedSig))) {
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(computedSign))) {
       throw new Error('Invalid token signature');
     }
 

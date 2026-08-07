@@ -7,8 +7,8 @@ export class SecureController extends Controller {
     system: route({ method: 'GET', path: '/system' })(this.system),
   };
 
-  async login(ctx: any): Promise<ActionResult> {
-    return { status: 200, kind: 'json', body: { user: ctx.user } };
+  async login(_ctx: any): Promise<ActionResult> {
+    return { status: 200, kind: 'json', body: { ok: true } };
   }
 
   async system(ctx: any): Promise<ActionResult> {
