@@ -2,11 +2,13 @@ import { createNodeApplication } from '@kurdel/facade';
 import { AUTH_TOKENS, AuthModule, JwtStrategy } from '@kurdel/auth';
 
 import { JwtAuthModule } from './jwt-auth-module.js';
+import { JwtAuthProvidersModule } from './jwt-auth-providers-module.js';
 
 const app = await createNodeApplication({
   db: false,
   modules: [
-    new AuthModule({  
+    new JwtAuthProvidersModule(),
+    new AuthModule({
       strategies: [
         {
           name: 'jwt',

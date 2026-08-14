@@ -5,9 +5,7 @@ import { TOKENS } from '@kurdel/core/tokens';
 
 import type { AuthStrategyProvider } from 'src/domain/index.js';
 import { AuthStrategyRegistry, createAuthMiddleware } from 'src/runtime/index.js';
-import { InMemoryAuthUserRepository } from 'src/infra/index.js';
 import { AUTH_TOKENS } from 'src/tokens.js';
-import { JwtService } from 'src/strategies/index.js';
 
 /**
  * ## AuthModuleConfig
@@ -47,8 +45,8 @@ export interface AuthModuleConfig {
  * - no middleware ordering
  * - no policy evaluation
  *
- * This module merely supplies building blocks used by
- * `authenticate()` and `authorize()` middleware factories.
+ * Identity repositories, credentials and strategy-specific services are
+ * application concerns and must be supplied outside this module.
  */
 export class AuthModule implements AppModule<AuthModuleConfig> {
   readonly priority = ModulePriority.Auth;
@@ -62,26 +60,6 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
     {
       provide: AUTH_TOKENS.StrategyRegistry,
       useClass: AuthStrategyRegistry,
-      singleton: true,
-    },
-    {
-      provide: AUTH_TOKENS.UserRepository,
-      useFactory: () => new InMemoryAuthUserRepository([
-        { id: '1', roles: ['root'] },
-        { id: '2', roles: ['admin'] },
-        { id: '3', roles: ['user'] },
-        { id: '4', roles: ['guest'] },
-      ]),
-      singleton: true,
-    },
-    {
-      provide: AUTH_TOKENS.JwtService,
-      useFactory: () => new JwtService({
-        secret: 'dev-secret',
-        issuer: 'kurdel',
-        audience: 'sample-jwt',
-        expiresIn: undefined, // verification only
-      }),
       singleton: true,
     },
   ];

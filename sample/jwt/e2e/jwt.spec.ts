@@ -7,6 +7,7 @@ import { AUTH_TOKENS, AuthModule, JwtStrategy } from '@kurdel/auth';
 import type { RunningServer } from '@kurdel/core/http';
 
 import { JwtAuthModule } from '../src/jwt-auth-module.js';
+import { JwtAuthProvidersModule } from '../src/jwt-auth-providers-module.js';
 
 describe('Sample JWT Application — E2E', () => {
   let agent: any;
@@ -36,6 +37,7 @@ describe('Sample JWT Application — E2E', () => {
     const app = await createNodeApplication({
       db: false,
       modules: [
+        new JwtAuthProvidersModule(),
         new AuthModule({
           strategies: [
             {

@@ -22,7 +22,6 @@ export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware
       }
 
       user = await strat.authenticate(ctx.req);
-      console.log('Authenticated user:', user);
       if (!user) {
         return ctx.json(401, { error: 'Unauthorized' });
       }
