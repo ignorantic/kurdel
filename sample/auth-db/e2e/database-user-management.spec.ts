@@ -61,14 +61,20 @@ describe('database user management', () => {
     expect(assignments).toEqual([{ name: 'admin' }, { name: 'user' }]);
   });
 
+  it('lists available roles in a stable order', async () => {
+    await expect(users.listRoles()).resolves.toEqual(['admin', 'user']);
+  });
+
   it('rejects unknown roles before creating a user', async () => {
     const before = await db.get({ sql: 'SELECT COUNT(*) AS count FROM users;', params: [] });
 
-    await expect(users.create({
-      name: 'Missing Role', email: 'missing@example.test', roles: ['missing'],
-    })).rejects.toEqual(
-      expect.objectContaining<Partial<UnknownRolesError>>({ roles: ['missing'] })
-    );
+    await expect(
+      users.create({
+        name: 'Missing Role',
+        email: 'missing@example.test',
+        roles: ['missing'],
+      })
+    ).rejects.toEqual(expect.objectContaining<Partial<UnknownRolesError>>({ roles: ['missing'] }));
 
     const after = await db.get({ sql: 'SELECT COUNT(*) AS count FROM users;', params: [] });
     expect(after.count).toBe(before.count);
@@ -76,7 +82,9 @@ describe('database user management', () => {
 
   it('issues a random API key and persists only its hash', async () => {
     const user = await users.create({
-      name: 'Key Owner', email: 'key-owner@example.test', roles: ['user'],
+      name: 'Key Owner',
+      email: 'key-owner@example.test',
+      roles: ['user'],
     });
     const credential = await apiKeys.create({
       userId: user.id,
@@ -94,19 +102,23 @@ describe('database user management', () => {
 
   it('lists, loads and updates user profiles and access state', async () => {
     const user = await users.create({
-      name: 'Before Update', email: 'before@example.test', roles: ['user'],
+      name: 'Before Update',
+      email: 'before@example.test',
+      roles: ['user'],
     });
 
     await expect(users.findById(user.id)).resolves.toMatchObject({
       name: 'Before Update',
       email: 'before@example.test',
     });
-    await expect(users.update(user.id, {
-      name: 'After Update',
-      email: 'AFTER@example.test',
-      status: 'disabled',
-      roles: ['admin'],
-    })).resolves.toMatchObject({
+    await expect(
+      users.update(user.id, {
+        name: 'After Update',
+        email: 'AFTER@example.test',
+        status: 'disabled',
+        roles: ['admin'],
+      })
+    ).resolves.toMatchObject({
       name: 'After Update',
       email: 'after@example.test',
       status: 'disabled',
@@ -120,9 +132,13 @@ describe('database user management', () => {
 
   it('rejects duplicate email addresses', async () => {
     await users.create({ name: 'First', email: 'unique@example.test', roles: ['user'] });
-    await expect(users.create({
-      name: 'Second', email: 'UNIQUE@example.test', roles: ['user'],
-    })).rejects.toMatchObject({ email: 'unique@example.test' });
+    await expect(
+      users.create({
+        name: 'Second',
+        email: 'UNIQUE@example.test',
+        roles: ['user'],
+      })
+    ).rejects.toMatchObject({ email: 'unique@example.test' });
   });
 
   it('does not issue credentials for unknown users', async () => {

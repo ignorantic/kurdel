@@ -23,7 +23,9 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) and sign in with
 `admin-demo-key`. The React dashboard keeps the credential in
 `sessionStorage`, verifies the admin role, and loads the user list from the
-same-origin API. It supports status filters, pagination, refresh, and logout.
+same-origin API. It supports user creation, status filters, pagination,
+refresh, and logout. The creation form loads the available roles from the
+database and reports duplicate email addresses without leaving the page.
 
 The sample build produces both the server and the browser bundle. During UI
 development, rebuild only the client with `npm run build:client:dev` and reload
