@@ -117,6 +117,26 @@ Follow **[Conventional Commits](https://www.conventionalcommits.org/)**.
 | `docs`     | `docs(contributing): update schema validation rules` | Documentation     |
 | `chore`    | `chore(repo): update tsconfig paths`                 | Maintenance       |
 
+Non-trivial commits must include a bullet-list body:
+
+```text
+refactor(auth): separate credentials from user identities
+
+- introduce AuthUserRepository as the source of current user roles
+- split credentials from authorization data
+- update tests and samples
+```
+
+Commit message rules:
+
+* Use lowercase imperative wording.
+* Separate the subject and body with a blank line.
+* Start every body item with `- `.
+* Describe logical changes rather than individual files.
+* Use package or subsystem names as scopes.
+* Omit the body only for genuinely trivial commits.
+* Inspect recent commits before composing a message.
+
 ---
 
 ## 🧰 Build & Workspace Rules
