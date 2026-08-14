@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "incremental": true,
+    "tsBuildInfoFile": "../../.cache/tsconfig.sample.auth-db.build.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["e2e", "migrations", "scripts", "vitest.config.ts"]
+}

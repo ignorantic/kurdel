@@ -1,0 +1,67 @@
+import { Blueprint } from '../src/index.js';
+
+describe('Blueprint', () => {
+  it('builds fluent columns with defaults and constraints', () => {
+    const table = new Blueprint();
+
+    table.integer('id').primaryKey();
+    table.string('name', 100).notNull().unique();
+    table.boolean('enabled').notNull().default(true);
+    table.datetime('expires_at').nullable();
+    table.string('label').default("owner's key");
+
+    expect(table.getColumnDefinitions()).toBe(
+      "id INTEGER PRIMARY KEY, " +
+      "name VARCHAR(100) NOT NULL UNIQUE, " +
+      "enabled BOOLEAN NOT NULL DEFAULT 1, " +
+      "expires_at DATETIME, " +
+      "label VARCHAR(255) DEFAULT 'owner''s key'"
+    );
+  });
+
+  it('keeps the legacy primaryKey API working', () => {
+    const table = new Blueprint();
+    table.integer('id');
+    table.primaryKey('id');
+
+    expect(table.getColumnDefinitions()).toBe('id INTEGER PRIMARY KEY');
+  });
+
+  it('builds composite, unique and foreign key constraints', () => {
+    const table = new Blueprint();
+    table.integer('user_id').notNull();
+    table.integer('role_id').notNull();
+    table.primaryKey(['user_id', 'role_id']);
+    table.unique(['role_id', 'user_id'], 'user_roles_pair_unique');
+    table.foreign('user_id', 'users', 'id', { onDelete: 'CASCADE' });
+    table.foreign('role_id', 'roles', 'id', { onDelete: 'CASCADE' });
+
+    expect(table.getColumnDefinitions()).toContain('PRIMARY KEY (user_id, role_id)');
+    expect(table.getColumnDefinitions()).toContain(
+      'CONSTRAINT user_roles_pair_unique UNIQUE (role_id, user_id)'
+    );
+    expect(table.getColumnDefinitions()).toContain(
+      'FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE'
+    );
+  });
+
+  it('records regular and unique indexes', () => {
+    const table = new Blueprint();
+    table.integer('user_id');
+    table.string('key_hash');
+    table.index(['user_id']);
+    table.uniqueIndex(['key_hash'], 'api_keys_hash_unique');
+
+    expect(table.getIndexes()).toEqual([
+      { columns: ['user_id'], name: undefined, unique: false },
+      { columns: ['key_hash'], name: 'api_keys_hash_unique', unique: true },
+    ]);
+  });
+
+  it('rejects constraints that reference unknown columns', () => {
+    const table = new Blueprint();
+
+    expect(() => table.primaryKey('missing')).toThrow("Unknown column 'missing'");
+    expect(() => table.index([])).toThrow('At least one column is required');
+  });
+});

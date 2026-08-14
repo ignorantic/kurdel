@@ -70,6 +70,7 @@ __snapshots__/
 *.swo
 .DS_Store
 Thumbs.db
+sample/auth-db/auth.db
 
 # -----------------------------------------------------------------------------
 # 🧺 Temporary files and caches

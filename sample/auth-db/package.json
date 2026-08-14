@@ -1,0 +1,29 @@
+{
+  "name": "@kurdel/sample-auth-db",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Database-backed authentication schema sample",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc",
+    "migrate": "pirx migrate run",
+    "migrate:rollback": "pirx migrate rollback",
+    "seed": "node scripts/seed.js",
+    "setup": "npm run migrate && npm run seed",
+    "dev": "node dist/app.js"
+  },
+  "dependencies": {
+    "@kurdel/auth": "^1.0.0",
+    "@kurdel/common": "^1.0.0",
+    "@kurdel/core": "^1.0.0",
+    "@kurdel/db": "^1.0.0",
+    "@kurdel/facade": "^1.0.0",
+    "@kurdel/migrations": "^1.0.0"
+  },
+  "devDependencies": {
+    "@kurdel/pirx": "^1.0.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

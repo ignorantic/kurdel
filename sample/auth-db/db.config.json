@@ -1,0 +1,4 @@
+{
+  "type": "sqlite",
+  "filename": "auth.db"
+}

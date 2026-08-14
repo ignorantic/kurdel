@@ -7,10 +7,11 @@
   "files": [ "lib" ],
   "types": "./lib/index.d.ts",
   "scripts": {
-    "test": "echo \"No tests yet\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "clean": "rimraf lib ../../.cache/tsconfig.migrations.build.tsbuildinfo",
-    "build": "tsc",
-    "build:force": "npm run clean && tsc --force"
+    "build": "tsc -p tsconfig.build.json",
+    "build:force": "npm run clean && tsc -p tsconfig.build.json --force"
   },
   "keywords": [
     "framework"
