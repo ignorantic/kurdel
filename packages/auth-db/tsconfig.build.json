@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": false,
+    "composite": true,
+    "noEmit": false,
+    "incremental": true,
+    "tsBuildInfoFile": "../../.cache/tsconfig.auth-db.build.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["tests", "vitest.config.ts"]
+}

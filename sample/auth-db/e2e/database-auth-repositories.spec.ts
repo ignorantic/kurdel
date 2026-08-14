@@ -1,13 +1,17 @@
 import { DatabaseFactory, type IDatabase } from '@kurdel/db';
+import {
+  DatabaseApiKeyRepository,
+  DatabaseAuthUserRepository,
+  Sha256ApiKeyHasher,
+} from '@kurdel/auth-db';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
-import { DatabaseApiKeyRepository } from '../src/database-api-key-repository.js';
-import { DatabaseAuthUserRepository } from '../src/database-auth-user-repository.js';
 
 describe('database auth repositories', () => {
   let db: IDatabase;
   let users: DatabaseAuthUserRepository;
   let apiKeys: DatabaseApiKeyRepository;
+  const hasher = new Sha256ApiKeyHasher();
 
   beforeAll(async () => {
     const driver = DatabaseFactory.createDriver({ type: 'sqlite', filename: ':memory:' });
@@ -36,14 +40,14 @@ describe('database auth repositories', () => {
         'VALUES (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?);',
       ].join(' '),
       params: [
-        'active', 1, DatabaseApiKeyRepository.hash('active-key'), 'Active', 'active', null,
-        'revoked', 1, DatabaseApiKeyRepository.hash('revoked-key'), 'Revoked', 'revoked', null,
-        'expired', 1, DatabaseApiKeyRepository.hash('expired-key'), 'Expired', 'active', '2020-01-01T00:00:00.000Z',
+        'active', 1, hasher.hash('active-key'), 'Active', 'active', null,
+        'revoked', 1, hasher.hash('revoked-key'), 'Revoked', 'revoked', null,
+        'expired', 1, hasher.hash('expired-key'), 'Expired', 'active', '2020-01-01T00:00:00.000Z',
       ],
     });
 
     users = new DatabaseAuthUserRepository(db);
-    apiKeys = new DatabaseApiKeyRepository(db);
+    apiKeys = new DatabaseApiKeyRepository(db, hasher);
   });
 
   afterAll(async () => {

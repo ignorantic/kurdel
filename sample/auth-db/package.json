@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@kurdel/auth": "^1.0.0",
+    "@kurdel/auth-db": "^1.0.0",
     "@kurdel/common": "^1.0.0",
     "@kurdel/core": "^1.0.0",
     "@kurdel/db": "^1.0.0",

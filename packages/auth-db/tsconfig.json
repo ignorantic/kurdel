@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {},
+    "types": ["vitest/globals"],
+    "noEmit": true
+  },
+  "include": ["src", "tests", "**/*.ts"]
+}

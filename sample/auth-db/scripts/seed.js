@@ -1,8 +1,7 @@
-import crypto from 'node:crypto';
-
+import { Sha256ApiKeyHasher } from '@kurdel/auth-db';
 import { DBConnector } from '@kurdel/db';
 
-const hash = key => crypto.createHash('sha256').update(key).digest('hex');
+const hasher = new Sha256ApiKeyHasher();
 const db = await new DBConnector().run();
 
 try {
@@ -37,8 +36,8 @@ try {
       'name = excluded.name, status = excluded.status;',
     ].join(' '),
     params: [
-      'admin-demo', 1, hash('admin-demo-key'), 'Admin demo key', 'active',
-      'user-demo', 2, hash('user-demo-key'), 'User demo key', 'active',
+      'admin-demo', 1, hasher.hash('admin-demo-key'), 'Admin demo key', 'active',
+      'user-demo', 2, hasher.hash('user-demo-key'), 'User demo key', 'active',
     ],
   });
 

@@ -23,6 +23,8 @@ Kurdel is a **modular monorepo** — every package has a single responsibility a
 | **`@kurdel/db`**              | Database abstraction layer (models, connectors, query builders).                 |
 | **`@kurdel/migrations`**      | Migration engine and schema management tools.                                    |
 | **`@kurdel/pirx`**            | Developer CLI (scaffolding, migrations, utilities).                              |
+| **`@kurdel/auth`**            | Storage-agnostic authentication strategies and authorization middleware.         |
+| **`@kurdel/auth-db`**         | Database-backed identity and API-key repository adapters.                        |
 
 > **Dependency direction:**
 > `common → core → runtime → runtime-{platform} → facade`

@@ -1,7 +1,7 @@
 import { DatabaseFactory, type IDatabase } from '@kurdel/db';
+import { Sha256ApiKeyHasher } from '@kurdel/auth-db';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
-import { DatabaseApiKeyRepository } from '../src/database-api-key-repository.js';
 import { DatabaseApiKeyService, ActiveUserNotFoundError } from '../src/database-api-key-service.js';
 import { DatabaseUserService, UnknownRolesError } from '../src/database-user-service.js';
 
@@ -9,6 +9,7 @@ describe('database user management', () => {
   let db: IDatabase;
   let users: DatabaseUserService;
   let apiKeys: DatabaseApiKeyService;
+  const hasher = new Sha256ApiKeyHasher();
 
   beforeAll(async () => {
     const driver = DatabaseFactory.createDriver({ type: 'sqlite', filename: ':memory:' });
@@ -22,7 +23,7 @@ describe('database user management', () => {
       params: [1, 'admin', 2, 'user'],
     });
     users = new DatabaseUserService(db);
-    apiKeys = new DatabaseApiKeyService(db);
+    apiKeys = new DatabaseApiKeyService(db, hasher);
   });
 
   afterAll(async () => {
@@ -73,7 +74,7 @@ describe('database user management', () => {
       sql: 'SELECT key_hash FROM api_keys WHERE id = ?;',
       params: [credential.id],
     });
-    expect(stored.key_hash).toBe(DatabaseApiKeyRepository.hash(credential.key));
+    expect(stored.key_hash).toBe(hasher.hash(credential.key));
     expect(stored.key_hash).not.toBe(credential.key);
   });
 

@@ -1,0 +1,74 @@
+import type { IDatabase } from '@kurdel/db';
+
+import {
+  DatabaseApiKeyRepository,
+  DatabaseAuthUserRepository,
+  type ApiKeyHasher,
+} from '../src/index.js';
+
+describe('database auth repositories', () => {
+  it('loads active identities and their current roles', async () => {
+    const db = {
+      get: vi.fn(async () => ({ id: 7, status: 'active' })),
+      all: vi.fn(async () => [{ name: 'admin' }, { name: 'editor' }]),
+    } as unknown as IDatabase;
+    const repository = new DatabaseAuthUserRepository(db);
+
+    await expect(repository.findById(7)).resolves.toEqual({
+      id: 7,
+      roles: ['admin', 'editor'],
+    });
+    expect(db.get).toHaveBeenCalledWith({
+      sql: 'SELECT id, status FROM users WHERE id = ?;',
+      params: [7],
+    });
+  });
+
+  it('does not load roles for disabled identities', async () => {
+    const db = {
+      get: vi.fn(async () => ({ id: 7, status: 'disabled' })),
+      all: vi.fn(),
+    } as unknown as IDatabase;
+
+    await expect(new DatabaseAuthUserRepository(db).findById(7)).resolves.toBeNull();
+    expect(db.all).not.toHaveBeenCalled();
+  });
+
+  it('hashes API keys before querying credential metadata', async () => {
+    const db = {
+      get: vi.fn(async () => ({
+        user_id: 7,
+        status: 'active',
+        expires_at: '2030-01-01T00:00:00.000Z',
+      })),
+    } as unknown as IDatabase;
+    const hasher: ApiKeyHasher = { hash: vi.fn(() => 'digest') };
+    const repository = new DatabaseApiKeyRepository(db, hasher);
+
+    await expect(repository.findByKey('raw-key')).resolves.toEqual({
+      userId: 7,
+      revoked: false,
+      expiresAt: new Date('2030-01-01T00:00:00.000Z'),
+    });
+    expect(hasher.hash).toHaveBeenCalledWith('raw-key');
+    expect(db.get).toHaveBeenCalledWith(expect.objectContaining({ params: ['digest'] }));
+  });
+
+  it('supports validated custom table names', async () => {
+    const db = {
+      get: vi.fn(async () => undefined),
+    } as unknown as IDatabase;
+    const hasher: ApiKeyHasher = { hash: () => 'digest' };
+    const repository = new DatabaseApiKeyRepository(db, hasher, {
+      apiKeys: 'application_api_keys',
+    });
+
+    await repository.findByKey('key');
+
+    expect(db.get).toHaveBeenCalledWith(expect.objectContaining({
+      sql: expect.stringContaining('FROM application_api_keys'),
+    }));
+    expect(() => new DatabaseAuthUserRepository(db, { users: 'users; DROP TABLE users' }))
+      .toThrow('Invalid auth database table name');
+  });
+});

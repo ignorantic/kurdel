@@ -1,8 +1,7 @@
 import crypto from 'node:crypto';
 
+import type { ApiKeyHasher } from '@kurdel/auth-db';
 import type { IDatabase } from '@kurdel/db';
-
-import { DatabaseApiKeyRepository } from './database-api-key-repository.js';
 
 type UserRecord = {
   id: number;
@@ -29,7 +28,10 @@ export class ActiveUserNotFoundError extends Error {
 }
 
 export class DatabaseApiKeyService {
-  constructor(private readonly db: IDatabase) {}
+  constructor(
+    private readonly db: IDatabase,
+    private readonly hasher: ApiKeyHasher,
+  ) {}
 
   async create(input: CreateApiKeyInput): Promise<CreatedApiKey> {
     const user = await this.db.get({
@@ -53,7 +55,7 @@ export class DatabaseApiKeyService {
       params: [
         id,
         input.userId,
-        DatabaseApiKeyRepository.hash(key),
+        this.hasher.hash(key),
         input.name,
         'active',
         expiresAt,

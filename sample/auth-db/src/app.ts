@@ -1,12 +1,14 @@
 import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
+import { AuthDatabaseModule } from '@kurdel/auth-db';
 import { createNodeApplication } from '@kurdel/facade';
 
+import { AuthDbManagementModule } from './auth-db-management-module.js';
 import { AuthDbHttpModule } from './auth-db-http-module.js';
-import { DatabaseAuthProvidersModule } from './database-auth-providers-module.js';
 
 const app = await createNodeApplication({
   modules: [
-    new DatabaseAuthProvidersModule(),
+    new AuthDatabaseModule(),
+    new AuthDbManagementModule(),
     new AuthModule({
       strategies: [
         {
@@ -23,8 +25,10 @@ const app = await createNodeApplication({
   ],
 });
 
-app.listen(3000, () => {
-  console.log('Auth DB sample: http://localhost:3000');
+const port = Number(process.env.PORT ?? 3000);
+
+app.listen(port, () => {
+  console.log(`Auth DB sample: http://localhost:${port}`);
   console.log('Admin key: admin-demo-key');
   console.log('User key: user-demo-key');
 });

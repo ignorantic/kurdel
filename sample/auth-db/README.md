@@ -2,6 +2,7 @@
 
 This sample stores users, roles and hashed API keys in a local SQLite database.
 SQLite is embedded, so no database server is required.
+It uses the reusable repositories and IoC module from `@kurdel/auth-db`.
 
 ## Run
 
@@ -18,6 +19,9 @@ cd sample/auth-db
 npm run setup
 npm run dev
 ```
+
+Set `PORT` to run another instance on a different port, for example
+`$env:PORT = 3001` in PowerShell before `npm run dev`.
 
 `setup` creates `auth.db`, applies the migrations and upserts two demo users.
 Running it again preserves users and API keys created through the HTTP API.
