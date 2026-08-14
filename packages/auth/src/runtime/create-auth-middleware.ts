@@ -1,4 +1,5 @@
 import type { Middleware } from '@kurdel/core/http';
+import type { AuthContext } from 'src/domain/index.js';
 
 import type { AuthStrategyRegistry } from 'src/runtime/index.js';
 
@@ -13,7 +14,7 @@ export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware
     const { strategy, roles } = meta;
 
     // --- 1️⃣ Authenticate ---
-    let user: any = undefined;
+    let auth: AuthContext | undefined;
 
     if (strategy) {
       const strat = registry.get(strategy);
@@ -21,18 +22,23 @@ export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware
         return ctx.json(500, { error: `Unknown auth strategy '${strategy}'` });
       }
 
-      user = await strat.authenticate(ctx.req);
-      if (!user) {
+      const result = await strat.authenticate(ctx.req);
+      if (!result) {
         return ctx.json(401, { error: 'Unauthorized' });
       }
 
-      ctx.user = user;
+      auth = {
+        ...result,
+        strategy,
+      };
+      ctx.auth = auth;
+      ctx.user = result.user;
     }
 
     // --- 2️⃣ Authorize ---
     if (roles && roles.length > 0) {
-      const ok = user && Array.isArray(user.roles)
-        ? roles.some(r => user.roles.includes(r))
+      const ok = auth && Array.isArray(auth.user.roles)
+        ? roles.some(r => auth.user.roles.includes(r))
         : false;
 
       if (!ok) {

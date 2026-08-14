@@ -20,3 +20,17 @@ export interface AuthUser {
   roles: string[];
   [key: string]: unknown;
 }
+
+/** Metadata about the credential used for the current authentication. */
+export interface AuthCredential {
+  type: string;
+  id?: string;
+}
+
+/** Authentication state attached to a request after a strategy succeeds. */
+export interface AuthContext<TUser extends AuthUser = AuthUser> {
+  user: TUser;
+  strategy: string;
+  credential?: AuthCredential;
+  claims?: Record<string, unknown>;
+}

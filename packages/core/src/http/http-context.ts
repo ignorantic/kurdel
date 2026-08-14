@@ -1,4 +1,4 @@
-import type { AuthUser, HttpRequest, HttpResponse } from '@kurdel/common';
+import type { AuthContext, AuthUser, HttpRequest, HttpResponse } from '@kurdel/common';
 import type { Container } from '@kurdel/ioc';
 
 import type {
@@ -83,6 +83,9 @@ export interface HttpContext<
    * Undefined for public routes or when authentication is not required.
    */
   user?: AuthUser;
+
+  /** Full authentication result, including strategy and credential metadata. */
+  auth?: AuthContext;
   
   /**
    * The last computed {@link ActionResult} for this request.

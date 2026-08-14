@@ -1,7 +1,6 @@
-import type { AuthUser } from '@kurdel/common';
 import type { HttpRequest } from '@kurdel/common';
 
-import type { AuthStrategy } from 'src/domain/index.js';
+import type { AuthenticationResult, AuthStrategy } from 'src/domain/index.js';
 import type { AuthUserRepository } from 'src/repositories/index.js';
 import type { JwtService } from 'src/strategies/index.js';
 
@@ -34,7 +33,7 @@ export class JwtStrategy implements AuthStrategy {
     this.prefix = (opts.prefix ?? 'Bearer').toLowerCase();
   }
 
-  async authenticate(req: HttpRequest): Promise<AuthUser | null> {
+  async authenticate(req: HttpRequest): Promise<AuthenticationResult | null> {
     const raw = req.headers?.[this.header];
     if (!raw) return null;
 
@@ -52,7 +51,17 @@ export class JwtStrategy implements AuthStrategy {
 
       if (!payload.sub) return null;
 
-      return await this.users.findById(payload.sub);
+      const user = await this.users.findById(payload.sub);
+      if (!user) return null;
+
+      return {
+        user,
+        credential: {
+          type: 'jwt',
+          ...(typeof payload.jti === 'string' ? { id: payload.jti } : {}),
+        },
+        claims: payload,
+      };
     } catch {
       return null;
     }

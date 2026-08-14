@@ -37,6 +37,7 @@ describe('database auth repositories', () => {
   it('hashes API keys before querying credential metadata', async () => {
     const db = {
       get: vi.fn(async () => ({
+        id: 'credential-1',
         user_id: 7,
         status: 'active',
         expires_at: '2030-01-01T00:00:00.000Z',
@@ -46,6 +47,7 @@ describe('database auth repositories', () => {
     const repository = new DatabaseApiKeyRepository(db, hasher);
 
     await expect(repository.findByKey('raw-key')).resolves.toEqual({
+      id: 'credential-1',
       userId: 7,
       revoked: false,
       expiresAt: new Date('2030-01-01T00:00:00.000Z'),

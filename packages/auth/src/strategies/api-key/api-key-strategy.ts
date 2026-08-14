@@ -1,6 +1,6 @@
-import type { AuthUser, HttpRequest } from '@kurdel/common';
+import type { HttpRequest } from '@kurdel/common';
 
-import type { AuthStrategy } from 'src/domain/index.js';
+import type { AuthenticationResult, AuthStrategy } from 'src/domain/index.js';
 import type { ApiKeyRepository, AuthUserRepository } from 'src/repositories/index.js';
 
 export interface ApiKeyStrategyOptions {
@@ -18,7 +18,7 @@ export interface ApiKeyStrategyOptions {
 export class ApiKeyStrategy implements AuthStrategy {
   constructor(private readonly options: ApiKeyStrategyOptions) {}
 
-  async authenticate(req: HttpRequest): Promise<AuthUser | null> {
+  async authenticate(req: HttpRequest): Promise<AuthenticationResult | null> {
     const raw = req.headers?.[this.options.header.toLowerCase()];
     const key = Array.isArray(raw) ? raw[0] : raw;
     if (!key || typeof key !== 'string') return null;
@@ -30,7 +30,16 @@ export class ApiKeyStrategy implements AuthStrategy {
       return null;
     }
 
-    return await this.options.users.findById(credential.userId);
+    const user = await this.options.users.findById(credential.userId);
+    if (!user) return null;
+
+    return {
+      user,
+      credential: {
+        type: 'api-key',
+        ...(credential.id ? { id: credential.id } : {}),
+      },
+    };
   }
 
   private now(): Date {

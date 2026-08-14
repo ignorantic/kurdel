@@ -27,4 +27,33 @@ describe('createAuthMiddleware', () => {
 
     expect(next).toHaveBeenCalledOnce();
   });
+
+  it('attaches the full auth context and keeps ctx.user compatible', async () => {
+    const registry = new AuthStrategyRegistry();
+    registry.register('api-key', {
+      authenticate: vi.fn(async () => ({
+        user: { id: 7, roles: ['admin'] },
+        credential: { id: 'key-1', type: 'api-key' },
+        claims: { tenant: 'demo' },
+      })),
+    });
+    const middleware = createAuthMiddleware(registry);
+    const ctx = {
+      route: { auth: { strategy: 'api-key', roles: ['admin'] } },
+      req: { method: 'GET', url: '/', query: {}, headers: {} },
+      json: vi.fn(),
+    } as any;
+    const next = vi.fn(async () => undefined);
+
+    await middleware(ctx, next);
+
+    expect(ctx.auth).toEqual({
+      strategy: 'api-key',
+      user: { id: 7, roles: ['admin'] },
+      credential: { id: 'key-1', type: 'api-key' },
+      claims: { tenant: 'demo' },
+    });
+    expect(ctx.user).toBe(ctx.auth.user);
+    expect(next).toHaveBeenCalledOnce();
+  });
 });

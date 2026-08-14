@@ -73,6 +73,7 @@ describe('database auth repositories', () => {
 
   it('resolves API key metadata without storing the raw key', async () => {
     await expect(apiKeys.findByKey('active-key')).resolves.toEqual({
+      id: 'active',
       userId: 1,
       revoked: false,
       expiresAt: undefined,

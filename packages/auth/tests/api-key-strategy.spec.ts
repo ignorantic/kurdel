@@ -22,14 +22,14 @@ describe('ApiKeyStrategy', () => {
   it('resolves authorization data from the user repository', async () => {
     const strategy = new ApiKeyStrategy({
       header: 'X-API-Key',
-      credentials: new InMemoryApiKeyRepository({ key: { userId: 1 } }),
+      credentials: new InMemoryApiKeyRepository({ key: { id: 'credential-1', userId: 1 } }),
       users,
       now: () => now,
     });
 
     await expect(strategy.authenticate(request('key'))).resolves.toEqual({
-      id: 1,
-      roles: ['admin'],
+      user: { id: 1, roles: ['admin'] },
+      credential: { id: 'credential-1', type: 'api-key' },
     });
   });
 

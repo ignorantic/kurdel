@@ -8,6 +8,7 @@ import {
 } from './auth-database-tables.js';
 
 type ApiKeyRecord = {
+  id: string;
   user_id: string | number;
   status: string;
   expires_at: string | null;
@@ -27,7 +28,7 @@ export class DatabaseApiKeyRepository implements ApiKeyRepository {
   async findByKey(key: string): Promise<ApiKeyCredential | null> {
     const record = await this.db.get({
       sql: [
-        'SELECT user_id, status, expires_at',
+        'SELECT id, user_id, status, expires_at',
         `FROM ${this.tables.apiKeys}`,
         'WHERE key_hash = ?;',
       ].join(' '),
@@ -36,6 +37,7 @@ export class DatabaseApiKeyRepository implements ApiKeyRepository {
     if (!record) return null;
 
     return {
+      id: record.id,
       userId: record.user_id,
       revoked: record.status !== 'active',
       expiresAt: record.expires_at ? new Date(record.expires_at) : undefined,

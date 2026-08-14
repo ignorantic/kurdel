@@ -1,4 +1,6 @@
 export interface ApiKeyCredential {
+  /** Stable credential identifier, when the backing store exposes one. */
+  id?: string;
   /** Stable identity resolved after credential validation. */
   userId: string | number;
   /** Revoked credentials must never authenticate. */

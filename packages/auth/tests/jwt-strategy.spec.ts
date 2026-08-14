@@ -17,15 +17,20 @@ describe('JwtStrategy', () => {
   const service = new JwtService({ secret: 'test-secret' });
 
   it('uses only sub from the token and loads current roles from the repository', async () => {
-    const token = service.sign({ sub: 1, roles: ['stale-token-role'] });
+    const token = service.sign({ sub: 1, roles: ['stale-token-role'], jti: 'token-1' });
     const users = new InMemoryAuthUserRepository([
       { id: 1, roles: ['current-database-role'] },
     ]);
     const strategy = new JwtStrategy(service, users);
 
     await expect(strategy.authenticate(request(`Bearer ${token}`))).resolves.toEqual({
-      id: 1,
-      roles: ['current-database-role'],
+      user: { id: 1, roles: ['current-database-role'] },
+      credential: { id: 'token-1', type: 'jwt' },
+      claims: expect.objectContaining({
+        sub: 1,
+        roles: ['stale-token-role'],
+        jti: 'token-1',
+      }),
     });
   });
 

@@ -1,4 +1,6 @@
-import type { AuthUser, HttpRequest } from '@kurdel/common';
+import type { HttpRequest } from '@kurdel/common';
+
+import type { AuthenticationResult } from './auth-context.js';
 
 /**
  * ## AuthStrategy
@@ -8,10 +10,10 @@ import type { AuthUser, HttpRequest } from '@kurdel/common';
  * from the incoming HTTP request.
  *
  * The strategy:
- *   - returns an AuthUser on success
+ *   - returns an AuthenticationResult on success
  *   - returns null if authentication fails
  *   - must NOT throw on invalid credentials
  */
 export interface AuthStrategy {
-  authenticate(req: HttpRequest): Promise<AuthUser | null>;
+  authenticate(req: HttpRequest): Promise<AuthenticationResult | null>;
 }
