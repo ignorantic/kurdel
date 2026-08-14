@@ -2,7 +2,7 @@ import type { AuthUser } from '@kurdel/common';
 import type { HttpRequest } from '@kurdel/common';
 
 import type { AuthStrategy } from 'src/domain/index.js';
-import type { JwtRepository } from 'src/repositories/index.js';
+import type { AuthUserRepository } from 'src/repositories/index.js';
 import type { JwtService } from 'src/strategies/index.js';
 
 /**
@@ -27,7 +27,7 @@ export class JwtStrategy implements AuthStrategy {
 
   constructor(
     private readonly service: JwtService,
-    private readonly repo: JwtRepository,
+    private readonly users: AuthUserRepository,
     opts: JwtStrategyOptions = {},
   ) {
     this.header = (opts.header ?? 'authorization').toLowerCase();
@@ -52,7 +52,7 @@ export class JwtStrategy implements AuthStrategy {
 
       if (!payload.sub) return null;
 
-      return await this.repo.findUserById(payload.sub);
+      return await this.users.findById(payload.sub);
     } catch {
       return null;
     }

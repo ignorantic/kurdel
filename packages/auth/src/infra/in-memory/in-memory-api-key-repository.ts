@@ -1,23 +1,10 @@
-import type { AuthUser } from '@kurdel/common';
+import type { ApiKeyCredential, ApiKeyRepository } from 'src/repositories/index.js';
 
-import type { ApiKeyRepository } from 'src/repositories/index.js';
-
-/**
- * ## InMemoryApiKeyRepository
- *
- * A simple key → user lookup backed by a JavaScript object.
- *
- * Useful for:
- * - local demos
- * - unit tests
- * - seed/bootstrap environments
- */
+/** In-memory credential source intended for tests, demos and bootstrap code. */
 export class InMemoryApiKeyRepository implements ApiKeyRepository {
-  constructor(
-    private readonly keys: Record<string, AuthUser>
-  ) {}
+  constructor(private readonly keys: Record<string, ApiKeyCredential>) {}
 
-  findByKey(key: string): AuthUser | null {
+  findByKey(key: string): ApiKeyCredential | null {
     return this.keys[key] ?? null;
   }
 }

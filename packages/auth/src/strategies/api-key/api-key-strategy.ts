@@ -1,39 +1,39 @@
-import type { AuthUser } from '@kurdel/common';
+import type { AuthUser, HttpRequest } from '@kurdel/common';
 
 import type { AuthStrategy } from 'src/domain/index.js';
-import type { ApiKeyRepository } from 'src/repositories/index.js';
+import type { ApiKeyRepository, AuthUserRepository } from 'src/repositories/index.js';
 
 export interface ApiKeyStrategyOptions {
-  /**
-   * Name of the request header containing the API key.
-   * Example: `"x-api-key"`.
-   */
+  /** Name of the request header containing the API key. */
   header: string;
-
-  /**
-   * Repository responsible for resolving users by API key.
-   */
-  repo: ApiKeyRepository;
+  /** Credential metadata source. It does not provide authorization data. */
+  credentials: ApiKeyRepository;
+  /** Source of truth for the current user and their authorization roles. */
+  users: AuthUserRepository;
+  /** Injectable clock keeps expiration behavior deterministic in tests. */
+  now?: () => Date;
 }
 
-/**
- * ## ApiKeyStrategy
- *
- * Simple authentication mechanism based on a static API key.
- *
- * This strategy is *storage-agnostic*: it does not know where keys
- * are stored — persistent DB, cache, or memory. All lookups are
- * delegated to the injected `ApiKeyRepository`.
- */
+/** Authenticates an API key and resolves its current application identity. */
 export class ApiKeyStrategy implements AuthStrategy {
   constructor(private readonly options: ApiKeyStrategyOptions) {}
 
-  async authenticate(req: any): Promise<AuthUser | null> {
-    const key = req.headers?.[this.options.header];
-
+  async authenticate(req: HttpRequest): Promise<AuthUser | null> {
+    const raw = req.headers?.[this.options.header.toLowerCase()];
+    const key = Array.isArray(raw) ? raw[0] : raw;
     if (!key || typeof key !== 'string') return null;
 
-    // Delegated lookup — repository decides where the key lives.
-    return await this.options.repo.findByKey(key);
+    const credential = await this.options.credentials.findByKey(key);
+    if (!credential || credential.revoked) return null;
+
+    if (credential.expiresAt && credential.expiresAt.getTime() <= this.now().getTime()) {
+      return null;
+    }
+
+    return await this.options.users.findById(credential.userId);
+  }
+
+  private now(): Date {
+    return this.options.now?.() ?? new Date();
   }
 }

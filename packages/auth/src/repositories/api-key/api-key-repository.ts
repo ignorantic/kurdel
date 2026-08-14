@@ -1,9 +1,16 @@
-import type { AuthUser } from '@kurdel/common';
+export interface ApiKeyCredential {
+  /** Stable identity resolved after credential validation. */
+  userId: string | number;
+  /** Revoked credentials must never authenticate. */
+  revoked?: boolean;
+  /** Optional absolute expiry time. */
+  expiresAt?: Date;
+}
 
 /**
  * ## ApiKeyRepository
  *
- * Abstraction for retrieving user identity by API key.
+ * Abstraction for retrieving credential metadata by API key.
  *
  * A repository implementation may:
  * - load records from an in-memory map
@@ -15,8 +22,8 @@ import type { AuthUser } from '@kurdel/common';
  */
 export interface ApiKeyRepository {
   /**
-   * Returns a user associated with the given API key.
+   * Returns credential metadata associated with the given API key.
    * If the key is unknown, must return `null`.
    */
-  findByKey(key: string): Promise<AuthUser | null> | AuthUser | null;
+  findByKey(key: string): Promise<ApiKeyCredential | null> | ApiKeyCredential | null;
 }

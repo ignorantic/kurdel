@@ -3,7 +3,12 @@ import request from 'supertest';
 import type { Server } from 'http';
 
 import { createNodeApplication } from '@kurdel/facade';
-import { ApiKeyStrategy, AuthModule, InMemoryApiKeyRepository } from '@kurdel/auth';
+import {
+  ApiKeyStrategy,
+  AuthModule,
+  InMemoryApiKeyRepository,
+  InMemoryAuthUserRepository,
+} from '@kurdel/auth';
 import type { RunningServer } from '@kurdel/core/http';
 
 import { DemoAuthModule } from '../src/demo-auth-module.js';
@@ -25,11 +30,17 @@ let rawServer: Server;
 describe('Sample Auth Application — E2E', () => {
   beforeAll(async () => {
     const repo = new InMemoryApiKeyRepository({
-      'svc-999': { id: 1, roles: ['root'] },
-      'dev-123': { id: 2, roles: ['admin'] },
-      'pub-777': { id: 3, roles: ['user'] },
-      'pub-888': { id: 4, roles: ['guest'] },
+      'svc-999': { userId: 1 },
+      'dev-123': { userId: 2 },
+      'pub-777': { userId: 3 },
+      'pub-888': { userId: 4 },
     });
+    const users = new InMemoryAuthUserRepository([
+      { id: 1, roles: ['root'] },
+      { id: 2, roles: ['admin'] },
+      { id: 3, roles: ['user'] },
+      { id: 4, roles: ['guest'] },
+    ]);
 
     // Application initialization
     const app = await createNodeApplication({
@@ -41,7 +52,8 @@ describe('Sample Auth Application — E2E', () => {
               name: 'api-key',
               use: new ApiKeyStrategy({
                 header: 'x-api-key',
-                repo,
+                credentials: repo,
+                users,
               }),
             },
           ],

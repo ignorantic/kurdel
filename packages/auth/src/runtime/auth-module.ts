@@ -5,7 +5,7 @@ import { TOKENS } from '@kurdel/core/tokens';
 
 import type { AuthStrategyProvider } from 'src/domain/index.js';
 import { AuthStrategyRegistry, createAuthMiddleware } from 'src/runtime/index.js';
-import { InMemoryJwtRepository } from 'src/infra/index.js';
+import { InMemoryAuthUserRepository } from 'src/infra/index.js';
 import { AUTH_TOKENS } from 'src/tokens.js';
 import { JwtService } from 'src/strategies/index.js';
 
@@ -65,8 +65,8 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
       singleton: true,
     },
     {
-      provide: AUTH_TOKENS.JwtRepository,
-      useFactory: () => new InMemoryJwtRepository([
+      provide: AUTH_TOKENS.UserRepository,
+      useFactory: () => new InMemoryAuthUserRepository([
         { id: '1', roles: ['root'] },
         { id: '2', roles: ['admin'] },
         { id: '3', roles: ['user'] },

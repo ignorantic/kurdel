@@ -12,6 +12,9 @@
     "lib"
   ],
   "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
     "clean": "rimraf lib ../../.cache/tsconfig.auth.build.tsbuildinfo",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"

@@ -1,4 +1,3 @@
-import { log } from 'node:console';
 import crypto from 'node:crypto';
 
 /**

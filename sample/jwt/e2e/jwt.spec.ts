@@ -43,7 +43,7 @@ describe('Sample JWT Application — E2E', () => {
               useFactory: (c) =>
                 new JwtStrategy(
                   c.get(AUTH_TOKENS.JwtService),
-                  c.get(AUTH_TOKENS.JwtRepository),
+                  c.get(AUTH_TOKENS.UserRepository),
                 ),
             },
           ],
