@@ -177,6 +177,22 @@ export class DatabaseUserService {
     return this.findById(userId);
   }
 
+  async delete(userId: number): Promise<void> {
+    const existing = await this.findRecord(userId);
+    if (!existing) throw new UserNotFoundError(userId);
+
+    await this.db.run({ sql: 'BEGIN IMMEDIATE;', params: [] });
+    try {
+      await this.db.run({ sql: 'DELETE FROM api_keys WHERE user_id = ?;', params: [userId] });
+      await this.db.run({ sql: 'DELETE FROM user_roles WHERE user_id = ?;', params: [userId] });
+      await this.db.run({ sql: 'DELETE FROM users WHERE id = ?;', params: [userId] });
+      await this.db.run({ sql: 'COMMIT;', params: [] });
+    } catch (error) {
+      await this.db.run({ sql: 'ROLLBACK;', params: [] });
+      throw error;
+    }
+  }
+
   private async findRecord(userId: number): Promise<UserRecord | undefined> {
     return (await this.db.get({
       sql: [

@@ -4,7 +4,11 @@ import { Sha256ApiKeyHasher } from '@kurdel/auth-db';
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import { DatabaseApiKeyService, ActiveUserNotFoundError } from '../src/database-api-key-service.js';
-import { DatabaseUserService, UnknownRolesError } from '../src/database-user-service.js';
+import {
+  DatabaseUserService,
+  UserNotFoundError,
+  type UnknownRolesError,
+} from '../src/database-user-service.js';
 
 describe('database user management', () => {
   let db: IDatabase;
@@ -139,6 +143,31 @@ describe('database user management', () => {
         roles: ['user'],
       })
     ).rejects.toMatchObject({ email: 'unique@example.test' });
+  });
+
+  it('deletes a user together with role assignments and credentials', async () => {
+    const user = await users.create({
+      name: 'Delete Me',
+      email: 'delete-me@example.test',
+      roles: ['user'],
+    });
+    await apiKeys.create({ userId: user.id, name: 'Disposable key' });
+
+    await users.delete(user.id);
+
+    await expect(users.findById(user.id)).rejects.toBeInstanceOf(UserNotFoundError);
+    await expect(
+      db.get({
+        sql: 'SELECT user_id FROM user_roles WHERE user_id = ?;',
+        params: [user.id],
+      })
+    ).resolves.toBeUndefined();
+    await expect(
+      db.get({
+        sql: 'SELECT id FROM api_keys WHERE user_id = ?;',
+        params: [user.id],
+      })
+    ).resolves.toBeUndefined();
   });
 
   it('does not issue credentials for unknown users', async () => {

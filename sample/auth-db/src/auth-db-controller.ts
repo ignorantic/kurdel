@@ -3,6 +3,7 @@ import {
   Conflict,
   Controller,
   Created,
+  NoContent,
   NotFound,
   Ok,
   route,
@@ -12,14 +13,14 @@ import {
 import { z } from 'zod';
 
 import {
-  DatabaseUserService,
   DuplicateUserEmailError,
   UnknownRolesError,
   UserNotFoundError,
   type CreateUserInput,
+  type DatabaseUserService,
   type UpdateUserInput,
 } from './database-user-service.js';
-import { ActiveUserNotFoundError, DatabaseApiKeyService } from './database-api-key-service.js';
+import { ActiveUserNotFoundError, type DatabaseApiKeyService } from './database-api-key-service.js';
 import { zodAdapter } from './zod-adapter.js';
 
 type Deps = {
@@ -124,6 +125,12 @@ export class AuthDbController extends Controller<Deps> {
         params: zodAdapter(userIdSchema),
       },
     })(this.updateUser),
+    deleteUser: route({
+      method: 'DELETE',
+      path: '/users/:id',
+      auth: { strategy: 'api-key', roles: ['admin'] },
+      schema: { params: zodAdapter(userIdSchema) },
+    })(this.deleteUser),
     createApiKey: route({
       method: 'POST',
       path: '/users/:id/api-keys',
@@ -181,6 +188,17 @@ export class AuthDbController extends Controller<Deps> {
   async updateUser(ctx: HttpContext<UpdateUserInput, RouteParams<'/users/:id'>>) {
     try {
       return Ok({ ...(await this.deps.users.update(Number(ctx.params.id), ctx.body!)) });
+    } catch (error) {
+      this.handleUserError(error);
+    }
+  }
+
+  async deleteUser(ctx: HttpContext<unknown, RouteParams<'/users/:id'>>) {
+    const userId = Number(ctx.params.id);
+    if (ctx.user?.id === userId) throw Conflict('You cannot delete the current user');
+    try {
+      await this.deps.users.delete(userId);
+      return NoContent();
     } catch (error) {
       this.handleUserError(error);
     }
