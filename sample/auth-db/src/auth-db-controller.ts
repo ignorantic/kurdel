@@ -20,7 +20,12 @@ import {
   type DatabaseUserService,
   type UpdateUserInput,
 } from './database-user-service.js';
-import { ActiveUserNotFoundError, type DatabaseApiKeyService } from './database-api-key-service.js';
+import {
+  ActiveUserNotFoundError,
+  ApiKeyNotFoundError,
+  ApiKeyUserNotFoundError,
+  type DatabaseApiKeyService,
+} from './database-api-key-service.js';
 import { zodAdapter } from './zod-adapter.js';
 
 type Deps = {
@@ -82,6 +87,15 @@ const userIdSchema = z.object({
   id: z.string().regex(/^\d+$/, 'User ID must be numeric'),
 });
 
+const apiKeyParamsSchema = z.object({
+  id: z.string().regex(/^\d+$/, 'User ID must be numeric'),
+  keyId: z
+    .string()
+    .min(1)
+    .max(64)
+    .regex(/^[A-Za-z0-9_-]+$/, 'API key ID is invalid'),
+});
+
 export class AuthDbController extends Controller<Deps> {
   readonly routes = {
     home: route({ method: 'GET', path: '/public', auth: { public: true } })(this.home),
@@ -140,6 +154,18 @@ export class AuthDbController extends Controller<Deps> {
         params: zodAdapter(userIdSchema),
       },
     })(this.createApiKey),
+    listApiKeys: route({
+      method: 'GET',
+      path: '/users/:id/api-keys',
+      auth: { strategy: 'api-key', roles: ['admin'] },
+      schema: { params: zodAdapter(userIdSchema) },
+    })(this.listApiKeys),
+    revokeApiKey: route({
+      method: 'DELETE',
+      path: '/users/:id/api-keys/:keyId',
+      auth: { strategy: 'api-key', roles: ['admin'] },
+      schema: { params: zodAdapter(apiKeyParamsSchema) },
+    })(this.revokeApiKey),
   };
 
   async home() {
@@ -219,6 +245,26 @@ export class AuthDbController extends Controller<Deps> {
       });
     } catch (error) {
       if (error instanceof ActiveUserNotFoundError) throw NotFound(error.message);
+      throw error;
+    }
+  }
+
+  async listApiKeys(ctx: HttpContext<unknown, RouteParams<'/users/:id/api-keys'>>) {
+    try {
+      const apiKeys = await this.deps.apiKeys.list(Number(ctx.params.id));
+      return Ok({ apiKeys: apiKeys.map(apiKey => ({ ...apiKey })) });
+    } catch (error) {
+      if (error instanceof ApiKeyUserNotFoundError) throw NotFound(error.message);
+      throw error;
+    }
+  }
+
+  async revokeApiKey(ctx: HttpContext<unknown, RouteParams<'/users/:id/api-keys/:keyId'>>) {
+    try {
+      await this.deps.apiKeys.revoke(Number(ctx.params.id), ctx.params.keyId);
+      return NoContent();
+    } catch (error) {
+      if (error instanceof ApiKeyNotFoundError) throw NotFound(error.message);
       throw error;
     }
   }

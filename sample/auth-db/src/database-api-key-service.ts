@@ -8,6 +8,15 @@ type UserRecord = {
   status: string;
 };
 
+type ApiKeyRecord = {
+  id: string;
+  name: string;
+  status: 'active' | 'revoked';
+  expires_at: string | null;
+  last_used_at: string | null;
+  created_at: string;
+};
+
 export interface CreateApiKeyInput {
   userId: number;
   name: string;
@@ -21,23 +30,71 @@ export interface CreatedApiKey {
   expiresAt: string | null;
 }
 
+export interface ApiKeyMetadata {
+  id: string;
+  name: string;
+  status: 'active' | 'revoked' | 'expired';
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+  createdAt: string;
+}
+
 export class ActiveUserNotFoundError extends Error {
   constructor(readonly userId: number) {
     super(`Active user '${userId}' was not found`);
   }
 }
 
+export class ApiKeyUserNotFoundError extends Error {
+  constructor(readonly userId: number) {
+    super(`User '${userId}' was not found`);
+  }
+}
+
+export class ApiKeyNotFoundError extends Error {
+  constructor(
+    readonly userId: number,
+    readonly apiKeyId: string
+  ) {
+    super(`API key '${apiKeyId}' was not found for user '${userId}'`);
+  }
+}
+
 export class DatabaseApiKeyService {
   constructor(
     private readonly db: IDatabase,
-    private readonly hasher: ApiKeyHasher,
+    private readonly hasher: ApiKeyHasher
   ) {}
 
+  async list(userId: number): Promise<ApiKeyMetadata[]> {
+    const user = (await this.db.get({
+      sql: 'SELECT id, status FROM users WHERE id = ?;',
+      params: [userId],
+    })) as UserRecord | undefined;
+    if (!user) throw new ApiKeyUserNotFoundError(userId);
+
+    const records = (await this.db.all({
+      sql: [
+        'SELECT id, name, status, expires_at, last_used_at, created_at',
+        'FROM api_keys WHERE user_id = ? ORDER BY created_at DESC, id DESC;',
+      ].join(' '),
+      params: [userId],
+    })) as ApiKeyRecord[];
+    return records.map(record => ({
+      id: record.id,
+      name: record.name,
+      status: this.effectiveStatus(record),
+      expiresAt: record.expires_at,
+      lastUsedAt: record.last_used_at,
+      createdAt: record.created_at,
+    }));
+  }
+
   async create(input: CreateApiKeyInput): Promise<CreatedApiKey> {
-    const user = await this.db.get({
+    const user = (await this.db.get({
       sql: 'SELECT id, status FROM users WHERE id = ?;',
       params: [input.userId],
-    }) as UserRecord | undefined;
+    })) as UserRecord | undefined;
     if (!user || user.status !== 'active') {
       throw new ActiveUserNotFoundError(input.userId);
     }
@@ -52,16 +109,28 @@ export class DatabaseApiKeyService {
         '(id, user_id, key_hash, name, status, expires_at)',
         'VALUES (?, ?, ?, ?, ?, ?);',
       ].join(' '),
-      params: [
-        id,
-        input.userId,
-        this.hasher.hash(key),
-        input.name,
-        'active',
-        expiresAt,
-      ],
+      params: [id, input.userId, this.hasher.hash(key), input.name, 'active', expiresAt],
     });
 
     return { id, key, name: input.name, expiresAt };
+  }
+
+  async revoke(userId: number, apiKeyId: string): Promise<void> {
+    const apiKey = (await this.db.get({
+      sql: 'SELECT id FROM api_keys WHERE id = ? AND user_id = ?;',
+      params: [apiKeyId, userId],
+    })) as { id: string } | undefined;
+    if (!apiKey) throw new ApiKeyNotFoundError(userId, apiKeyId);
+
+    await this.db.run({
+      sql: "UPDATE api_keys SET status = 'revoked' WHERE id = ? AND user_id = ?;",
+      params: [apiKeyId, userId],
+    });
+  }
+
+  private effectiveStatus(record: ApiKeyRecord): ApiKeyMetadata['status'] {
+    if (record.status === 'revoked') return 'revoked';
+    if (record.expires_at && new Date(record.expires_at).getTime() <= Date.now()) return 'expired';
+    return 'active';
   }
 }

@@ -3,7 +3,11 @@ import { Sha256ApiKeyHasher } from '@kurdel/auth-db';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
-import { DatabaseApiKeyService, ActiveUserNotFoundError } from '../src/database-api-key-service.js';
+import {
+  ApiKeyNotFoundError,
+  DatabaseApiKeyService,
+  ActiveUserNotFoundError,
+} from '../src/database-api-key-service.js';
 import {
   DatabaseUserService,
   UserNotFoundError,
@@ -102,6 +106,37 @@ describe('database user management', () => {
     });
     expect(stored.key_hash).toBe(hasher.hash(credential.key));
     expect(stored.key_hash).not.toBe(credential.key);
+  });
+
+  it('lists credential metadata and revokes keys without exposing their secrets', async () => {
+    const user = await users.create({
+      name: 'Credential Owner',
+      email: 'credential-owner@example.test',
+      roles: ['user'],
+    });
+    const active = await apiKeys.create({ userId: user.id, name: 'Active key' });
+    await apiKeys.create({
+      userId: user.id,
+      name: 'Expired key',
+      expiresAt: new Date('2020-01-01T00:00:00.000Z'),
+    });
+
+    const before = await apiKeys.list(user.id);
+    expect(before).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: active.id, name: 'Active key', status: 'active' }),
+        expect.objectContaining({ name: 'Expired key', status: 'expired' }),
+      ])
+    );
+    expect(before).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ key: active.key })])
+    );
+
+    await apiKeys.revoke(user.id, active.id);
+    await expect(apiKeys.list(user.id)).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: active.id, status: 'revoked' })])
+    );
+    await expect(apiKeys.revoke(user.id, 'missing')).rejects.toBeInstanceOf(ApiKeyNotFoundError);
   });
 
   it('lists, loads and updates user profiles and access state', async () => {

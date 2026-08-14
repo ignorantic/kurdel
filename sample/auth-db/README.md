@@ -29,6 +29,11 @@ from the database, and validation conflicts are reported without leaving the
 page. User deletion requires confirmation, removes associated roles and API
 keys, and cannot target the administrator performing the request.
 
+The user detail dialog also manages API keys. It lists credential metadata
+without exposing stored hashes, can issue keys with an optional expiration,
+shows a new secret exactly once, and supports revocation while retaining the
+credential history.
+
 The sample build produces both the server and the browser bundle. During UI
 development, rebuild only the client with `npm run build:client:dev` and reload
 the page.

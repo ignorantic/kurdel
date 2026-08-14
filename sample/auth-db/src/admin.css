@@ -482,6 +482,127 @@ td {
   font-size: 24px;
   font-weight: 800;
 }
+.api-key-section {
+  margin: 26px 0;
+  padding-top: 24px;
+  border-top: 1px solid #e8ece8;
+}
+.api-key-section > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.api-key-section h3 {
+  margin: 0;
+  font-size: 17px;
+}
+.api-key-section header p {
+  margin: 5px 0 0;
+  color: #7a857d;
+  font-size: 12px;
+}
+.compact {
+  padding: 8px 11px;
+  font-size: 13px;
+}
+.secret-card {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px solid #add1b8;
+  border-radius: 11px;
+  background: #edf8f0;
+}
+.secret-card p {
+  margin: 0;
+  color: #5f7165;
+  font-size: 12px;
+}
+.secret-card code {
+  display: block;
+  padding: 10px;
+  overflow-wrap: anywhere;
+  border-radius: 7px;
+  color: #183b27;
+  background: #fff;
+  font-size: 12px;
+  user-select: all;
+}
+.secret-card button {
+  justify-self: start;
+}
+.inline-form {
+  gap: 13px;
+  margin: 16px 0 0;
+  padding: 15px;
+  border-radius: 11px;
+  background: #f5f7f5;
+}
+.inline-form .modal-actions {
+  margin: 0;
+}
+.optional {
+  color: #89938b;
+  font-weight: 400;
+}
+.api-key-empty {
+  margin-bottom: 0;
+  padding: 16px 0 2px;
+  font-size: 13px;
+}
+.api-key-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+.api-key-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid #e3e8e4;
+  border-radius: 9px;
+}
+.key-summary {
+  min-width: 0;
+}
+.key-summary strong,
+.key-summary small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.key-summary small {
+  margin-top: 3px;
+  color: #7d877f;
+  font-size: 11px;
+}
+.key-status {
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+.key-status.active {
+  color: #237346;
+  background: #e5f4e9;
+}
+.key-status.revoked,
+.key-status.expired {
+  color: #865151;
+  background: #f4e8e8;
+}
+.danger-text {
+  color: #a23d3d;
+}
+.revoke-actions {
+  display: flex;
+  gap: 2px;
+}
 .modal-header .eyebrow {
   margin-top: 0;
 }
