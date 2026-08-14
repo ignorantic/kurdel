@@ -20,6 +20,15 @@ npm run setup
 npm run dev
 ```
 
+Open [http://localhost:3000](http://localhost:3000) and sign in with
+`admin-demo-key`. The React dashboard keeps the credential in
+`sessionStorage`, verifies the admin role, and loads the user list from the
+same-origin API. It supports status filters, pagination, refresh, and logout.
+
+The sample build produces both the server and the browser bundle. During UI
+development, rebuild only the client with `npm run build:client:dev` and reload
+the page.
+
 Set `PORT` to run another instance on a different port, for example
 `$env:PORT = 3001` in PowerShell before `npm run dev`.
 
