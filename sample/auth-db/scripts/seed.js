@@ -10,10 +10,14 @@ try {
 
   await db.run({
     sql: [
-      'INSERT INTO users (id, status) VALUES (?, ?), (?, ?)',
-      'ON CONFLICT(id) DO UPDATE SET status = excluded.status;',
+      'INSERT INTO users (id, name, email, status) VALUES (?, ?, ?, ?), (?, ?, ?, ?)',
+      'ON CONFLICT(id) DO UPDATE SET',
+      'name = excluded.name, email = excluded.email, status = excluded.status;',
     ].join(' '),
-    params: [1, 'active', 2, 'active'],
+    params: [
+      1, 'Demo Admin', 'admin@example.test', 'active',
+      2, 'Demo User', 'user@example.test', 'active',
+    ],
   });
   await db.run({
     sql: [

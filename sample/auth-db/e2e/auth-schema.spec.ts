@@ -1,6 +1,7 @@
 import { DatabaseFactory, type IDatabase } from '@kurdel/db';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
+import AddUserProfile from '../migrations/0002-add-user-profile.js';
 
 describe('auth database schema', () => {
   let db: IDatabase;
@@ -20,6 +21,7 @@ describe('auth database schema', () => {
   it('creates normalized auth tables with constraints and indexes', async () => {
     const migration = new CreateAuthSchema(db);
     await migration.up();
+    await new AddUserProfile(db).up();
 
     const tables = await db.all({
       sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name;",
@@ -56,8 +58,8 @@ describe('auth database schema', () => {
     );
 
     await db.run({
-      sql: "INSERT INTO users (id, status) VALUES (?, ?);",
-      params: [1, 'active'],
+      sql: "INSERT INTO users (id, name, email, status) VALUES (?, ?, ?, ?);",
+      params: [1, 'Root User', 'root@example.test', 'active'],
     });
     await db.run({
       sql: "INSERT INTO roles (id, name) VALUES (?, ?);",
@@ -75,6 +77,7 @@ describe('auth database schema', () => {
 
   it('rolls the auth schema back in dependency order', async () => {
     const migration = new CreateAuthSchema(db);
+    await new AddUserProfile(db).down();
     await migration.down();
 
     const tables = await db.all({

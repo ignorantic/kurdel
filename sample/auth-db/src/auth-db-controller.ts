@@ -1,5 +1,6 @@
 import {
   BadRequest,
+  Conflict,
   Controller,
   Created,
   NotFound,
@@ -12,8 +13,11 @@ import { z } from 'zod';
 
 import {
   DatabaseUserService,
+  DuplicateUserEmailError,
   UnknownRolesError,
+  UserNotFoundError,
   type CreateUserInput,
+  type UpdateUserInput,
 } from './database-user-service.js';
 import {
   ActiveUserNotFoundError,
@@ -32,8 +36,25 @@ type CreateApiKeyBody = {
 };
 
 const createUserSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().max(254),
   roles: z.array(z.string().trim().min(1)).min(1).max(10)
     .refine(roles => new Set(roles).size === roles.length, 'Roles must be unique'),
+});
+
+const updateUserSchema = z.object({
+  name: z.string().trim().min(1).max(100).optional(),
+  email: z.string().trim().email().max(254).optional(),
+  status: z.enum(['active', 'disabled']).optional(),
+  roles: z.array(z.string().trim().min(1)).min(1).max(10)
+    .refine(roles => new Set(roles).size === roles.length, 'Roles must be unique')
+    .optional(),
+}).refine(input => Object.keys(input).length > 0, 'At least one field is required');
+
+const listUsersSchema = z.object({
+  limit: z.string().regex(/^([1-9]|[1-9]\d|100)$/, 'Limit must be between 1 and 100').optional(),
+  offset: z.string().regex(/^\d+$/, 'Offset must be a non-negative integer').optional(),
+  status: z.enum(['active', 'disabled']).optional(),
 });
 
 const createApiKeySchema = z.object({
@@ -63,6 +84,27 @@ export class AuthDbController extends Controller<Deps> {
       auth: { strategy: 'api-key', roles: ['admin'] },
       schema: { body: zodAdapter(createUserSchema) },
     })(this.createUser),
+    listUsers: route({
+      method: 'GET',
+      path: '/users',
+      auth: { strategy: 'api-key', roles: ['admin'] },
+      schema: { query: zodAdapter(listUsersSchema) },
+    })(this.listUsers),
+    getUser: route({
+      method: 'GET',
+      path: '/users/:id',
+      auth: { strategy: 'api-key', roles: ['admin'] },
+      schema: { params: zodAdapter(userIdSchema) },
+    })(this.getUser),
+    updateUser: route({
+      method: 'PATCH',
+      path: '/users/:id',
+      auth: { strategy: 'api-key', roles: ['admin'] },
+      schema: {
+        body: zodAdapter(updateUserSchema),
+        params: zodAdapter(userIdSchema),
+      },
+    })(this.updateUser),
     createApiKey: route({
       method: 'POST',
       path: '/users/:id/api-keys',
@@ -89,16 +131,35 @@ export class AuthDbController extends Controller<Deps> {
   async createUser(ctx: HttpContext<CreateUserInput>) {
     try {
       const user = await this.deps.users.create(ctx.body!);
-      return Created({
-        id: user.id,
-        status: user.status,
-        roles: user.roles,
-      });
+      return Created({ ...user });
     } catch (error) {
-      if (error instanceof UnknownRolesError) {
-        throw BadRequest(error.message, { roles: error.roles });
-      }
-      throw error;
+      this.handleUserError(error);
+    }
+  }
+
+  async listUsers(ctx: HttpContext) {
+    const query = ctx.query as { limit?: string; offset?: string; status?: 'active' | 'disabled' };
+    const result = await this.deps.users.list({
+      limit: Number(query.limit ?? 20),
+      offset: Number(query.offset ?? 0),
+      status: query.status,
+    });
+    return Ok({ ...result, users: result.users.map(user => ({ ...user })) });
+  }
+
+  async getUser(ctx: HttpContext<unknown, RouteParams<'/users/:id'>>) {
+    try {
+      return Ok({ ...await this.deps.users.findById(Number(ctx.params.id)) });
+    } catch (error) {
+      this.handleUserError(error);
+    }
+  }
+
+  async updateUser(ctx: HttpContext<UpdateUserInput, RouteParams<'/users/:id'>>) {
+    try {
+      return Ok({ ...await this.deps.users.update(Number(ctx.params.id), ctx.body!) });
+    } catch (error) {
+      this.handleUserError(error);
     }
   }
 
@@ -125,5 +186,16 @@ export class AuthDbController extends Controller<Deps> {
 
   private serializeUser(ctx: HttpContext) {
     return ctx.user ? { id: ctx.user.id, roles: ctx.user.roles } : null;
+  }
+
+  private handleUserError(error: unknown): never {
+    if (error instanceof UnknownRolesError) {
+      throw BadRequest(error.message, { roles: error.roles });
+    }
+    if (error instanceof UserNotFoundError) throw NotFound(error.message);
+    if (error instanceof DuplicateUserEmailError) {
+      throw Conflict(error.message, { email: error.email });
+    }
+    throw error;
   }
 }

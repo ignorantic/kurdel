@@ -6,6 +6,7 @@ import {
 } from '@kurdel/auth-db';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
+import AddUserProfile from '../migrations/0002-add-user-profile.js';
 
 describe('database auth repositories', () => {
   let db: IDatabase;
@@ -20,10 +21,14 @@ describe('database auth repositories', () => {
     db = driver.connection;
     await db.run({ sql: 'PRAGMA foreign_keys = ON;', params: [] });
     await new CreateAuthSchema(db).up();
+    await new AddUserProfile(db).up();
 
     await db.run({
-      sql: 'INSERT INTO users (id, status) VALUES (?, ?), (?, ?);',
-      params: [1, 'active', 2, 'disabled'],
+      sql: 'INSERT INTO users (id, name, email, status) VALUES (?, ?, ?, ?), (?, ?, ?, ?);',
+      params: [
+        1, 'Active User', 'active@example.test', 'active',
+        2, 'Disabled User', 'disabled@example.test', 'disabled',
+      ],
     });
     await db.run({
       sql: 'INSERT INTO roles (id, name) VALUES (?, ?), (?, ?);',

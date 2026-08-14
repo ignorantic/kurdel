@@ -45,7 +45,11 @@ Create an active user with the `user` role using the admin credential:
 
 ```powershell
 $headers = @{ "x-api-key" = "admin-demo-key" }
-$body = @{ roles = @("user") } | ConvertTo-Json
+$body = @{
+  name = "Ada Lovelace"
+  email = "ada@example.test"
+  roles = @("user")
+} | ConvertTo-Json
 
 $user = Invoke-RestMethod `
   -Method Post `
@@ -72,6 +76,46 @@ $credential
 
 The second response contains the raw API key. It is returned only once; only
 its SHA-256 hash is stored in SQLite.
+
+## Manage users
+
+All user-management routes require an API key with the `admin` role. List the
+first page, optionally filtering by `active` or `disabled` status:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://localhost:3000/users?limit=20&offset=0&status=active" `
+  -Headers $headers
+```
+
+Load one user:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://localhost:3000/users/$($user.id)" `
+  -Headers $headers
+```
+
+Update any combination of the user's name, email, status, and roles:
+
+```powershell
+$body = @{
+  name = "Ada Byron"
+  email = "ada.byron@example.test"
+  status = "disabled"
+  roles = @("user")
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Patch `
+  -Uri "http://localhost:3000/users/$($user.id)" `
+  -Headers $headers `
+  -ContentType "application/json" `
+  -Body $body
+```
+
+Email addresses are normalized to lowercase and must be unique. User creation
+and role replacement run in database transactions.
 
 To remove the auth tables:
 
