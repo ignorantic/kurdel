@@ -9,28 +9,32 @@ try {
   await db.run({ sql: 'PRAGMA foreign_keys = ON;', params: [] });
   await db.run({ sql: 'BEGIN;', params: [] });
 
-  await db.run({ sql: 'DELETE FROM api_keys;', params: [] });
-  await db.run({ sql: 'DELETE FROM user_roles;', params: [] });
-  await db.run({ sql: 'DELETE FROM roles;', params: [] });
-  await db.run({ sql: 'DELETE FROM users;', params: [] });
-
   await db.run({
-    sql: "INSERT INTO users (id, status) VALUES (?, ?), (?, ?);",
+    sql: [
+      'INSERT INTO users (id, status) VALUES (?, ?), (?, ?)',
+      'ON CONFLICT(id) DO UPDATE SET status = excluded.status;',
+    ].join(' '),
     params: [1, 'active', 2, 'active'],
   });
   await db.run({
-    sql: 'INSERT INTO roles (id, name) VALUES (?, ?), (?, ?);',
+    sql: [
+      'INSERT INTO roles (id, name) VALUES (?, ?), (?, ?)',
+      'ON CONFLICT(id) DO UPDATE SET name = excluded.name;',
+    ].join(' '),
     params: [1, 'admin', 2, 'user'],
   });
   await db.run({
-    sql: 'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?), (?, ?);',
+    sql: 'INSERT OR IGNORE INTO user_roles (user_id, role_id) VALUES (?, ?), (?, ?);',
     params: [1, 1, 2, 2],
   });
   await db.run({
     sql: [
       'INSERT INTO api_keys',
       '(id, user_id, key_hash, name, status)',
-      'VALUES (?, ?, ?, ?, ?), (?, ?, ?, ?, ?);',
+      'VALUES (?, ?, ?, ?, ?), (?, ?, ?, ?, ?)',
+      'ON CONFLICT(id) DO UPDATE SET',
+      'user_id = excluded.user_id, key_hash = excluded.key_hash,',
+      'name = excluded.name, status = excluded.status;',
     ].join(' '),
     params: [
       'admin-demo', 1, hash('admin-demo-key'), 'Admin demo key', 'active',
