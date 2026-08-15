@@ -6,6 +6,7 @@ import { Sha256ApiKeyHasher, type ApiKeyHasher } from './api-key-hasher.js';
 import type { AuthDatabaseTables } from './auth-database-tables.js';
 import { DatabaseApiKeyRepository } from './database-api-key-repository.js';
 import { DatabaseApiKeyService } from './database-api-key-service.js';
+import { DatabaseApiKeyUsageRecorder } from './database-api-key-usage-recorder.js';
 import { DatabaseAuthUserRepository } from './database-auth-user-repository.js';
 import { DatabaseUserService } from './database-user-service.js';
 import { AUTH_DB_TOKENS } from './tokens.js';
@@ -21,6 +22,7 @@ export class AuthDatabaseModule implements AppModule {
   readonly exports = {
     userRepository: AUTH_TOKENS.UserRepository,
     apiKeyRepository: AUTH_TOKENS.ApiKeyRepository,
+    apiKeyUsageRecorder: AUTH_TOKENS.ApiKeyUsageRecorder,
     apiKeyHasher: AUTH_DB_TOKENS.ApiKeyHasher,
     userService: AUTH_DB_TOKENS.UserService,
     apiKeyService: AUTH_DB_TOKENS.ApiKeyService,
@@ -47,6 +49,11 @@ export class AuthDatabaseModule implements AppModule {
           ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
           tables,
         ),
+        singleton: true,
+      },
+      {
+        provide: AUTH_TOKENS.ApiKeyUsageRecorder,
+        useFactory: ioc => new DatabaseApiKeyUsageRecorder(ioc.get(IDatabase), tables),
         singleton: true,
       },
       {

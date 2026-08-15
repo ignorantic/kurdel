@@ -2,6 +2,7 @@ import type { IDatabase } from '@kurdel/db';
 
 import {
   DatabaseApiKeyRepository,
+  DatabaseApiKeyUsageRecorder,
   DatabaseAuthUserRepository,
   type ApiKeyHasher,
 } from '../src/index.js';
@@ -72,5 +73,20 @@ describe('database auth repositories', () => {
     }));
     expect(() => new DatabaseAuthUserRepository(db, { users: 'users; DROP TABLE users' }))
       .toThrow('Invalid auth database table name');
+  });
+
+  it('records successful API key usage by stable credential ID', async () => {
+    const db = { run: vi.fn(async () => undefined) } as unknown as IDatabase;
+    const recorder = new DatabaseApiKeyUsageRecorder(db, {
+      apiKeys: 'application_api_keys',
+    });
+    const usedAt = new Date('2026-08-15T12:00:00.000Z');
+
+    await recorder.recordUsage('credential-1', usedAt);
+
+    expect(db.run).toHaveBeenCalledWith({
+      sql: 'UPDATE application_api_keys SET last_used_at = ? WHERE id = ?;',
+      params: ['2026-08-15T12:00:00.000Z', 'credential-1'],
+    });
   });
 });

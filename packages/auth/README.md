@@ -30,6 +30,7 @@ const auth = new AuthModule({
           header: 'x-api-key',
           credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
           users: ioc.get(AUTH_TOKENS.UserRepository),
+          usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
         }),
     },
   ],
@@ -180,6 +181,11 @@ interface AuthUserRepository {
 implementation must return `null` for unknown credentials and describe known
 credentials without returning their raw secret. Revoked and expired API keys
 are rejected before the user is authenticated.
+
+Applications may provide an `ApiKeyUsageRecorder` to capture successful use of
+credentials with stable IDs. The strategy records usage only after the key is
+accepted and its current user is resolved; rejected, expired, revoked, and
+orphaned credentials are never recorded.
 
 For database-backed implementations, use `@kurdel/auth-db`. Applications may
 also implement these interfaces for another database, an external identity

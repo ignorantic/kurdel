@@ -1,7 +1,11 @@
 import type { HttpRequest } from '@kurdel/common';
 
 import type { AuthenticationResult, AuthStrategy } from 'src/domain/index.js';
-import type { ApiKeyRepository, AuthUserRepository } from 'src/repositories/index.js';
+import type {
+  ApiKeyRepository,
+  ApiKeyUsageRecorder,
+  AuthUserRepository,
+} from 'src/repositories/index.js';
 
 export interface ApiKeyStrategyOptions {
   /** Name of the request header containing the API key. */
@@ -10,6 +14,8 @@ export interface ApiKeyStrategyOptions {
   credentials: ApiKeyRepository;
   /** Source of truth for the current user and their authorization roles. */
   users: AuthUserRepository;
+  /** Optional sink for recording successful credential usage. */
+  usage?: ApiKeyUsageRecorder;
   /** Injectable clock keeps expiration behavior deterministic in tests. */
   now?: () => Date;
 }
@@ -26,12 +32,17 @@ export class ApiKeyStrategy implements AuthStrategy {
     const credential = await this.options.credentials.findByKey(key);
     if (!credential || credential.revoked) return null;
 
-    if (credential.expiresAt && credential.expiresAt.getTime() <= this.now().getTime()) {
+    const authenticatedAt = this.now();
+    if (credential.expiresAt && credential.expiresAt.getTime() <= authenticatedAt.getTime()) {
       return null;
     }
 
     const user = await this.options.users.findById(credential.userId);
     if (!user) return null;
+
+    if (credential.id) {
+      await this.options.usage?.recordUsage(credential.id, authenticatedAt);
+    }
 
     return {
       user,

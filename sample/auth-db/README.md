@@ -37,6 +37,10 @@ without exposing stored hashes, can issue keys with an optional expiration,
 shows a new secret exactly once, and supports revocation while retaining the
 credential history.
 
+Successful API-key authentication updates the credential's `last_used_at`
+timestamp. Refreshing the user detail dialog shows the latest recorded use;
+rejected, expired, revoked, and orphaned credentials do not update it.
+
 The sample build produces both the server and the browser bundle. During UI
 development, rebuild only the client with `npm run build:client:dev` and reload
 the page.

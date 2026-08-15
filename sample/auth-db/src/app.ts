@@ -26,6 +26,7 @@ const app = await createNodeApplication({
               header: 'x-api-key',
               credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
               users: ioc.get(AUTH_TOKENS.UserRepository),
+              usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
             }),
         },
       ],

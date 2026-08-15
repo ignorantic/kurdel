@@ -7,5 +7,6 @@ export const AUTH_TOKENS = {
   /** @deprecated Use UserRepository. */
   JwtRepository: UserRepository,
   ApiKeyRepository: Symbol('ApiKeyRepository'),
+  ApiKeyUsageRecorder: Symbol('ApiKeyUsageRecorder'),
   JwtService: Symbol('JwtService'),
 };

@@ -17,6 +17,11 @@ role assignments, and issue, list, or revoke API keys. `AuthDatabaseModule`
 registers both services as `AUTH_DB_TOKENS.UserService` and
 `AUTH_DB_TOKENS.ApiKeyService`.
 
+`DatabaseApiKeyUsageRecorder` updates `last_used_at` after successful
+authentication. `AuthDatabaseModule` exposes it through
+`AUTH_TOKENS.ApiKeyUsageRecorder`, ready to pass to `ApiKeyStrategy` as its
+`usage` option.
+
 ```ts
 import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
 import { AuthDatabaseModule } from '@kurdel/auth-db';
@@ -31,6 +36,7 @@ const modules = [
           header: 'x-api-key',
           credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
           users: ioc.get(AUTH_TOKENS.UserRepository),
+          usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
         }),
       },
     ],

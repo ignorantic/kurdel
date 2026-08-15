@@ -1,6 +1,8 @@
 import { DatabaseFactory, type IDatabase } from '@kurdel/db';
+import { ApiKeyStrategy } from '@kurdel/auth';
 import {
   DatabaseApiKeyRepository,
+  DatabaseApiKeyUsageRecorder,
   DatabaseAuthUserRepository,
   Sha256ApiKeyHasher,
 } from '@kurdel/auth-db';
@@ -12,6 +14,7 @@ describe('database auth repositories', () => {
   let db: IDatabase;
   let users: DatabaseAuthUserRepository;
   let apiKeys: DatabaseApiKeyRepository;
+  let usage: DatabaseApiKeyUsageRecorder;
   const hasher = new Sha256ApiKeyHasher();
 
   beforeAll(async () => {
@@ -53,6 +56,7 @@ describe('database auth repositories', () => {
 
     users = new DatabaseAuthUserRepository(db);
     apiKeys = new DatabaseApiKeyRepository(db, hasher);
+    usage = new DatabaseApiKeyUsageRecorder(db);
   });
 
   afterAll(async () => {
@@ -93,5 +97,34 @@ describe('database auth repositories', () => {
       revoked: false,
       expiresAt: new Date('2020-01-01T00:00:00.000Z'),
     });
+  });
+
+  it('records only successful authentication as credential usage', async () => {
+    const usedAt = new Date('2026-08-15T12:00:00.000Z');
+    const strategy = new ApiKeyStrategy({
+      header: 'x-api-key',
+      credentials: apiKeys,
+      users,
+      usage,
+      now: () => usedAt,
+    });
+    const request = (key: string) => ({
+      method: 'GET',
+      url: '/',
+      query: {},
+      headers: { 'x-api-key': key },
+    });
+
+    await expect(strategy.authenticate(request('active-key'))).resolves.toBeTruthy();
+    await expect(strategy.authenticate(request('revoked-key'))).resolves.toBeNull();
+
+    const records = await db.all({
+      sql: "SELECT id, last_used_at FROM api_keys WHERE id IN ('active', 'revoked') ORDER BY id;",
+      params: [],
+    });
+    expect(records).toEqual([
+      { id: 'active', last_used_at: usedAt.toISOString() },
+      { id: 'revoked', last_used_at: null },
+    ]);
   });
 });
