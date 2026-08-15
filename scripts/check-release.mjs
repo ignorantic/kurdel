@@ -32,6 +32,12 @@ const lockfile = await readJson('package-lock.json');
 const packageNames = new Map();
 const publicPackages = [];
 
+for (const [location, entry] of Object.entries(lockfile.packages)) {
+  if (location && entry.link !== true && !entry.version) {
+    fail(`package-lock.json entry is missing a version: ${location}`);
+  }
+}
+
 for (const group of ['packages', 'sample']) {
   const directories = (await readdir(path.join(root, group), { withFileTypes: true }))
     .filter(entry => entry.isDirectory())
