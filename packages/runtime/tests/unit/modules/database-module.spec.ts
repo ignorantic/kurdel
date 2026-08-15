@@ -1,7 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { IDatabase } from '@kurdel/db';
+import { TOKENS } from '@kurdel/core/tokens';
 
 import { DatabaseModule, NoopDatabase } from 'src/modules/database-module.js';
+
+const { close } = vi.hoisted(() => ({ close: vi.fn() }));
 
 describe('DatabaseModule', () => {
   it('should register fake DB when disabled', async () => {
@@ -20,18 +23,26 @@ describe('DatabaseModule', () => {
       IDatabase: Symbol('IDatabase'),
       DBConnector: class {
         async run() {
-          return { connected: true };
+          return { connected: true, close };
         }
       },
     }));
 
     const toInstance = vi.fn();
-    const ioc = { bind: vi.fn(() => ({ toInstance })) } as any;
+    const onShutdown: Array<() => Promise<void>> = [];
+    const ioc = {
+      bind: vi.fn(() => ({ toInstance })),
+      get: vi.fn(token => token === TOKENS.OnShutdown ? onShutdown : undefined),
+    } as any;
 
     const module = new DatabaseModule();
     await module.register(ioc, { db: true });
 
     expect(ioc.bind).toHaveBeenCalledWith(IDatabase);
     expect(toInstance).toHaveBeenCalledWith(expect.objectContaining({ connected: true }));
+    expect(onShutdown).toHaveLength(1);
+
+    await onShutdown[0]();
+    expect(close).toHaveBeenCalledOnce();
   });
 });

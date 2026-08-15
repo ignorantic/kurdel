@@ -1,6 +1,7 @@
 import type { IoCContainer } from '@kurdel/ioc';
 import { IDatabase, DBConnector } from '@kurdel/db';
-import type { AppConfig, AppModule } from '@kurdel/core/app';
+import type { AppConfig, AppModule, OnShutdownHook } from '@kurdel/core/app';
+import { TOKENS } from '@kurdel/core/tokens';
 
 export class NoopDatabase implements IDatabase {
   query = this.error;
@@ -36,5 +37,6 @@ export class DatabaseModule implements AppModule<AppConfig> {
     const connector = new DBConnector();
     const connection = await connector.run();
     ioc.bind(IDatabase).toInstance(connection);
+    ioc.get<OnShutdownHook[]>(TOKENS.OnShutdown).push(() => connection.close());
   }
 }
