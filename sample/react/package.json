@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/sample-react",
-  "version": "1.0.0",
+  "version": "0.1.0-beta.1",
   "description": "example simple app with react template",
   "type": "module",
   "main": "dist/index.js",
@@ -23,10 +23,10 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
-    "@kurdel/core": "^1.0.0",
-    "@kurdel/facade": "^1.0.0",
-    "@kurdel/runtime-node": "^1.0.0",
-    "@kurdel/template-react": "^1.0.0",
+    "@kurdel/core": "0.1.0-beta.1",
+    "@kurdel/facade": "0.1.0-beta.1",
+    "@kurdel/runtime-node": "0.1.0-beta.1",
+    "@kurdel/template-react": "0.1.0-beta.1",
     "cross-env": "^10.1.0"
   },
   "devDependencies": {

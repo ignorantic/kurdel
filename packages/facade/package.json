@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/facade",
-  "version": "1.0.0",
+  "version": "0.1.0-beta.1",
   "description": "framework",
   "type": "module",
   "exports": {
@@ -34,9 +34,9 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
-    "@kurdel/core": "^1.0.0",
-    "@kurdel/runtime": "^1.0.0",
-    "@kurdel/runtime-express": "^1.0.0",
-    "@kurdel/runtime-node": "^1.0.0"
+    "@kurdel/core": "0.1.0-beta.1",
+    "@kurdel/runtime": "0.1.0-beta.1",
+    "@kurdel/runtime-express": "0.1.0-beta.1",
+    "@kurdel/runtime-node": "0.1.0-beta.1"
   }
 }

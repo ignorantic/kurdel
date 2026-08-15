@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/auth-db",
-  "version": "1.0.0",
+  "version": "0.1.0-beta.1",
   "description": "Database adapters for @kurdel/auth",
   "type": "module",
   "exports": {
@@ -20,10 +20,10 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "dependencies": {
-    "@kurdel/auth": "^1.0.0",
-    "@kurdel/common": "^1.0.0",
-    "@kurdel/core": "^1.0.0",
-    "@kurdel/db": "^1.0.0"
+    "@kurdel/auth": "0.1.0-beta.1",
+    "@kurdel/common": "0.1.0-beta.1",
+    "@kurdel/core": "0.1.0-beta.1",
+    "@kurdel/db": "0.1.0-beta.1"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",
