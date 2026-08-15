@@ -97,10 +97,10 @@ its SHA-256 hash is stored in SQLite.
 
 ## Manage users
 
-All user-management routes use the sample's `manage-users` authorization
-policy. It requires an API-key credential belonging to a user with the
-`admin` role. List the first page, optionally filtering by `active` or
-`disabled` status:
+User-management mutations and collection routes use the sample's
+`manage-users` authorization policy. It requires an API-key credential
+belonging to a user with the `admin` role. List the first page, optionally
+filtering by `active` or `disabled` status:
 
 ```powershell
 Invoke-RestMethod `
@@ -115,6 +115,22 @@ Invoke-RestMethod `
   -Uri "http://localhost:3000/users/$($user.id)" `
   -Headers $headers
 ```
+
+The `GET /users/:id` route uses a separate `view-user` policy. Administrators
+may view any user, while a regular user may only request their own ID. For
+example, the seeded user with ID `2` can load their own record:
+
+```powershell
+$userHeaders = @{ "x-api-key" = "user-demo-key" }
+
+Invoke-RestMethod `
+  -Uri "http://localhost:3000/users/2" `
+  -Headers $userHeaders
+```
+
+Changing the ID to `1` returns `403 Forbidden`. Update, deletion, role, and
+API-key management routes continue to require the stricter `manage-users`
+policy, preventing self-service privilege escalation.
 
 Update any combination of the user's name, email, status, and roles:
 

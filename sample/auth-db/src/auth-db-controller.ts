@@ -127,7 +127,7 @@ export class AuthDbController extends Controller<Deps> {
     getUser: route({
       method: 'GET',
       path: '/users/:id',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'api-key', policies: ['view-user'] },
       schema: { params: zodAdapter(userIdSchema) },
     })(this.getUser),
     updateUser: route({

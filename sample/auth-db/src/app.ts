@@ -9,6 +9,7 @@ import { ReactTemplateModule } from '@kurdel/template-react';
 
 import { AuthDbManagementModule } from './auth-db-management-module.js';
 import { AuthDbHttpModule } from './auth-db-http-module.js';
+import { manageUsersPolicy, viewUserPolicy } from './authorization-policies.js';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 
@@ -33,10 +34,11 @@ const app = await createNodeApplication({
       policies: [
         {
           name: 'manage-users',
-          use: {
-            authorize: auth =>
-              auth.credential?.type === 'api-key' && auth.user.roles.includes('admin'),
-          },
+          use: manageUsersPolicy,
+        },
+        {
+          name: 'view-user',
+          use: viewUserPolicy,
         },
       ],
     }),
