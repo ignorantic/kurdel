@@ -96,4 +96,4 @@ and will track Kurdel’s evolution from its initial public alpha.
 
 ---
 
-© 2025 Andrii Sorokin · MIT License
+© 2025–2026 Andrii Sorokin · [MIT License](LICENSE)

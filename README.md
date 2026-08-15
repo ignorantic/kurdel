@@ -291,4 +291,4 @@ samples/             # Example applications
 
 ---
 
-© 2025 Andrii Sorokin · MIT License
+© 2025–2026 Andrii Sorokin · [MIT License](LICENSE)

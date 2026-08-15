@@ -16,8 +16,8 @@
   "keywords": [
     "framework"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "Andrii Sorokin",
+  "license": "MIT",
   "dependencies": {
     "@kurdel/migrations": "0.1.0-beta.1",
     "ink": "^4.4.1",

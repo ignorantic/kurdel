@@ -1,6 +1,8 @@
 {
   "name": "root",
   "private": true,
+  "author": "Andrii Sorokin",
+  "license": "MIT",
   "workspaces": [
     "packages/*",
     "sample/*"
