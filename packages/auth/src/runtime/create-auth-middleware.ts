@@ -1,5 +1,5 @@
 import type { Middleware } from '@kurdel/core/http';
-import type { AuthContext } from 'src/domain/index.js';
+import { NoopAuthEventSink, type AuthContext, type AuthEventSink } from 'src/domain/index.js';
 
 import type { AuthStrategyRegistry } from './auth-strategy-registry.js';
 import { AuthorizationPolicyRegistry } from './authorization-policy-registry.js';
@@ -7,6 +7,8 @@ import { AuthorizationPolicyRegistry } from './authorization-policy-registry.js'
 export function createAuthMiddleware(
   registry: AuthStrategyRegistry,
   policies: AuthorizationPolicyRegistry = new AuthorizationPolicyRegistry(),
+  events: AuthEventSink = new NoopAuthEventSink(),
+  now: () => Date = () => new Date(),
 ): Middleware {
   return async (ctx, next) => {
     const meta = ctx.route?.auth;
@@ -28,6 +30,12 @@ export function createAuthMiddleware(
 
       const result = await strat.authenticate(ctx.req);
       if (!result) {
+        await events.report({
+          type: 'authentication.failed',
+          occurredAt: now(),
+          strategy,
+          reason: 'invalid-credential',
+        });
         return ctx.json(401, { error: 'Unauthorized' });
       }
 
@@ -37,6 +45,13 @@ export function createAuthMiddleware(
       };
       ctx.auth = auth;
       ctx.user = result.user;
+      await events.report({
+        type: 'authentication.succeeded',
+        occurredAt: now(),
+        strategy,
+        userId: auth.user.id,
+        ...(auth.credential ? { credential: auth.credential } : {}),
+      });
     }
 
     // --- 2️⃣ Authorize ---
@@ -46,12 +61,24 @@ export function createAuthMiddleware(
         : false;
 
       if (!ok) {
+        await events.report({
+          type: 'authorization.denied',
+          occurredAt: now(),
+          ...(auth ? { strategy: auth.strategy, userId: auth.user.id } : {}),
+          ...(auth?.credential ? { credential: auth.credential } : {}),
+          reason: 'missing-role',
+        });
         return ctx.json(403, { error: 'Forbidden' });
       }
     }
 
     if (requiredPolicies && requiredPolicies.length > 0) {
       if (!auth) {
+        await events.report({
+          type: 'authorization.denied',
+          occurredAt: now(),
+          reason: 'missing-authentication',
+        });
         return ctx.json(403, { error: 'Forbidden' });
       }
 
@@ -62,6 +89,15 @@ export function createAuthMiddleware(
         }
 
         if (!(await policy.authorize(auth, ctx))) {
+          await events.report({
+            type: 'authorization.denied',
+            occurredAt: now(),
+            strategy: auth.strategy,
+            userId: auth.user.id,
+            ...(auth.credential ? { credential: auth.credential } : {}),
+            reason: 'policy-rejected',
+            policy: name,
+          });
           return ctx.json(403, { error: 'Forbidden' });
         }
       }

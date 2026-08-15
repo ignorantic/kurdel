@@ -134,6 +134,32 @@ reported as an application configuration error.
 Policy providers also support `useFactory`, allowing policies to resolve
 application services from the dependency container.
 
+## Security events
+
+Configure an event sink to observe sanitized authentication and authorization
+activity:
+
+```ts
+new AuthModule({
+  events: {
+    useFactory: ioc => ioc.get(APP_TOKENS.AuthEventSink),
+  },
+  strategies: [/* ... */],
+});
+```
+
+The package reports successful and failed authentication plus authorization
+denials. API-key management services may additionally report credential issue
+and revocation events. Events contain timestamps, strategy names, user and
+credential identifiers, safe reason codes, and policy names. Raw API keys,
+JWTs, credential hashes, headers, and request bodies are never part of the
+event contract.
+
+Without configuration, `AuthModule` uses `NoopAuthEventSink`. Applications may
+provide an instance or a factory-backed sink. Sink failures are propagated so
+operators can choose an appropriate durable or failure-tolerant implementation
+instead of having audit loss silently hidden by the framework.
+
 ## Authentication context
 
 After successful authentication, middleware attaches an `AuthContext` to

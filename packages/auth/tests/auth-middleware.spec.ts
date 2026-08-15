@@ -5,6 +5,7 @@ import {
 } from '../src/index.js';
 
 describe('createAuthMiddleware', () => {
+  const occurredAt = new Date('2026-08-15T12:00:00.000Z');
   it('reports an unknown configured strategy as a server error', async () => {
     const middleware = createAuthMiddleware(new AuthStrategyRegistry());
     const response = { status: 500, body: { error: "Unknown auth strategy 'missing'" } };
@@ -17,6 +18,50 @@ describe('createAuthMiddleware', () => {
     await expect(middleware(ctx, next)).resolves.toBe(response);
     expect(ctx.json).toHaveBeenCalledWith(500, response.body);
     expect(next).not.toHaveBeenCalled();
+  });
+
+  it('reports sanitized authentication success and failure events', async () => {
+    const strategies = new AuthStrategyRegistry();
+    strategies.register('api-key', {
+      authenticate: vi.fn(async req => req.headers?.['x-api-key'] === 'valid-secret'
+        ? {
+            user: { id: 7, roles: ['admin'] },
+            credential: { id: 'key-1', type: 'api-key' },
+          }
+        : null),
+    });
+    const events = { report: vi.fn(async () => undefined) };
+    const middleware = createAuthMiddleware(
+      strategies,
+      new AuthorizationPolicyRegistry(),
+      events,
+      () => occurredAt,
+    );
+    const next = vi.fn(async () => undefined);
+    const context = (key: string) => ({
+      route: { auth: { strategy: 'api-key' } },
+      req: { method: 'GET', url: '/', query: {}, headers: { 'x-api-key': key } },
+      json: vi.fn(() => ({ status: 401 })),
+    }) as any;
+
+    await middleware(context('valid-secret'), next);
+    await middleware(context('invalid-secret'), next);
+
+    expect(events.report).toHaveBeenNthCalledWith(1, {
+      type: 'authentication.succeeded',
+      occurredAt,
+      strategy: 'api-key',
+      userId: 7,
+      credential: { id: 'key-1', type: 'api-key' },
+    });
+    expect(events.report).toHaveBeenNthCalledWith(2, {
+      type: 'authentication.failed',
+      occurredAt,
+      strategy: 'api-key',
+      reason: 'invalid-credential',
+    });
+    expect(JSON.stringify(events.report.mock.calls)).not.toContain('valid-secret');
+    expect(JSON.stringify(events.report.mock.calls)).not.toContain('invalid-secret');
   });
 
   it('bypasses authentication for public routes', async () => {
@@ -93,6 +138,7 @@ describe('createAuthMiddleware', () => {
     });
     const policies = new AuthorizationPolicyRegistry();
     policies.register('denied', { authorize: vi.fn(() => false) });
+    const events = { report: vi.fn(async () => undefined) };
     const response = { status: 403, body: { error: 'Forbidden' } };
     const ctx = {
       route: { auth: { strategy: 'api-key', policies: ['denied'] } },
@@ -101,8 +147,21 @@ describe('createAuthMiddleware', () => {
     } as any;
     const next = vi.fn();
 
-    await expect(createAuthMiddleware(strategies, policies)(ctx, next)).resolves.toBe(response);
+    await expect(createAuthMiddleware(
+      strategies,
+      policies,
+      events,
+      () => occurredAt,
+    )(ctx, next)).resolves.toBe(response);
     expect(ctx.json).toHaveBeenCalledWith(403, response.body);
+    expect(events.report).toHaveBeenLastCalledWith({
+      type: 'authorization.denied',
+      occurredAt,
+      strategy: 'api-key',
+      userId: 7,
+      reason: 'policy-rejected',
+      policy: 'denied',
+    });
     expect(next).not.toHaveBeenCalled();
   });
 

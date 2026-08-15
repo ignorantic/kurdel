@@ -3,7 +3,13 @@ import { ModulePriority, type AppModule, type ProviderConfig } from '@kurdel/cor
 import type { MiddlewareRegistry } from '@kurdel/core/http';
 import { TOKENS } from '@kurdel/core/tokens';
 
-import type { AuthStrategyProvider, AuthorizationPolicyProvider } from 'src/domain/index.js';
+import {
+  NoopAuthEventSink,
+  type AuthEventSink,
+  type AuthEventSinkProvider,
+  type AuthStrategyProvider,
+  type AuthorizationPolicyProvider,
+} from 'src/domain/index.js';
 import {
   AuthStrategyRegistry,
   AuthorizationPolicyRegistry,
@@ -33,6 +39,8 @@ export interface AuthModuleConfig {
   strategies?: AuthStrategyProvider[];
   /** List of named application authorization policies. */
   policies?: AuthorizationPolicyProvider[];
+  /** Optional destination for sanitized authentication lifecycle events. */
+  events?: AuthEventSinkProvider;
 }
 
 /**
@@ -62,20 +70,33 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
    *
    * - `StrategyRegistry` → a singleton container of auth strategies
    */
-  readonly providers: ProviderConfig[] = [
-    {
-      provide: AUTH_TOKENS.StrategyRegistry,
-      useClass: AuthStrategyRegistry,
-      singleton: true,
-    },
-    {
-      provide: AUTH_TOKENS.PolicyRegistry,
-      useClass: AuthorizationPolicyRegistry,
-      singleton: true,
-    },
-  ];
+  readonly providers: ProviderConfig[];
 
-  constructor(private readonly config: AuthModuleConfig = {}) {}
+  constructor(private readonly config: AuthModuleConfig = {}) {
+    const eventSink = config.events;
+    this.providers = [
+      {
+        provide: AUTH_TOKENS.StrategyRegistry,
+        useClass: AuthStrategyRegistry,
+        singleton: true,
+      },
+      {
+        provide: AUTH_TOKENS.PolicyRegistry,
+        useClass: AuthorizationPolicyRegistry,
+        singleton: true,
+      },
+      eventSink && 'useFactory' in eventSink
+        ? {
+            provide: AUTH_TOKENS.EventSink,
+            useFactory: eventSink.useFactory,
+            singleton: true,
+          }
+        : {
+            provide: AUTH_TOKENS.EventSink,
+            useInstance: eventSink?.use ?? new NoopAuthEventSink(),
+          },
+    ];
+  }
 
   /**
    * Registers all configured authentication strategies.
@@ -85,6 +106,7 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
   async register(ioc: Container) {
     const registry = ioc.get<AuthStrategyRegistry>(AUTH_TOKENS.StrategyRegistry);
     const policies = ioc.get<AuthorizationPolicyRegistry>(AUTH_TOKENS.PolicyRegistry);
+    const events = ioc.get<AuthEventSink>(AUTH_TOKENS.EventSink);
 
     // register user strategies
     for (const s of this.config.strategies ?? []) {
@@ -105,7 +127,7 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
 
     // register system auth middleware
     const mwReg = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
-    mwReg.use(createAuthMiddleware(registry, policies), {
+    mwReg.use(createAuthMiddleware(registry, policies, events), {
       zone: 'auth',
       priority: 0,
     });
