@@ -1,7 +1,7 @@
 {
   "name": "@kurdel/core",
   "version": "0.1.0-beta.1",
-  "description": "framework",
+  "description": "Core HTTP, routing, controller, and model abstractions for Kurdel",
   "type": "module",
   "exports": {
     ".": "./lib/index.js",
@@ -26,10 +26,30 @@
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"
   },
   "keywords": [
-    "framework"
+    "kurdel",
+    "framework",
+    "http",
+    "routing",
+    "typescript"
   ],
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignorantic/kurdel.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/ignorantic/kurdel/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/ignorantic/kurdel/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "devDependencies": {
     "@types/node": "^20.9.0",
     "@types/supertest": "^6.0.3",

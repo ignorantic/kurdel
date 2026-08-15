@@ -11,7 +11,7 @@ Provides a unified `TemplateEngine` implementation for server-side rendering (SS
 npm install @kurdel/template-ejs
 ```
 
-> Requires Node ≥ 18 and `@kurdel/core` / `@kurdel/runtime`.
+> Requires Node ≥ 22 and `@kurdel/core` / `@kurdel/runtime`.
 
 ---
 

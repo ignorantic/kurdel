@@ -1,7 +1,7 @@
 {
   "name": "@kurdel/pirx",
   "version": "0.1.0-beta.1",
-  "description": "framework",
+  "description": "Command-line tooling for Kurdel applications",
   "main": "lib/index.js",
   "type": "module",
   "files": [ "lib" ],
@@ -14,10 +14,29 @@
     "build:force": "npm run clean && tsc --force"
   },
   "keywords": [
-    "framework"
+    "kurdel",
+    "cli",
+    "database",
+    "migrations"
   ],
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignorantic/kurdel.git",
+    "directory": "packages/pirx"
+  },
+  "homepage": "https://github.com/ignorantic/kurdel/tree/main/packages/pirx#readme",
+  "bugs": {
+    "url": "https://github.com/ignorantic/kurdel/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "dependencies": {
     "@kurdel/migrations": "0.1.0-beta.1",
     "ink": "^4.4.1",

@@ -1,6 +1,7 @@
 {
   "name": "@kurdel/sample-auth",
   "version": "0.1.0-beta.1",
+  "private": true,
   "description": "example app with auth",
   "type": "module",
   "main": "dist/index.js",

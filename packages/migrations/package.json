@@ -1,7 +1,7 @@
 {
   "name": "@kurdel/migrations",
   "version": "0.1.0-beta.1",
-  "description": "framework",
+  "description": "Database schema migration tools for Kurdel",
   "main": "lib/index.js",
   "type": "module",
   "files": [ "lib" ],
@@ -14,10 +14,29 @@
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force"
   },
   "keywords": [
-    "framework"
+    "kurdel",
+    "database",
+    "migrations",
+    "schema"
   ],
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignorantic/kurdel.git",
+    "directory": "packages/migrations"
+  },
+  "homepage": "https://github.com/ignorantic/kurdel/tree/main/packages/migrations#readme",
+  "bugs": {
+    "url": "https://github.com/ignorantic/kurdel/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "devDependencies": {
     "@types/node": "^20.9.0"
   },

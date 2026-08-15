@@ -1,8 +1,19 @@
 {
-  "name": "root",
+  "name": "@kurdel/monorepo",
   "private": true,
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignorantic/kurdel.git"
+  },
+  "homepage": "https://github.com/ignorantic/kurdel#readme",
+  "bugs": {
+    "url": "https://github.com/ignorantic/kurdel/issues"
+  },
   "workspaces": [
     "packages/*",
     "sample/*"

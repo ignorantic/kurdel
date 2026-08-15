@@ -1,6 +1,7 @@
 {
   "name": "@kurdel/sample-ejs",
   "version": "0.1.0-beta.1",
+  "private": true,
   "description": "example simple app with ejs template",
   "type": "module",
   "main": "dist/index.js",

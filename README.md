@@ -54,7 +54,7 @@ Kurdel is a **modular monorepo** — every package has a single responsibility a
 npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/common @kurdel/ioc @kurdel/template-ejs
 ```
 
-> Requires **Node ≥ 18** and **TypeScript ≥ 5**
+> Requires **Node ≥ 22** and **TypeScript ≥ 5**
 
 Example `tsconfig.json`:
 

@@ -1,7 +1,7 @@
 {
   "name": "@kurdel/template-ejs",
   "version": "0.1.0-beta.1",
-  "description": "EJS template engine for the framework",
+  "description": "EJS server-side rendering template engine for Kurdel",
   "type": "module",
   "exports": {
     ".": "./lib/index.js"
@@ -21,10 +21,30 @@
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"
   },
   "keywords": [
+    "kurdel",
+    "ejs",
+    "ssr",
+    "template",
     "framework"
   ],
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignorantic/kurdel.git",
+    "directory": "packages/template-ejs"
+  },
+  "homepage": "https://github.com/ignorantic/kurdel/tree/main/packages/template-ejs#readme",
+  "bugs": {
+    "url": "https://github.com/ignorantic/kurdel/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "peerDependencies": {
     "ejs": "^3.1.10"
   },

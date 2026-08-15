@@ -1,6 +1,7 @@
 {
   "name": "@kurdel/sample-express",
   "version": "0.1.0-beta.1",
+  "private": true,
   "description": "example simple app with express adapter",
   "type": "module",
   "main": "dist/index.js",

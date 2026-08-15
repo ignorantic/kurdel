@@ -1,7 +1,7 @@
 {
   "name": "@kurdel/auth-db",
   "version": "0.1.0-beta.1",
-  "description": "Database adapters for @kurdel/auth",
+  "description": "Database-backed authentication adapters for @kurdel/auth",
   "type": "module",
   "exports": {
     ".": "./lib/index.js"
@@ -16,9 +16,25 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"
   },
-  "keywords": ["auth", "database", "framework"],
+  "keywords": ["kurdel", "authentication", "database", "api-key", "framework"],
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignorantic/kurdel.git",
+    "directory": "packages/auth-db"
+  },
+  "homepage": "https://github.com/ignorantic/kurdel/tree/main/packages/auth-db#readme",
+  "bugs": {
+    "url": "https://github.com/ignorantic/kurdel/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "dependencies": {
     "@kurdel/auth": "0.1.0-beta.1",
     "@kurdel/common": "0.1.0-beta.1",

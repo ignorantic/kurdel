@@ -1,7 +1,7 @@
 {
   "name": "@kurdel/runtime-node",
   "version": "0.1.0-beta.1",
-  "description": "framework",
+  "description": "Node.js HTTP runtime adapter for Kurdel",
   "type": "module",
   "exports": {
     ".": "./lib/index.js",
@@ -23,10 +23,30 @@
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"
   },
   "keywords": [
+    "kurdel",
+    "node",
+    "http",
+    "adapter",
     "framework"
   ],
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignorantic/kurdel.git",
+    "directory": "packages/runtime-node"
+  },
+  "homepage": "https://github.com/ignorantic/kurdel/tree/main/packages/runtime-node#readme",
+  "bugs": {
+    "url": "https://github.com/ignorantic/kurdel/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "devDependencies": {
     "@types/mime-types": "^3.0.1",
     "@types/node": "^20.9.0",

@@ -1,7 +1,7 @@
 {
   "name": "@kurdel/runtime-express",
   "version": "0.1.0-beta.1",
-  "description": "framework",
+  "description": "Express runtime adapter for Kurdel",
   "type": "module",
   "exports": {
     ".": "./lib/index.js",
@@ -23,10 +23,29 @@
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"
   },
   "keywords": [
+    "kurdel",
+    "express",
+    "adapter",
     "framework"
   ],
   "author": "Andrii Sorokin",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignorantic/kurdel.git",
+    "directory": "packages/runtime-express"
+  },
+  "homepage": "https://github.com/ignorantic/kurdel/tree/main/packages/runtime-express#readme",
+  "bugs": {
+    "url": "https://github.com/ignorantic/kurdel/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "peerDependencies": {
     "express": "^4.18.0 || ^5.0.0"
   },
