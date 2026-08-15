@@ -1,0 +1,45 @@
+name: Publish packages
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    environment: npm
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Use repository npm version
+        run: npm install --global npm@11.7.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify repository
+        run: npm run ci
+
+      - name: Verify release tag
+        run: node scripts/check-release-tag.mjs "${{ github.event.release.tag_name }}"
+
+      - name: Publish unpublished packages
+        run: node scripts/publish-packages.mjs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

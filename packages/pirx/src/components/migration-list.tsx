@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { ListItem } from '../hooks/use-migration-list.js';
+import type { ListItem } from '../hooks/use-migration-list.js';
 
 type Props = {
   list: ListItem[];
@@ -17,4 +17,3 @@ export default function MigrationList({ list }: Props) {
     </Box>
   );
 }
-

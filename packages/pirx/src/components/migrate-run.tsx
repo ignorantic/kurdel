@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { MigrationManager } from '@kurdel/migrations';
+import type { MigrationManager } from '@kurdel/migrations';
 import useMigrateRun from '../hooks/use-migrate-run.js';
 import MigrationList from './migration-list.js';
 import CheckmarkedLine from './checkmarked-line.js';
@@ -36,4 +36,3 @@ export default function MigrateRun({ manager }: Props) {
     </Fragment>
   );
 }
-

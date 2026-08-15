@@ -1,7 +1,12 @@
 # **kurdel**
 
+[![CI](https://github.com/ignorantic/kurdel/actions/workflows/ci.yml/badge.svg)](https://github.com/ignorantic/kurdel/actions/workflows/ci.yml)
+
 A minimal **TypeScript-first** web framework built on **SOLID** and **IoC** principles.
 No decorators. No reflection. Just **explicit modules**, **typed controllers**, **runtime schemas**, and **request-scoped DI**.
+
+> **Beta:** APIs may change before `1.0.0`. Install the packages with the
+> `beta` dist-tag and review the changelog when upgrading.
 
 ---
 
@@ -22,7 +27,7 @@ Kurdel is a **modular monorepo** — every package has a single responsibility a
 | **`@kurdel/ioc`**             | Lightweight, standalone dependency injection container.                          |
 | **`@kurdel/db`**              | Database abstraction layer (models, connectors, query builders).                 |
 | **`@kurdel/migrations`**      | Migration engine and schema management tools.                                    |
-| **`@kurdel/pirx`**            | Developer CLI (scaffolding, migrations, utilities).                              |
+| **`@kurdel/pirx`**            | Developer CLI for database migration workflows.                                  |
 | **`@kurdel/auth`**            | Storage-agnostic authentication strategies and authorization middleware.         |
 | **`@kurdel/auth-db`**         | Database-backed identity and API-key repository adapters.                        |
 
@@ -44,17 +49,17 @@ Kurdel is a **modular monorepo** — every package has a single responsibility a
 * 🗄️ **Database-ready** — plug in any DB with `@kurdel/db`.
 * 🧪 **Test-friendly** — in-memory orchestration, zero boilerplate.
 * 🎨 **SSR-ready** — EJS and React template engines.
-* 🧰 **CLI tooling** — `@kurdel/pirx` for scaffolding and automation.
+* 🧰 **CLI tooling** — `@kurdel/pirx` for migration workflows.
 
 ---
 
 ## ⚙️ Installation
 
 ```bash
-npm i @kurdel/facade @kurdel/runtime @kurdel/core @kurdel/common @kurdel/ioc @kurdel/template-ejs
+npm install @kurdel/facade@beta @kurdel/runtime@beta @kurdel/core@beta @kurdel/common@beta @kurdel/ioc@beta @kurdel/template-ejs@beta
 ```
 
-> Requires **Node ≥ 22** and **TypeScript ≥ 5**
+> Requires **Node 20.19+, 22.12+, or 24+** and **TypeScript ≥ 5**
 
 Example `tsconfig.json`:
 
@@ -275,8 +280,11 @@ packages/
   db/                # Database abstraction
   migrations/        # Migration engine
   pirx/              # CLI tooling
-samples/             # Example applications
+sample/              # Example applications
 ```
+
+Release maintainers should follow [RELEASING.md](RELEASING.md) before creating
+a GitHub release.
 
 ---
 

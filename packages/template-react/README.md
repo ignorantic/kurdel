@@ -11,7 +11,7 @@ Provides a unified `TemplateEngine` implementation for server-side rendering (SS
 npm install @kurdel/template-react
 ```
 
-> Requires Node ≥ 22 and `@kurdel/core` / `@kurdel/runtime`.
+> Requires Node 20.19+, 22.12+, or 24+ and `@kurdel/core` / `@kurdel/runtime`.
 
 ---
 

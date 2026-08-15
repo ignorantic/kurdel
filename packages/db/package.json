@@ -12,6 +12,7 @@
     "lib"
   ],
   "scripts": {
+    "prepack": "npm run build",
     "test": "vitest run",
     "clean": "rimraf lib ../../.cache/tsconfig.db.build.tsbuildinfo",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
@@ -26,7 +27,7 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "engines": {
-    "node": ">=22"
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
   },
   "repository": {
     "type": "git",

@@ -26,7 +26,6 @@
 *.map diff=none
 *.tsbuildinfo binary
 *.lock binary
-package-lock.json binary
 
 # -----------------------------------------------------------------------------
 # 🧩 Ignore build outputs, caches and coverage when exporting (git archive, npm pack)

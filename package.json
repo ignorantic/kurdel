@@ -4,8 +4,9 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "engines": {
-    "node": ">=22"
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
   },
+  "packageManager": "npm@11.7.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ignorantic/kurdel.git"
@@ -19,14 +20,19 @@
     "sample/*"
   ],
   "scripts": {
-    "lint": "eslint packages/**/*.ts",
+    "lint": "eslint \"packages/**/*.{ts,tsx}\" \"sample/**/*.{ts,tsx}\" && node --check scripts/check-release.mjs && node --check scripts/check-release-tag.mjs && node --check scripts/publish-packages.mjs",
     "test": "lerna run test --stream",
-    "lint:fix": "eslint packages/**/*.ts --fix",
-    "format": "prettier --write \"packages/**/*.ts\"",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write \"{packages,sample}/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"{packages,sample}/**/*.{ts,tsx}\"",
     "clean": "npm run clean --workspaces",
     "clean:all": "npm run clean --workspaces && rimraf .cache",
     "build": "lerna run build --stream --sort",
-    "rebuild": "npm run clean:all && npm run build"
+    "rebuild": "npm run clean:all && npm run build",
+    "release:validate": "node scripts/check-release.mjs",
+    "release:publish:dry-run": "node scripts/publish-packages.mjs --dry-run",
+    "release:check": "npm run lint && npm run build && npm test && npm run release:validate",
+    "ci": "npm run release:check"
   },
   "devDependencies": {
     "@types/node": "^24.3.1",

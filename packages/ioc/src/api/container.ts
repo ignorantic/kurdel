@@ -26,6 +26,8 @@ export interface BindingToContract<T> {
  * Fluent API returned by {@link Container.put} or {@link BindingToContract.to}.
  * Used to configure constructor dependencies and scope.
  */
+// The type parameter preserves the resolved binding type across the fluent public API.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface BindingWithInContract<T> {
   /**
    * Define constructor dependencies for the bound class.

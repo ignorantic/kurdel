@@ -22,7 +22,7 @@ Kurdel application.
 
 ## Requirements
 
-Node.js 22 or newer.
+Node.js 20.19+, 22.12+, or 24+.
 
 ## License
 

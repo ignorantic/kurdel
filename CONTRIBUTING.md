@@ -23,7 +23,7 @@ Kurdel is a **monorepo** of cohesive, self-contained workspaces:
 | **@kurdel/db**              | Database abstractions and connectors.                      |
 | **@kurdel/migrations**      | Migration and schema management layer.                     |
 | **@kurdel/pirx**            | Developer CLI (scaffolding, migrations, utilities).        |
-| **samples/**                | Integration examples and demo apps.                        |
+| **sample/**                 | Integration examples and demo apps.                        |
 
 > `@kurdel/facade` contains **no runtime logic** — it only orchestrates composition.
 > `@kurdel/common` sits at the base and has **zero dependencies**.
@@ -73,7 +73,7 @@ index.ts       # Public API entry
 | Platform adapter        | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Binds runtime to platform           |
 | Framework module        | `ServerModule`, `LifecycleModule`                 | IoC-level composition               |
 | Template engine         | `EjsTemplateModule`                               | SSR via `TemplateEngine`            |
-| CLI                     | `pirx db:migrate`                                 | Developer tooling                   |
+| CLI                     | `pirx migrate run`                                | Developer tooling                   |
 | Validation adapter      | `zodAdapter`, `createValidator`                   | Schema-level validation             |
 | Middleware              | `schemaValidator`, `loggingMiddleware`            | Executed by middleware pipe         |
 
@@ -230,8 +230,8 @@ export const zodAdapter = <T>(schema: ZodSchema<T>) =>
 ## 🧭 Developer Workflow
 
 ```bash
-# Install dependencies
-npm install
+# Install the locked dependency graph
+npm ci
 
 # Build everything
 npx lerna run build
@@ -257,4 +257,4 @@ npm run dev -w @kurdel/sample-sqlite
 
 ---
 
-© 2025 Andrii Sorokin · MIT License
+© 2025–2026 Andrii Sorokin · [MIT License](LICENSE)
