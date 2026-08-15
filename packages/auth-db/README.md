@@ -11,6 +11,12 @@ stable ID. After a strategy succeeds, this data is available through
 `ctx.auth.user` and `ctx.auth.credential`; raw API keys are never exposed in the
 authentication context.
 
+The package also provides `DatabaseUserService` and `DatabaseApiKeyService` for
+administrative workflows. They create, list, update, and delete users, manage
+role assignments, and issue, list, or revoke API keys. `AuthDatabaseModule`
+registers both services as `AUTH_DB_TOKENS.UserService` and
+`AUTH_DB_TOKENS.ApiKeyService`.
+
 ```ts
 import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
 import { AuthDatabaseModule } from '@kurdel/auth-db';
@@ -48,6 +54,9 @@ new AuthDatabaseModule({
 By default, the package expects `users`, `roles`, `user_roles`, and `api_keys`
 tables and uses SHA-256 for API-key lookup. Schema ownership remains with the
 application; see `sample/auth-db` for migrations and a runnable example.
+The management services expect the profile and credential metadata columns
+shown in those migrations, including user name, email, status and timestamps,
+plus API-key name, status, expiration and last-use timestamps.
 
 See the [`@kurdel/auth` documentation](../auth/README.md) for route protection,
 authentication context, and custom strategy contracts.

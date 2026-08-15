@@ -1,18 +1,16 @@
 import { DatabaseFactory, type IDatabase } from '@kurdel/db';
-import { Sha256ApiKeyHasher } from '@kurdel/auth-db';
+import {
+  ActiveUserNotFoundError,
+  ApiKeyNotFoundError,
+  DatabaseApiKeyService,
+  DatabaseUserService,
+  Sha256ApiKeyHasher,
+  UserNotFoundError,
+  type UnknownRolesError,
+} from '@kurdel/auth-db';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
-import {
-  ApiKeyNotFoundError,
-  DatabaseApiKeyService,
-  ActiveUserNotFoundError,
-} from '../src/database-api-key-service.js';
-import {
-  DatabaseUserService,
-  UserNotFoundError,
-  type UnknownRolesError,
-} from '../src/database-user-service.js';
 
 describe('database user management', () => {
   let db: IDatabase;

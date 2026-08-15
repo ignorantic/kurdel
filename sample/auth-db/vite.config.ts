@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
     sourcemap: mode !== 'production',
     cssCodeSplit: false,
     rollupOptions: {
-      input: resolve(__dirname, 'src/client.tsx'),
+      input: resolve(__dirname, 'src/admin/client.tsx'),
       output: {
         entryFileNames: 'client.js',
         assetFileNames: 'client[extname]',

@@ -13,19 +13,17 @@ import {
 import { z } from 'zod';
 
 import {
+  ActiveUserNotFoundError,
+  ApiKeyNotFoundError,
+  ApiKeyUserNotFoundError,
   DuplicateUserEmailError,
   UnknownRolesError,
   UserNotFoundError,
   type CreateUserInput,
+  type DatabaseApiKeyService,
   type DatabaseUserService,
   type UpdateUserInput,
-} from './database-user-service.js';
-import {
-  ActiveUserNotFoundError,
-  ApiKeyNotFoundError,
-  ApiKeyUserNotFoundError,
-  type DatabaseApiKeyService,
-} from './database-api-key-service.js';
+} from '@kurdel/auth-db';
 import { zodAdapter } from './zod-adapter.js';
 
 type Deps = {

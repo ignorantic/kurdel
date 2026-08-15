@@ -1,5 +1,10 @@
 import type { IDatabase } from '@kurdel/db';
 
+import {
+  resolveAuthDatabaseTables,
+  type AuthDatabaseTables,
+} from './auth-database-tables.js';
+
 export type UserStatus = 'active' | 'disabled';
 
 type RoleRecord = {
@@ -73,11 +78,18 @@ export class DuplicateUserEmailError extends Error {
 }
 
 export class DatabaseUserService {
-  constructor(private readonly db: IDatabase) {}
+  private readonly tables: AuthDatabaseTables;
+
+  constructor(
+    private readonly db: IDatabase,
+    tables: Partial<AuthDatabaseTables> = {},
+  ) {
+    this.tables = resolveAuthDatabaseTables(tables);
+  }
 
   async listRoles(): Promise<string[]> {
     const roles = (await this.db.all({
-      sql: 'SELECT name FROM roles ORDER BY name;',
+      sql: `SELECT name FROM ${this.tables.roles} ORDER BY name;`,
       params: [],
     })) as Array<{ name: string }>;
     return roles.map(role => role.name);
@@ -91,7 +103,7 @@ export class DatabaseUserService {
     try {
       const user = (await this.db.get({
         sql: [
-          'INSERT INTO users (name, email, status)',
+          `INSERT INTO ${this.tables.users} (name, email, status)`,
           "VALUES (?, ?, 'active')",
           'RETURNING id, name, email, status, created_at, updated_at;',
         ].join(' '),
@@ -115,13 +127,13 @@ export class DatabaseUserService {
     const records = (await this.db.all({
       sql: [
         'SELECT id, name, email, status, created_at, updated_at',
-        `FROM users ${where}`,
+        `FROM ${this.tables.users} ${where}`,
         'ORDER BY id DESC LIMIT ? OFFSET ?;',
       ].join(' '),
       params: [...params, input.limit, input.offset],
     })) as UserRecord[];
     const count = (await this.db.get({
-      sql: `SELECT COUNT(*) AS count FROM users ${where};`,
+      sql: `SELECT COUNT(*) AS count FROM ${this.tables.users} ${where};`,
       params,
     })) as CountRecord;
     const roles = await this.loadRoles(records.map(user => user.id));
@@ -164,7 +176,7 @@ export class DatabaseUserService {
       if (updates.length > 0 || roles) {
         updates.push('updated_at = CURRENT_TIMESTAMP');
         await this.db.run({
-          sql: `UPDATE users SET ${updates.join(', ')} WHERE id = ?;`,
+          sql: `UPDATE ${this.tables.users} SET ${updates.join(', ')} WHERE id = ?;`,
           params: [...params, userId],
         });
       }
@@ -183,9 +195,18 @@ export class DatabaseUserService {
 
     await this.db.run({ sql: 'BEGIN IMMEDIATE;', params: [] });
     try {
-      await this.db.run({ sql: 'DELETE FROM api_keys WHERE user_id = ?;', params: [userId] });
-      await this.db.run({ sql: 'DELETE FROM user_roles WHERE user_id = ?;', params: [userId] });
-      await this.db.run({ sql: 'DELETE FROM users WHERE id = ?;', params: [userId] });
+      await this.db.run({
+        sql: `DELETE FROM ${this.tables.apiKeys} WHERE user_id = ?;`,
+        params: [userId],
+      });
+      await this.db.run({
+        sql: `DELETE FROM ${this.tables.userRoles} WHERE user_id = ?;`,
+        params: [userId],
+      });
+      await this.db.run({
+        sql: `DELETE FROM ${this.tables.users} WHERE id = ?;`,
+        params: [userId],
+      });
       await this.db.run({ sql: 'COMMIT;', params: [] });
     } catch (error) {
       await this.db.run({ sql: 'ROLLBACK;', params: [] });
@@ -197,7 +218,7 @@ export class DatabaseUserService {
     return (await this.db.get({
       sql: [
         'SELECT id, name, email, status, created_at, updated_at',
-        'FROM users WHERE id = ?;',
+        `FROM ${this.tables.users} WHERE id = ?;`,
       ].join(' '),
       params: [userId],
     })) as UserRecord | undefined;
@@ -207,7 +228,7 @@ export class DatabaseUserService {
     const uniqueNames = [...new Set(names)];
     const placeholders = uniqueNames.map(() => '?').join(', ');
     const records = (await this.db.all({
-      sql: `SELECT id, name FROM roles WHERE name IN (${placeholders});`,
+      sql: `SELECT id, name FROM ${this.tables.roles} WHERE name IN (${placeholders});`,
       params: uniqueNames,
     })) as RoleRecord[];
     const found = new Set(records.map(role => role.name));
@@ -218,10 +239,13 @@ export class DatabaseUserService {
   }
 
   private async replaceRoles(userId: number, roles: RoleRecord[]): Promise<void> {
-    await this.db.run({ sql: 'DELETE FROM user_roles WHERE user_id = ?;', params: [userId] });
+    await this.db.run({
+      sql: `DELETE FROM ${this.tables.userRoles} WHERE user_id = ?;`,
+      params: [userId],
+    });
     for (const role of roles) {
       await this.db.run({
-        sql: 'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?);',
+        sql: `INSERT INTO ${this.tables.userRoles} (user_id, role_id) VALUES (?, ?);`,
         params: [userId, role.id],
       });
     }
@@ -232,10 +256,12 @@ export class DatabaseUserService {
     if (userIds.length === 0) return result;
     const records = (await this.db.all({
       sql: [
-        'SELECT user_roles.user_id, roles.name FROM user_roles',
-        'INNER JOIN roles ON roles.id = user_roles.role_id',
-        `WHERE user_roles.user_id IN (${userIds.map(() => '?').join(', ')})`,
-        'ORDER BY roles.name;',
+        `SELECT ${this.tables.userRoles}.user_id, ${this.tables.roles}.name`,
+        `FROM ${this.tables.userRoles}`,
+        `INNER JOIN ${this.tables.roles}`,
+        `ON ${this.tables.roles}.id = ${this.tables.userRoles}.role_id`,
+        `WHERE ${this.tables.userRoles}.user_id IN (${userIds.map(() => '?').join(', ')})`,
+        `ORDER BY ${this.tables.roles}.name;`,
       ].join(' '),
       params: userIds,
     })) as Array<{ user_id: number; name: string }>;
@@ -262,7 +288,7 @@ export class DatabaseUserService {
   }
 
   private rethrowEmailConflict(error: unknown, email?: string): never {
-    if (email && error instanceof Error && error.message.includes('users.email')) {
+    if (email && error instanceof Error && error.message.includes(`${this.tables.users}.email`)) {
       throw new DuplicateUserEmailError(email);
     }
     throw error;

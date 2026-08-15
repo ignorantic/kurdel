@@ -7,7 +7,6 @@ import { createNodeApplication } from '@kurdel/facade';
 import { StaticFilesModule } from '@kurdel/runtime-node/modules';
 import { ReactTemplateModule } from '@kurdel/template-react';
 
-import { AuthDbManagementModule } from './auth-db-management-module.js';
 import { AuthDbHttpModule } from './auth-db-http-module.js';
 import { manageUsersPolicy, viewUserPolicy } from './authorization-policies.js';
 
@@ -15,10 +14,9 @@ const currentDir = dirname(fileURLToPath(import.meta.url));
 
 const app = await createNodeApplication({
   modules: [
-    ReactTemplateModule.forRoot({ baseDir: resolve(currentDir, './views') }),
+    ReactTemplateModule.forRoot({ baseDir: resolve(currentDir, './admin/views') }),
     new StaticFilesModule(resolve(currentDir, './public')),
     new AuthDatabaseModule(),
-    new AuthDbManagementModule(),
     new AuthModule({
       strategies: [
         {

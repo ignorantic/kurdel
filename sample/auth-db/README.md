@@ -3,6 +3,9 @@
 This sample stores users, roles and hashed API keys in a local SQLite database.
 SQLite is embedded, so no database server is required.
 It uses the reusable repositories and IoC module from `@kurdel/auth-db`.
+User and API-key management services also come from that package; the sample
+contains only its HTTP API, application policies, schema, and administration
+interface.
 
 ## Run
 
@@ -37,6 +40,10 @@ credential history.
 The sample build produces both the server and the browser bundle. During UI
 development, rebuild only the client with `npm run build:client:dev` and reload
 the page.
+
+Frontend code is isolated under `src/admin`, including the browser entry,
+styles, React components, server-rendered views, and the page controller that
+serves the administration shell.
 
 Set `PORT` to run another instance on a different port, for example
 `$env:PORT = 3001` in PowerShell before `npm run dev`.

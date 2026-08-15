@@ -1,7 +1,12 @@
 import crypto from 'node:crypto';
 
-import type { ApiKeyHasher } from '@kurdel/auth-db';
 import type { IDatabase } from '@kurdel/db';
+
+import type { ApiKeyHasher } from './api-key-hasher.js';
+import {
+  resolveAuthDatabaseTables,
+  type AuthDatabaseTables,
+} from './auth-database-tables.js';
 
 type UserRecord = {
   id: number;
@@ -61,14 +66,19 @@ export class ApiKeyNotFoundError extends Error {
 }
 
 export class DatabaseApiKeyService {
+  private readonly tables: AuthDatabaseTables;
+
   constructor(
     private readonly db: IDatabase,
-    private readonly hasher: ApiKeyHasher
-  ) {}
+    private readonly hasher: ApiKeyHasher,
+    tables: Partial<AuthDatabaseTables> = {},
+  ) {
+    this.tables = resolveAuthDatabaseTables(tables);
+  }
 
   async list(userId: number): Promise<ApiKeyMetadata[]> {
     const user = (await this.db.get({
-      sql: 'SELECT id, status FROM users WHERE id = ?;',
+      sql: `SELECT id, status FROM ${this.tables.users} WHERE id = ?;`,
       params: [userId],
     })) as UserRecord | undefined;
     if (!user) throw new ApiKeyUserNotFoundError(userId);
@@ -76,7 +86,7 @@ export class DatabaseApiKeyService {
     const records = (await this.db.all({
       sql: [
         'SELECT id, name, status, expires_at, last_used_at, created_at',
-        'FROM api_keys WHERE user_id = ? ORDER BY created_at DESC, id DESC;',
+        `FROM ${this.tables.apiKeys} WHERE user_id = ? ORDER BY created_at DESC, id DESC;`,
       ].join(' '),
       params: [userId],
     })) as ApiKeyRecord[];
@@ -92,7 +102,7 @@ export class DatabaseApiKeyService {
 
   async create(input: CreateApiKeyInput): Promise<CreatedApiKey> {
     const user = (await this.db.get({
-      sql: 'SELECT id, status FROM users WHERE id = ?;',
+      sql: `SELECT id, status FROM ${this.tables.users} WHERE id = ?;`,
       params: [input.userId],
     })) as UserRecord | undefined;
     if (!user || user.status !== 'active') {
@@ -105,7 +115,7 @@ export class DatabaseApiKeyService {
 
     await this.db.run({
       sql: [
-        'INSERT INTO api_keys',
+        `INSERT INTO ${this.tables.apiKeys}`,
         '(id, user_id, key_hash, name, status, expires_at)',
         'VALUES (?, ?, ?, ?, ?, ?);',
       ].join(' '),
@@ -117,13 +127,13 @@ export class DatabaseApiKeyService {
 
   async revoke(userId: number, apiKeyId: string): Promise<void> {
     const apiKey = (await this.db.get({
-      sql: 'SELECT id FROM api_keys WHERE id = ? AND user_id = ?;',
+      sql: `SELECT id FROM ${this.tables.apiKeys} WHERE id = ? AND user_id = ?;`,
       params: [apiKeyId, userId],
     })) as { id: string } | undefined;
     if (!apiKey) throw new ApiKeyNotFoundError(userId, apiKeyId);
 
     await this.db.run({
-      sql: "UPDATE api_keys SET status = 'revoked' WHERE id = ? AND user_id = ?;",
+      sql: `UPDATE ${this.tables.apiKeys} SET status = 'revoked' WHERE id = ? AND user_id = ?;`,
       params: [apiKeyId, userId],
     });
   }

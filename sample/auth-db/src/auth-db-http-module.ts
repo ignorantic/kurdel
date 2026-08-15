@@ -1,9 +1,9 @@
 import type { HttpModule } from '@kurdel/core/http';
+import { AUTH_DB_TOKENS } from '@kurdel/auth-db';
 import { schemaValidator } from '@kurdel/runtime/middlewares';
 
+import { AdminPageController } from './admin/admin-page-controller.js';
 import { AuthDbController } from './auth-db-controller.js';
-import { AdminPageController } from './admin-page-controller.js';
-import { AUTH_DB_SAMPLE_TOKENS } from './auth-db-tokens.js';
 
 export class AuthDbHttpModule implements HttpModule {
   readonly controllers = [
@@ -11,8 +11,8 @@ export class AuthDbHttpModule implements HttpModule {
     {
       use: AuthDbController,
       deps: {
-        users: AUTH_DB_SAMPLE_TOKENS.UserService,
-        apiKeys: AUTH_DB_SAMPLE_TOKENS.ApiKeyService,
+        users: AUTH_DB_TOKENS.UserService,
+        apiKeys: AUTH_DB_TOKENS.ApiKeyService,
       },
       prefix: '/',
     },
