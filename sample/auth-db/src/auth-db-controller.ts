@@ -110,30 +110,30 @@ export class AuthDbController extends Controller<Deps> {
     listRoles: route({
       method: 'GET',
       path: '/roles',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
     })(this.listRoles),
     createUser: route({
       method: 'POST',
       path: '/users',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
       schema: { body: zodAdapter(createUserSchema) },
     })(this.createUser),
     listUsers: route({
       method: 'GET',
       path: '/users',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
       schema: { query: zodAdapter(listUsersSchema) },
     })(this.listUsers),
     getUser: route({
       method: 'GET',
       path: '/users/:id',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
       schema: { params: zodAdapter(userIdSchema) },
     })(this.getUser),
     updateUser: route({
       method: 'PATCH',
       path: '/users/:id',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
       schema: {
         body: zodAdapter(updateUserSchema),
         params: zodAdapter(userIdSchema),
@@ -142,13 +142,13 @@ export class AuthDbController extends Controller<Deps> {
     deleteUser: route({
       method: 'DELETE',
       path: '/users/:id',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
       schema: { params: zodAdapter(userIdSchema) },
     })(this.deleteUser),
     createApiKey: route({
       method: 'POST',
       path: '/users/:id/api-keys',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
       schema: {
         body: zodAdapter(createApiKeySchema),
         params: zodAdapter(userIdSchema),
@@ -157,13 +157,13 @@ export class AuthDbController extends Controller<Deps> {
     listApiKeys: route({
       method: 'GET',
       path: '/users/:id/api-keys',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
       schema: { params: zodAdapter(userIdSchema) },
     })(this.listApiKeys),
     revokeApiKey: route({
       method: 'DELETE',
       path: '/users/:id/api-keys/:keyId',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
       schema: { params: zodAdapter(apiKeyParamsSchema) },
     })(this.revokeApiKey),
   };

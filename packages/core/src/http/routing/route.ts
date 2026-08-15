@@ -65,6 +65,9 @@ export type RouteAuth = {
 
   /** Allowed user roles; user must have at least one. */
   roles?: string[];
+
+  /** Named authorization policies; every policy must grant access. */
+  policies?: string[];
 };
 
 

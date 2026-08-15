@@ -89,6 +89,50 @@ does not have any required role receives `403 Forbidden`. Referencing an
 unregistered strategy is treated as an application configuration error and
 returns `500 Internal Server Error`.
 
+## Authorization policies
+
+Named policies handle application-specific access rules that cannot be
+expressed by roles alone. Register them alongside strategies:
+
+```ts
+const auth = new AuthModule({
+  strategies: [/* ... */],
+  policies: [
+    {
+      name: 'manage-users',
+      use: {
+        authorize: (auth, ctx) =>
+          auth.credential?.type === 'api-key' &&
+          auth.user.roles.includes('admin') &&
+          ctx.req.method !== 'TRACE',
+      },
+    },
+  ],
+});
+```
+
+Reference policies from route metadata:
+
+```ts
+route({
+  method: 'POST',
+  path: '/users',
+  auth: {
+    strategy: 'api-key',
+    policies: ['manage-users'],
+  },
+})(this.createUser);
+```
+
+A policy receives the complete `AuthContext` and current `HttpContext`, and may
+return a boolean or a promise. When several policies are listed, every policy
+must grant access. Policies and `roles` may be combined; both checks must then
+succeed. A rejected policy returns `403 Forbidden`, while an unknown policy is
+reported as an application configuration error.
+
+Policy providers also support `useFactory`, allowing policies to resolve
+application services from the dependency container.
+
 ## Authentication context
 
 After successful authentication, middleware attaches an `AuthContext` to

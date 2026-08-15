@@ -3,8 +3,12 @@ import { ModulePriority, type AppModule, type ProviderConfig } from '@kurdel/cor
 import type { MiddlewareRegistry } from '@kurdel/core/http';
 import { TOKENS } from '@kurdel/core/tokens';
 
-import type { AuthStrategyProvider } from 'src/domain/index.js';
-import { AuthStrategyRegistry, createAuthMiddleware } from 'src/runtime/index.js';
+import type { AuthStrategyProvider, AuthorizationPolicyProvider } from 'src/domain/index.js';
+import {
+  AuthStrategyRegistry,
+  AuthorizationPolicyRegistry,
+  createAuthMiddleware,
+} from 'src/runtime/index.js';
 import { AUTH_TOKENS } from 'src/tokens.js';
 
 /**
@@ -27,6 +31,8 @@ import { AUTH_TOKENS } from 'src/tokens.js';
 export interface AuthModuleConfig {
   /** List of user-provided authentication strategies. */
   strategies?: AuthStrategyProvider[];
+  /** List of named application authorization policies. */
+  policies?: AuthorizationPolicyProvider[];
 }
 
 /**
@@ -62,6 +68,11 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
       useClass: AuthStrategyRegistry,
       singleton: true,
     },
+    {
+      provide: AUTH_TOKENS.PolicyRegistry,
+      useClass: AuthorizationPolicyRegistry,
+      singleton: true,
+    },
   ];
 
   constructor(private readonly config: AuthModuleConfig = {}) {}
@@ -73,6 +84,7 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
    */
   async register(ioc: Container) {
     const registry = ioc.get<AuthStrategyRegistry>(AUTH_TOKENS.StrategyRegistry);
+    const policies = ioc.get<AuthorizationPolicyRegistry>(AUTH_TOKENS.PolicyRegistry);
 
     // register user strategies
     for (const s of this.config.strategies ?? []) {
@@ -84,9 +96,16 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
       }
     }
 
+    for (const policy of this.config.policies ?? []) {
+      policies.register(
+        policy.name,
+        'use' in policy ? policy.use : policy.useFactory(ioc),
+      );
+    }
+
     // register system auth middleware
     const mwReg = ioc.get<MiddlewareRegistry>(TOKENS.MiddlewareRegistry);
-    mwReg.use(createAuthMiddleware(registry), {
+    mwReg.use(createAuthMiddleware(registry, policies), {
       zone: 'auth',
       priority: 0,
     });

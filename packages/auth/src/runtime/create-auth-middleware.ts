@@ -1,9 +1,13 @@
 import type { Middleware } from '@kurdel/core/http';
 import type { AuthContext } from 'src/domain/index.js';
 
-import type { AuthStrategyRegistry } from 'src/runtime/index.js';
+import type { AuthStrategyRegistry } from './auth-strategy-registry.js';
+import { AuthorizationPolicyRegistry } from './authorization-policy-registry.js';
 
-export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware {
+export function createAuthMiddleware(
+  registry: AuthStrategyRegistry,
+  policies: AuthorizationPolicyRegistry = new AuthorizationPolicyRegistry(),
+): Middleware {
   return async (ctx, next) => {
     const meta = ctx.route?.auth;
     if (!meta || meta.public) {
@@ -11,7 +15,7 @@ export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware
       return next();
     }
 
-    const { strategy, roles } = meta;
+    const { strategy, roles, policies: requiredPolicies } = meta;
 
     // --- 1️⃣ Authenticate ---
     let auth: AuthContext | undefined;
@@ -43,6 +47,23 @@ export function createAuthMiddleware(registry: AuthStrategyRegistry): Middleware
 
       if (!ok) {
         return ctx.json(403, { error: 'Forbidden' });
+      }
+    }
+
+    if (requiredPolicies && requiredPolicies.length > 0) {
+      if (!auth) {
+        return ctx.json(403, { error: 'Forbidden' });
+      }
+
+      for (const name of requiredPolicies) {
+        const policy = policies.get(name);
+        if (!policy) {
+          return ctx.json(500, { error: `Unknown authorization policy '${name}'` });
+        }
+
+        if (!(await policy.authorize(auth, ctx))) {
+          return ctx.json(403, { error: 'Forbidden' });
+        }
       }
     }
 

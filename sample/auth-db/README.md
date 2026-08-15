@@ -97,8 +97,10 @@ its SHA-256 hash is stored in SQLite.
 
 ## Manage users
 
-All user-management routes require an API key with the `admin` role. List the
-first page, optionally filtering by `active` or `disabled` status:
+All user-management routes use the sample's `manage-users` authorization
+policy. It requires an API-key credential belonging to a user with the
+`admin` role. List the first page, optionally filtering by `active` or
+`disabled` status:
 
 ```powershell
 Invoke-RestMethod `

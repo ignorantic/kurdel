@@ -30,6 +30,15 @@ const app = await createNodeApplication({
             }),
         },
       ],
+      policies: [
+        {
+          name: 'manage-users',
+          use: {
+            authorize: auth =>
+              auth.credential?.type === 'api-key' && auth.user.roles.includes('admin'),
+          },
+        },
+      ],
     }),
     new AuthDbHttpModule(),
   ],
