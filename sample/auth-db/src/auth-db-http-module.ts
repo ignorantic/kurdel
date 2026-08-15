@@ -13,6 +13,7 @@ export class AuthDbHttpModule implements HttpModule {
       deps: {
         users: AUTH_DB_TOKENS.UserService,
         apiKeys: AUTH_DB_TOKENS.ApiKeyService,
+        events: AUTH_DB_TOKENS.EventStore,
       },
       prefix: '/',
     },

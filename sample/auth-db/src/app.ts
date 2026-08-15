@@ -2,7 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
-import { AuthDatabaseModule } from '@kurdel/auth-db';
+import { AUTH_DB_TOKENS, AuthDatabaseModule } from '@kurdel/auth-db';
 import { createNodeApplication } from '@kurdel/facade';
 import { StaticFilesModule } from '@kurdel/runtime-node/modules';
 import { ReactTemplateModule } from '@kurdel/template-react';
@@ -16,8 +16,11 @@ const app = await createNodeApplication({
   modules: [
     ReactTemplateModule.forRoot({ baseDir: resolve(currentDir, './admin/views') }),
     new StaticFilesModule(resolve(currentDir, './public')),
-    new AuthDatabaseModule(),
+    new AuthDatabaseModule({ audit: true }),
     new AuthModule({
+      events: {
+        useFactory: ioc => ioc.get(AUTH_DB_TOKENS.EventStore),
+      },
       strategies: [
         {
           name: 'api-key',

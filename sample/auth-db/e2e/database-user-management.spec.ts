@@ -3,6 +3,7 @@ import {
   ActiveUserNotFoundError,
   ApiKeyNotFoundError,
   DatabaseApiKeyService,
+  DatabaseAuthEventStore,
   DatabaseUserService,
   Sha256ApiKeyHasher,
   UserNotFoundError,
@@ -11,11 +12,13 @@ import {
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
+import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 
 describe('database user management', () => {
   let db: IDatabase;
   let users: DatabaseUserService;
   let apiKeys: DatabaseApiKeyService;
+  let events: DatabaseAuthEventStore;
   const hasher = new Sha256ApiKeyHasher();
 
   beforeAll(async () => {
@@ -26,12 +29,14 @@ describe('database user management', () => {
     await db.run({ sql: 'PRAGMA foreign_keys = ON;', params: [] });
     await new CreateAuthSchema(db).up();
     await new AddUserProfile(db).up();
+    await new CreateAuthEvents(db).up();
     await db.run({
       sql: 'INSERT INTO roles (id, name) VALUES (?, ?), (?, ?);',
       params: [1, 'admin', 2, 'user'],
     });
     users = new DatabaseUserService(db);
-    apiKeys = new DatabaseApiKeyService(db, hasher);
+    events = new DatabaseAuthEventStore(db);
+    apiKeys = new DatabaseApiKeyService(db, hasher, {}, events);
   });
 
   afterAll(async () => {
@@ -135,6 +140,18 @@ describe('database user management', () => {
       expect.arrayContaining([expect.objectContaining({ id: active.id, status: 'revoked' })])
     );
     await expect(apiKeys.revoke(user.id, 'missing')).rejects.toBeInstanceOf(ApiKeyNotFoundError);
+    await expect(events.list({ userId: user.id })).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'api-key.issued',
+          credentialId: active.id,
+        }),
+        expect.objectContaining({
+          type: 'api-key.revoked',
+          credentialId: active.id,
+        }),
+      ])
+    );
   });
 
   it('lists, loads and updates user profiles and access state', async () => {

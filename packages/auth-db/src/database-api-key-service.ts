@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 
+import type { AuthEventSink } from '@kurdel/auth';
 import type { IDatabase } from '@kurdel/db';
 
 import type { ApiKeyHasher } from './api-key-hasher.js';
@@ -72,6 +73,8 @@ export class DatabaseApiKeyService {
     private readonly db: IDatabase,
     private readonly hasher: ApiKeyHasher,
     tables: Partial<AuthDatabaseTables> = {},
+    private readonly events?: AuthEventSink,
+    private readonly now: () => Date = () => new Date(),
   ) {
     this.tables = resolveAuthDatabaseTables(tables);
   }
@@ -122,6 +125,13 @@ export class DatabaseApiKeyService {
       params: [id, input.userId, this.hasher.hash(key), input.name, 'active', expiresAt],
     });
 
+    await this.events?.report({
+      type: 'api-key.issued',
+      occurredAt: this.now(),
+      userId: input.userId,
+      credential: { type: 'api-key', id },
+    });
+
     return { id, key, name: input.name, expiresAt };
   }
 
@@ -135,6 +145,13 @@ export class DatabaseApiKeyService {
     await this.db.run({
       sql: `UPDATE ${this.tables.apiKeys} SET status = 'revoked' WHERE id = ? AND user_id = ?;`,
       params: [apiKeyId, userId],
+    });
+
+    await this.events?.report({
+      type: 'api-key.revoked',
+      occurredAt: this.now(),
+      userId,
+      credential: { type: 'api-key', id: apiKeyId },
     });
   }
 

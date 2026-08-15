@@ -22,6 +22,19 @@ authentication. `AuthDatabaseModule` exposes it through
 `AUTH_TOKENS.ApiKeyUsageRecorder`, ready to pass to `ApiKeyStrategy` as its
 `usage` option.
 
+Database audit persistence is opt-in because applications own their schema:
+
+```ts
+new AuthDatabaseModule({ audit: true });
+```
+
+This registers `DatabaseAuthEventStore` as `AUTH_DB_TOKENS.EventStore` and
+wires API-key issue and revoke events into the management service. Pass the
+same store to `AuthModule.events` to persist runtime authentication and
+authorization events. The application must provide the configured
+`auth_events` table; the runnable sample includes a migration with the expected
+columns and indexes.
+
 ```ts
 import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
 import { AuthDatabaseModule } from '@kurdel/auth-db';
@@ -63,6 +76,8 @@ application; see `sample/auth-db` for migrations and a runnable example.
 The management services expect the profile and credential metadata columns
 shown in those migrations, including user name, email, status and timestamps,
 plus API-key name, status, expiration and last-use timestamps.
+When audit persistence is enabled, the default event table is `auth_events`;
+it can be changed through `tables.authEvents`.
 
 See the [`@kurdel/auth` documentation](../auth/README.md) for route protection,
 authentication context, and custom strategy contracts.

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 import { ApiError, handleMutationError, request } from './api-client.js';
 import { ApiKeyManager } from './api-key-manager.js';
+import { AuthEventList } from './auth-event-list.js';
 import { formatDate, initials } from './formatters.js';
 import type { User, UserStatus } from './types.js';
 
@@ -194,6 +195,11 @@ export function ManageUserDialog({
             <ApiKeyManager
               userId={user.id}
               userStatus={user.status}
+              apiKey={apiKey}
+              onUnauthorized={onUnauthorized}
+            />
+            <AuthEventList
+              userId={user.id}
               apiKey={apiKey}
               onUnauthorized={onUnauthorized}
             />

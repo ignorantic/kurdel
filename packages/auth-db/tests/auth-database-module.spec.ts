@@ -29,4 +29,17 @@ describe('AuthDatabaseModule', () => {
       apiKeyService: AUTH_DB_TOKENS.ApiKeyService,
     });
   });
+
+  it('registers the database event store only when audit persistence is enabled', () => {
+    const disabled = new AuthDatabaseModule();
+    const enabled = new AuthDatabaseModule({ audit: true });
+
+    expect(disabled.providers).toHaveLength(6);
+    expect(disabled.exports).not.toHaveProperty('eventStore');
+    expect(enabled.providers).toHaveLength(7);
+    expect(enabled.providers).toEqual(expect.arrayContaining([
+      expect.objectContaining({ provide: AUTH_DB_TOKENS.EventStore, singleton: true }),
+    ]));
+    expect(enabled.exports).toHaveProperty('eventStore', AUTH_DB_TOKENS.EventStore);
+  });
 });

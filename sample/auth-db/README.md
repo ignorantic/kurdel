@@ -41,6 +41,12 @@ Successful API-key authentication updates the credential's `last_used_at`
 timestamp. Refreshing the user detail dialog shows the latest recorded use;
 rejected, expired, revoked, and orphaned credentials do not update it.
 
+The sample also persists sanitized security events in `auth_events`. Open a
+user detail dialog to view and filter their authentication, authorization, key
+issue, and key revocation history. The event records contain identifiers and
+safe reason codes only; raw API keys, hashes, JWTs, and request bodies are never
+stored.
+
 The sample build produces both the server and the browser bundle. During UI
 development, rebuild only the client with `npm run build:client:dev` and reload
 the page.

@@ -487,6 +487,59 @@ td {
   padding-top: 24px;
   border-top: 1px solid #e8ece8;
 }
+.audit-section {
+  margin: 26px 0;
+  padding-top: 24px;
+  border-top: 1px solid #e8ece8;
+}
+.audit-section > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.audit-section h3 {
+  margin: 0;
+  font-size: 17px;
+}
+.audit-section header p {
+  margin: 5px 0 0;
+  color: #7a857d;
+  font-size: 12px;
+}
+.audit-filter {
+  display: grid;
+  gap: 5px;
+  margin-top: 14px;
+  color: #657068;
+  font-size: 12px;
+}
+.audit-filter select {
+  max-width: 260px;
+}
+.audit-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.audit-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  border: 1px solid #e3e8e4;
+  border-radius: 9px;
+}
+.audit-list strong,
+.audit-list small {
+  display: block;
+}
+.audit-list small,
+.audit-list time {
+  color: #7a857d;
+  font-size: 12px;
+}
 .api-key-section > header {
   display: flex;
   align-items: start;

@@ -2,6 +2,7 @@ import { DatabaseFactory, type IDatabase } from '@kurdel/db';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
+import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 
 describe('auth database schema', () => {
   let db: IDatabase;
@@ -22,6 +23,7 @@ describe('auth database schema', () => {
     const migration = new CreateAuthSchema(db);
     await migration.up();
     await new AddUserProfile(db).up();
+    await new CreateAuthEvents(db).up();
 
     const tables = await db.all({
       sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name;",
@@ -29,6 +31,7 @@ describe('auth database schema', () => {
     });
     expect(tables.map((table: { name: string }) => table.name)).toEqual([
       'api_keys',
+      'auth_events',
       'roles',
       'user_roles',
       'users',
@@ -77,6 +80,7 @@ describe('auth database schema', () => {
 
   it('rolls the auth schema back in dependency order', async () => {
     const migration = new CreateAuthSchema(db);
+    await new CreateAuthEvents(db).down();
     await new AddUserProfile(db).down();
     await migration.down();
 

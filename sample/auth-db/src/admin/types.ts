@@ -32,3 +32,22 @@ export type CreatedApiKey = {
   name: string;
   expiresAt: string | null;
 };
+
+export type AuthEventType =
+  | 'authentication.succeeded'
+  | 'authentication.failed'
+  | 'authorization.denied'
+  | 'api-key.issued'
+  | 'api-key.revoked';
+
+export type AuthEvent = {
+  id: number;
+  type: AuthEventType;
+  occurredAt: string;
+  strategy: string | null;
+  userId: string | null;
+  credentialType: string | null;
+  credentialId: string | null;
+  reason: string | null;
+  policy: string | null;
+};

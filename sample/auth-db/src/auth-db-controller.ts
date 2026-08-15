@@ -21,6 +21,7 @@ import {
   UserNotFoundError,
   type CreateUserInput,
   type DatabaseApiKeyService,
+  type DatabaseAuthEventStore,
   type DatabaseUserService,
   type UpdateUserInput,
 } from '@kurdel/auth-db';
@@ -29,6 +30,7 @@ import { zodAdapter } from './zod-adapter.js';
 type Deps = {
   users: DatabaseUserService;
   apiKeys: DatabaseApiKeyService;
+  events: DatabaseAuthEventStore;
 };
 
 type CreateApiKeyBody = {
@@ -67,6 +69,22 @@ const listUsersSchema = z.object({
     .optional(),
   offset: z.string().regex(/^\d+$/, 'Offset must be a non-negative integer').optional(),
   status: z.enum(['active', 'disabled']).optional(),
+});
+
+const authEventTypes = [
+  'authentication.succeeded',
+  'authentication.failed',
+  'authorization.denied',
+  'api-key.issued',
+  'api-key.revoked',
+] as const;
+
+const listAuthEventsSchema = z.object({
+  type: z.enum(authEventTypes).optional(),
+  limit: z
+    .string()
+    .regex(/^([1-9]|[1-9]\d|100)$/, 'Limit must be between 1 and 100')
+    .optional(),
 });
 
 const createApiKeySchema = z.object({
@@ -128,6 +146,15 @@ export class AuthDbController extends Controller<Deps> {
       auth: { strategy: 'api-key', policies: ['view-user'] },
       schema: { params: zodAdapter(userIdSchema) },
     })(this.getUser),
+    listAuthEvents: route({
+      method: 'GET',
+      path: '/users/:id/auth-events',
+      auth: { strategy: 'api-key', policies: ['view-user'] },
+      schema: {
+        params: zodAdapter(userIdSchema),
+        query: zodAdapter(listAuthEventsSchema),
+      },
+    })(this.listAuthEvents),
     updateUser: route({
       method: 'PATCH',
       path: '/users/:id',
@@ -204,6 +231,23 @@ export class AuthDbController extends Controller<Deps> {
   async getUser(ctx: HttpContext<unknown, RouteParams<'/users/:id'>>) {
     try {
       return Ok({ ...(await this.deps.users.findById(Number(ctx.params.id))) });
+    } catch (error) {
+      this.handleUserError(error);
+    }
+  }
+
+  async listAuthEvents(ctx: HttpContext<unknown, RouteParams<'/users/:id'>>) {
+    const userId = Number(ctx.params.id);
+    const query = ctx.query as { type?: typeof authEventTypes[number]; limit?: string };
+    try {
+      await this.deps.users.findById(userId);
+      return Ok({
+        events: await this.deps.events.list({
+          userId,
+          type: query.type,
+          limit: Number(query.limit ?? 50),
+        }),
+      });
     } catch (error) {
       this.handleUserError(error);
     }
