@@ -1,4 +1,4 @@
-import type { IDatabase } from '@kurdel/db';
+import type { IDatabase, IDatabaseSession } from '@kurdel/db';
 
 import {
   resolveAuthDatabaseTables,
@@ -99,24 +99,23 @@ export class DatabaseUserService {
     const email = this.normalizeEmail(input.email);
     const roles = await this.resolveRoles(input.roles);
 
-    await this.db.run({ sql: 'BEGIN IMMEDIATE;', params: [] });
     try {
-      const user = (await this.db.get({
-        sql: [
-          `INSERT INTO ${this.tables.users} (name, email, status)`,
-          "VALUES (?, ?, 'active')",
-          'RETURNING id, name, email, status, created_at, updated_at;',
-        ].join(' '),
-        params: [input.name, email],
-      })) as UserRecord;
-      await this.replaceRoles(user.id, roles);
-      await this.db.run({ sql: 'COMMIT;', params: [] });
-      return this.mapUser(
-        user,
-        roles.map(role => role.name)
-      );
+      return await this.db.transaction(async transaction => {
+        const user = (await transaction.get({
+          sql: [
+            `INSERT INTO ${this.tables.users} (name, email, status)`,
+            "VALUES (?, ?, 'active')",
+            'RETURNING id, name, email, status, created_at, updated_at;',
+          ].join(' '),
+          params: [input.name, email],
+        })) as UserRecord;
+        await this.replaceRoles(transaction, user.id, roles);
+        return this.mapUser(
+          user,
+          roles.map(role => role.name)
+        );
+      });
     } catch (error) {
-      await this.db.run({ sql: 'ROLLBACK;', params: [] });
       this.rethrowEmailConflict(error, email);
     }
   }
@@ -159,31 +158,30 @@ export class DatabaseUserService {
     const roles = input.roles ? await this.resolveRoles(input.roles) : undefined;
     const email = input.email ? this.normalizeEmail(input.email) : undefined;
 
-    await this.db.run({ sql: 'BEGIN IMMEDIATE;', params: [] });
     try {
-      const updates: string[] = [];
-      const params: unknown[] = [];
-      for (const [column, value] of [
-        ['name', input.name],
-        ['email', email],
-        ['status', input.status],
-      ] as const) {
-        if (value !== undefined) {
-          updates.push(`${column} = ?`);
-          params.push(value);
+      await this.db.transaction(async transaction => {
+        const updates: string[] = [];
+        const params: unknown[] = [];
+        for (const [column, value] of [
+          ['name', input.name],
+          ['email', email],
+          ['status', input.status],
+        ] as const) {
+          if (value !== undefined) {
+            updates.push(`${column} = ?`);
+            params.push(value);
+          }
         }
-      }
-      if (updates.length > 0 || roles) {
-        updates.push('updated_at = CURRENT_TIMESTAMP');
-        await this.db.run({
-          sql: `UPDATE ${this.tables.users} SET ${updates.join(', ')} WHERE id = ?;`,
-          params: [...params, userId],
-        });
-      }
-      if (roles) await this.replaceRoles(userId, roles);
-      await this.db.run({ sql: 'COMMIT;', params: [] });
+        if (updates.length > 0 || roles) {
+          updates.push('updated_at = CURRENT_TIMESTAMP');
+          await transaction.run({
+            sql: `UPDATE ${this.tables.users} SET ${updates.join(', ')} WHERE id = ?;`,
+            params: [...params, userId],
+          });
+        }
+        if (roles) await this.replaceRoles(transaction, userId, roles);
+      });
     } catch (error) {
-      await this.db.run({ sql: 'ROLLBACK;', params: [] });
       this.rethrowEmailConflict(error, email);
     }
     return this.findById(userId);
@@ -193,25 +191,20 @@ export class DatabaseUserService {
     const existing = await this.findRecord(userId);
     if (!existing) throw new UserNotFoundError(userId);
 
-    await this.db.run({ sql: 'BEGIN IMMEDIATE;', params: [] });
-    try {
-      await this.db.run({
+    await this.db.transaction(async transaction => {
+      await transaction.run({
         sql: `DELETE FROM ${this.tables.apiKeys} WHERE user_id = ?;`,
         params: [userId],
       });
-      await this.db.run({
+      await transaction.run({
         sql: `DELETE FROM ${this.tables.userRoles} WHERE user_id = ?;`,
         params: [userId],
       });
-      await this.db.run({
+      await transaction.run({
         sql: `DELETE FROM ${this.tables.users} WHERE id = ?;`,
         params: [userId],
       });
-      await this.db.run({ sql: 'COMMIT;', params: [] });
-    } catch (error) {
-      await this.db.run({ sql: 'ROLLBACK;', params: [] });
-      throw error;
-    }
+    });
   }
 
   private async findRecord(userId: number): Promise<UserRecord | undefined> {
@@ -238,13 +231,17 @@ export class DatabaseUserService {
     return uniqueNames.map(name => byName.get(name)!);
   }
 
-  private async replaceRoles(userId: number, roles: RoleRecord[]): Promise<void> {
-    await this.db.run({
+  private async replaceRoles(
+    database: IDatabaseSession,
+    userId: number,
+    roles: RoleRecord[],
+  ): Promise<void> {
+    await database.run({
       sql: `DELETE FROM ${this.tables.userRoles} WHERE user_id = ?;`,
       params: [userId],
     });
     for (const role of roles) {
-      await this.db.run({
+      await database.run({
         sql: `INSERT INTO ${this.tables.userRoles} (user_id, role_id) VALUES (?, ?);`,
         params: [userId, role.id],
       });

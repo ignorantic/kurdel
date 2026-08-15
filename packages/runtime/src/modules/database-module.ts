@@ -7,6 +7,9 @@ export class NoopDatabase implements IDatabase {
   get = this.error;
   all = this.error;
   run = this.error;
+  async transaction<T>(): Promise<T> {
+    throw new Error('Database is disabled (db=false in config)');
+  }
   close = this.error;
 
   private async error() {

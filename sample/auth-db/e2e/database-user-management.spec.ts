@@ -154,6 +154,35 @@ describe('database user management', () => {
     );
   });
 
+  it('rolls back API key mutations when audit persistence fails', async () => {
+    const user = await users.create({
+      name: 'Audit Failure Owner',
+      email: 'audit-failure@example.test',
+      roles: ['user'],
+    });
+    const auditFailure = {
+      report: async () => {
+        throw new Error('Audit persistence failed');
+      },
+    };
+    const failingService = new DatabaseApiKeyService(db, hasher, {}, auditFailure);
+
+    await expect(failingService.create({ userId: user.id, name: 'Rolled back key' }))
+      .rejects.toThrow('Audit persistence failed');
+    await expect(db.get({
+      sql: 'SELECT COUNT(*) AS count FROM api_keys WHERE user_id = ?;',
+      params: [user.id],
+    })).resolves.toEqual({ count: 0 });
+
+    const credential = await apiKeys.create({ userId: user.id, name: 'Active key' });
+    await expect(failingService.revoke(user.id, credential.id))
+      .rejects.toThrow('Audit persistence failed');
+    await expect(db.get({
+      sql: 'SELECT status FROM api_keys WHERE id = ?;',
+      params: [credential.id],
+    })).resolves.toEqual({ status: 'active' });
+  });
+
   it('lists, loads and updates user profiles and access state', async () => {
     const user = await users.create({
       name: 'Before Update',

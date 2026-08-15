@@ -35,6 +35,12 @@ authorization events. The application must provide the configured
 `auth_events` table; the runnable sample includes a migration with the expected
 columns and indexes.
 
+API-key issue or revocation and its database audit event run in the same
+`IDatabase.transaction` callback. If audit persistence fails, the credential
+mutation is rolled back and the service returns the original error. User
+creation, role replacement, profile updates, and deletion use the same
+transaction API for their multi-statement operations.
+
 ```ts
 import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
 import { AuthDatabaseModule } from '@kurdel/auth-db';

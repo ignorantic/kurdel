@@ -1,5 +1,5 @@
 import type { AuthEvent, AuthEventSink } from '@kurdel/auth';
-import type { IDatabase } from '@kurdel/db';
+import type { IDatabase, IDatabaseSession } from '@kurdel/db';
 
 import {
   resolveAuthDatabaseTables,
@@ -47,8 +47,8 @@ export class DatabaseAuthEventStore implements AuthEventSink {
     this.tables = resolveAuthDatabaseTables(tables);
   }
 
-  async report(event: AuthEvent): Promise<void> {
-    await this.db.run({
+  async report(event: AuthEvent, database: IDatabaseSession = this.db): Promise<void> {
+    await database.run({
       sql: [
         `INSERT INTO ${this.tables.authEvents}`,
         '(type, occurred_at, strategy, user_id, credential_type, credential_id, reason, policy)',

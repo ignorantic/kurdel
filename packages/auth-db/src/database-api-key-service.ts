@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 
-import type { AuthEventSink } from '@kurdel/auth';
-import type { IDatabase } from '@kurdel/db';
+import type { AuthEvent, AuthEventSink } from '@kurdel/auth';
+import type { IDatabase, IDatabaseSession } from '@kurdel/db';
 
 import type { ApiKeyHasher } from './api-key-hasher.js';
 import {
@@ -21,6 +21,10 @@ type ApiKeyRecord = {
   expires_at: string | null;
   last_used_at: string | null;
   created_at: string;
+};
+
+type TransactionalAuthEventSink = AuthEventSink & {
+  report(event: AuthEvent, database?: IDatabaseSession): Promise<void> | void;
 };
 
 export interface CreateApiKeyInput {
@@ -73,7 +77,7 @@ export class DatabaseApiKeyService {
     private readonly db: IDatabase,
     private readonly hasher: ApiKeyHasher,
     tables: Partial<AuthDatabaseTables> = {},
-    private readonly events?: AuthEventSink,
+    private readonly events?: TransactionalAuthEventSink,
     private readonly now: () => Date = () => new Date(),
   ) {
     this.tables = resolveAuthDatabaseTables(tables);
@@ -104,54 +108,58 @@ export class DatabaseApiKeyService {
   }
 
   async create(input: CreateApiKeyInput): Promise<CreatedApiKey> {
-    const user = (await this.db.get({
-      sql: `SELECT id, status FROM ${this.tables.users} WHERE id = ?;`,
-      params: [input.userId],
-    })) as UserRecord | undefined;
-    if (!user || user.status !== 'active') {
-      throw new ActiveUserNotFoundError(input.userId);
-    }
-
     const id = crypto.randomUUID();
     const key = `kdl_${crypto.randomBytes(32).toString('base64url')}`;
     const expiresAt = input.expiresAt?.toISOString() ?? null;
 
-    await this.db.run({
-      sql: [
-        `INSERT INTO ${this.tables.apiKeys}`,
-        '(id, user_id, key_hash, name, status, expires_at)',
-        'VALUES (?, ?, ?, ?, ?, ?);',
-      ].join(' '),
-      params: [id, input.userId, this.hasher.hash(key), input.name, 'active', expiresAt],
-    });
+    await this.db.transaction(async transaction => {
+      const user = (await transaction.get({
+        sql: `SELECT id, status FROM ${this.tables.users} WHERE id = ?;`,
+        params: [input.userId],
+      })) as UserRecord | undefined;
+      if (!user || user.status !== 'active') {
+        throw new ActiveUserNotFoundError(input.userId);
+      }
 
-    await this.events?.report({
-      type: 'api-key.issued',
-      occurredAt: this.now(),
-      userId: input.userId,
-      credential: { type: 'api-key', id },
+      await transaction.run({
+        sql: [
+          `INSERT INTO ${this.tables.apiKeys}`,
+          '(id, user_id, key_hash, name, status, expires_at)',
+          'VALUES (?, ?, ?, ?, ?, ?);',
+        ].join(' '),
+        params: [id, input.userId, this.hasher.hash(key), input.name, 'active', expiresAt],
+      });
+
+      await this.events?.report({
+        type: 'api-key.issued',
+        occurredAt: this.now(),
+        userId: input.userId,
+        credential: { type: 'api-key', id },
+      }, transaction);
     });
 
     return { id, key, name: input.name, expiresAt };
   }
 
   async revoke(userId: number, apiKeyId: string): Promise<void> {
-    const apiKey = (await this.db.get({
-      sql: `SELECT id FROM ${this.tables.apiKeys} WHERE id = ? AND user_id = ?;`,
-      params: [apiKeyId, userId],
-    })) as { id: string } | undefined;
-    if (!apiKey) throw new ApiKeyNotFoundError(userId, apiKeyId);
+    await this.db.transaction(async transaction => {
+      const apiKey = (await transaction.get({
+        sql: `SELECT id FROM ${this.tables.apiKeys} WHERE id = ? AND user_id = ?;`,
+        params: [apiKeyId, userId],
+      })) as { id: string } | undefined;
+      if (!apiKey) throw new ApiKeyNotFoundError(userId, apiKeyId);
 
-    await this.db.run({
-      sql: `UPDATE ${this.tables.apiKeys} SET status = 'revoked' WHERE id = ? AND user_id = ?;`,
-      params: [apiKeyId, userId],
-    });
+      await transaction.run({
+        sql: `UPDATE ${this.tables.apiKeys} SET status = 'revoked' WHERE id = ? AND user_id = ?;`,
+        params: [apiKeyId, userId],
+      });
 
-    await this.events?.report({
-      type: 'api-key.revoked',
-      occurredAt: this.now(),
-      userId,
-      credential: { type: 'api-key', id: apiKeyId },
+      await this.events?.report({
+        type: 'api-key.revoked',
+        occurredAt: this.now(),
+        userId,
+        credential: { type: 'api-key', id: apiKeyId },
+      }, transaction);
     });
   }
 

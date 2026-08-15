@@ -13,10 +13,20 @@ export type DatabaseQuery = {
 };
 
 export const IDatabase = Symbol('IDatabase');
-export interface IDatabase {
+export interface IDatabaseSession {
   get(query: DatabaseQuery): Promise<any>;
   all(query: DatabaseQuery): Promise<any>;
   run(query: DatabaseQuery): Promise<void>;
+}
+
+export interface IDatabase extends IDatabaseSession {
+  /**
+   * Runs work atomically on an isolated database session.
+   *
+   * Queries inside the callback must use the supplied transaction session.
+   * Resolves with the callback result after commit and rolls back on failure.
+   */
+  transaction<T>(work: (transaction: IDatabaseSession) => Promise<T>): Promise<T>;
   close(): Promise<void>;
 }
 
