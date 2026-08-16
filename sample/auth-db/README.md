@@ -57,6 +57,11 @@ credentials, and run the same migration, seed, and start commands. The CI suite
 also runs the auth schema and user/session workflow against a real PostgreSQL
 service.
 
+Server environment is validated at startup with `loadEnv`. `PORT` must be an
+integer from 1 through 65535 and defaults to `3000`; `NODE_ENV` accepts
+`development`, `test`, or `production`. Invalid values fail immediately with a
+single message listing every affected variable.
+
 The sample build produces both the server and the browser bundle. During UI
 development, rebuild only the client with `npm run build:client:dev` and reload
 the page.

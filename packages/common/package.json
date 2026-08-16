@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "prepack": "npm run build",
-    "test": "echo \"No tests yet\"",
+    "test": "vitest run",
     "clean": "rimraf lib ../../.cache/tsconfig.common.build.tsbuildinfo",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"

@@ -9,6 +9,7 @@ import { ReactTemplateModule } from '@kurdel/template-react';
 
 import { AuthDbHttpModule } from './auth-db-http-module.js';
 import { manageUsersPolicy, viewUserPolicy } from './authorization-policies.js';
+import { environment } from './environment.js';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 
@@ -48,10 +49,8 @@ const app = await createNodeApplication({
   ],
 });
 
-const port = Number(process.env.PORT ?? 3000);
-
-app.listen(port, () => {
-  console.log(`Auth DB sample: http://localhost:${port}`);
+app.listen(environment.PORT, () => {
+  console.log(`Auth DB sample: http://localhost:${environment.PORT}`);
   console.log('Admin key: admin-demo-key');
   console.log('User key: user-demo-key');
 });
