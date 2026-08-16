@@ -6,6 +6,7 @@ export interface AuthDatabaseTables {
   rolePermissions: string;
   apiKeys: string;
   jwtSessions: string;
+  passwordCredentials: string;
   authEvents: string;
 }
 
@@ -17,6 +18,7 @@ export const DEFAULT_AUTH_DATABASE_TABLES: Readonly<AuthDatabaseTables> = {
   rolePermissions: 'role_permissions',
   apiKeys: 'api_keys',
   jwtSessions: 'jwt_sessions',
+  passwordCredentials: 'password_credentials',
   authEvents: 'auth_events',
 };
 

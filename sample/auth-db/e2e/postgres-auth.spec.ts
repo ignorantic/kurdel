@@ -1,5 +1,11 @@
 import { PostgresDB, type Database } from '@kurdel/db';
-import { DatabaseJwtSessionRepository, DatabaseJwtSessionService, DatabaseUserService } from '@kurdel/auth-db';
+import {
+  DatabaseJwtSessionRepository,
+  DatabaseJwtSessionService,
+  DatabasePasswordCredentialRepository,
+  DatabasePasswordService,
+  DatabaseUserService,
+} from '@kurdel/auth-db';
 import { MigrationLock, MigrationLockedError } from '@kurdel/migrations';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
@@ -7,6 +13,7 @@ import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
+import CreatePasswordCredentials from '../migrations/0006-create-password-credentials.js';
 
 const connectionString = process.env.POSTGRES_TEST_URL;
 const describePostgres = connectionString ? describe : describe.skip;
@@ -23,6 +30,7 @@ describePostgres('PostgreSQL auth database integration', () => {
     await new CreateAuthEvents(db).up();
     await new CreateRolePermissions(db).up();
     await new CreateJwtSessions(db).up();
+    await new CreatePasswordCredentials(db).up();
     await db.run({
       sql: 'INSERT INTO roles (name) VALUES (?), (?);',
       params: ['admin', 'user'],
@@ -31,6 +39,7 @@ describePostgres('PostgreSQL auth database integration', () => {
 
   afterAll(async () => {
     if (!db) return;
+    await new CreatePasswordCredentials(db).down();
     await new CreateJwtSessions(db).down();
     await new CreateRolePermissions(db).down();
     await new CreateAuthEvents(db).down();
@@ -48,6 +57,15 @@ describePostgres('PostgreSQL auth database integration', () => {
       roles: ['user'],
     });
     await expect(users.findById(user.id)).resolves.toEqual(user);
+
+    const passwords = new DatabasePasswordService(db, {
+      hash: async password => `hashed:${password}`,
+      verify: async (password, encoded) => encoded === `hashed:${password}`,
+    });
+    await passwords.set(user.id, 'postgres-password');
+    await expect(
+      new DatabasePasswordCredentialRepository(db).findByLogin('POSTGRES@example.test')
+    ).resolves.toEqual({ userId: user.id, passwordHash: 'hashed:postgres-password' });
 
     const sessions = new DatabaseJwtSessionService(db);
     const created = await sessions.create(user.id, new Date(Date.now() + 60_000));

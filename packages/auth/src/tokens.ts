@@ -10,5 +10,7 @@ export const AUTH_TOKENS = {
   ApiKeyRepository: Symbol('ApiKeyRepository'),
   ApiKeyUsageRecorder: Symbol('ApiKeyUsageRecorder'),
   JwtSessionRepository: Symbol('JwtSessionRepository'),
+  PasswordCredentialRepository: Symbol('PasswordCredentialRepository'),
+  PasswordAuthenticationService: Symbol('PasswordAuthenticationService'),
   JwtService: Symbol('JwtService'),
 };

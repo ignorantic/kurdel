@@ -6,10 +6,12 @@ import {
   NoContent,
   NotFound,
   Ok,
+  Unauthorized,
   route,
   type HttpContext,
   type RouteParams,
 } from '@kurdel/core/http';
+import type { JwtService, PasswordAuthenticationService } from '@kurdel/auth';
 import { z } from 'zod';
 
 import {
@@ -17,6 +19,7 @@ import {
   ApiKeyNotFoundError,
   ApiKeyUserNotFoundError,
   DuplicateUserEmailError,
+  PasswordUserNotFoundError,
   UnknownRolesError,
   UnknownPermissionsError,
   RoleNotFoundError,
@@ -24,6 +27,8 @@ import {
   type CreateUserInput,
   type DatabaseApiKeyService,
   type DatabaseAuthEventStore,
+  type DatabaseJwtSessionService,
+  type DatabasePasswordService,
   type DatabaseUserService,
   type UpdateUserInput,
 } from '@kurdel/auth-db';
@@ -33,12 +38,27 @@ type Deps = {
   users: DatabaseUserService;
   apiKeys: DatabaseApiKeyService;
   events: DatabaseAuthEventStore;
+  passwords: DatabasePasswordService;
+  passwordAuthentication: PasswordAuthenticationService;
+  jwtSessions: DatabaseJwtSessionService;
+  jwt: JwtService;
 };
+
+type LoginBody = { email: string; password: string };
 
 type CreateApiKeyBody = {
   name: string;
   expiresAt?: string;
 };
+
+const loginSchema = z.object({
+  email: z.string().trim().email().max(254),
+  password: z.string().min(8).max(1024),
+});
+
+const setPasswordSchema = z.object({
+  password: z.string().min(8).max(1024),
+});
 
 const createUserSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -127,6 +147,17 @@ const apiKeyParamsSchema = z.object({
 export class AuthDbController extends Controller<Deps> {
   readonly routes = {
     home: route({ method: 'GET', path: '/public', auth: { public: true } })(this.home),
+    login: route({
+      method: 'POST',
+      path: '/auth/login',
+      auth: { public: true },
+      schema: { body: zodAdapter(loginSchema) },
+    })(this.login),
+    sessionProfile: route({
+      method: 'GET',
+      path: '/session/profile',
+      auth: { strategy: 'jwt' },
+    })(this.profile),
     profile: route({ method: 'GET', path: '/profile', auth: { strategy: 'api-key' } })(
       this.profile
     ),
@@ -190,6 +221,12 @@ export class AuthDbController extends Controller<Deps> {
         params: zodAdapter(userIdSchema),
       },
     })(this.updateUser),
+    setPassword: route({
+      method: 'PUT',
+      path: '/users/:id/password',
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      schema: { body: zodAdapter(setPasswordSchema), params: zodAdapter(userIdSchema) },
+    })(this.setPassword),
     deleteUser: route({
       method: 'DELETE',
       path: '/users/:id',
@@ -221,6 +258,37 @@ export class AuthDbController extends Controller<Deps> {
 
   async home() {
     return Ok({ message: 'Public route' });
+  }
+
+  async login(ctx: HttpContext<LoginBody>) {
+    const user = await this.deps.passwordAuthentication.authenticate(
+      ctx.body!.email,
+      ctx.body!.password
+    );
+    if (!user) {
+      await this.deps.events.report({
+        type: 'authentication.failed',
+        occurredAt: new Date(),
+        strategy: 'password',
+        reason: 'invalid-credential',
+      });
+      throw Unauthorized('Invalid email or password');
+    }
+
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    const session = await this.deps.jwtSessions.create(Number(user.id), expiresAt);
+    const accessToken = this.deps.jwt.sign({
+      sub: user.id,
+      roles: user.roles,
+      jti: session.id,
+    });
+    await this.deps.events.report({
+      type: 'authentication.succeeded',
+      occurredAt: new Date(),
+      strategy: 'password',
+      userId: user.id,
+    });
+    return Ok({ accessToken, tokenType: 'Bearer', expiresAt: session.expiresAt });
   }
 
   async profile(ctx: HttpContext) {
@@ -300,6 +368,16 @@ export class AuthDbController extends Controller<Deps> {
       return Ok({ ...(await this.deps.users.update(Number(ctx.params.id), ctx.body!)) });
     } catch (error) {
       this.handleUserError(error);
+    }
+  }
+
+  async setPassword(ctx: HttpContext<{ password: string }, RouteParams<'/users/:id/password'>>) {
+    try {
+      await this.deps.passwords.set(Number(ctx.params.id), ctx.body!.password);
+      return NoContent();
+    } catch (error) {
+      if (error instanceof PasswordUserNotFoundError) throw NotFound(error.message);
+      throw error;
     }
   }
 

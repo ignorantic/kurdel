@@ -261,6 +261,13 @@ credentials with stable IDs. The strategy records usage only after the key is
 accepted and its current user is resolved; rejected, expired, revoked, and
 orphaned credentials are never recorded.
 
+Password login is composed from `PasswordAuthenticationService`, a
+`PasswordCredentialRepository`, and a `PasswordHasher`. The built-in
+`ScryptPasswordHasher` stores a random salt and its work parameters in a
+self-describing encoded value. The service returns the current `AuthUser` only
+after both the password and user state have been verified; unknown logins and
+invalid passwords both return `null`.
+
 For database-backed implementations, use `@kurdel/auth-db`. Applications may
 also implement these interfaces for another database, an external identity
 service, or an in-memory test setup.

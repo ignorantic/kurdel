@@ -51,6 +51,13 @@ Migration `0005-create-jwt-sessions.js` demonstrates persisted, revocable JWT
 session state. A JWT strategy can use `DatabaseJwtSessionRepository` to require
 an active database session matching the token's `jti` and subject.
 
+Migration `0006-create-password-credentials.js` adds password credentials.
+The seed creates `admin@example.test / admin-demo-password` and
+`user@example.test / user-demo-password`. A successful `POST /auth/login`
+creates a persisted JWT session and returns a 15-minute bearer token; use it on
+`GET /session/profile`. Unknown emails and incorrect passwords deliberately
+produce the same `401` response.
+
 The sample uses SQLite by default. To run it against PostgreSQL, copy
 `db.postgres.config.example.json` to `db.config.json`, replace the example
 credentials, and run the same migration, seed, and start commands. The CI suite
@@ -83,6 +90,25 @@ curl.exe http://localhost:3000/public
 curl.exe -H "x-api-key: user-demo-key" http://localhost:3000/profile
 curl.exe -H "x-api-key: admin-demo-key" http://localhost:3000/admin
 curl.exe -H "x-api-key: user-demo-key" http://localhost:3000/admin
+```
+
+Password login from PowerShell:
+
+```powershell
+$login = @{
+  email = "admin@example.test"
+  password = "admin-demo-password"
+} | ConvertTo-Json
+
+$session = Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:3000/auth/login" `
+  -ContentType "application/json" `
+  -Body $login
+
+Invoke-RestMethod `
+  -Uri "http://localhost:3000/session/profile" `
+  -Headers @{ Authorization = "Bearer $($session.accessToken)" }
 ```
 
 The final request returns `403` because the user key does not have the `admin`

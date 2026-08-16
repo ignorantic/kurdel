@@ -1,7 +1,9 @@
+import { ScryptPasswordHasher } from '@kurdel/auth';
 import { Sha256ApiKeyHasher } from '@kurdel/auth-db';
 import { DBConnector } from '@kurdel/db';
 
 const hasher = new Sha256ApiKeyHasher();
+const passwordHasher = new ScryptPasswordHasher();
 const db = await new DBConnector().run();
 
 try {
@@ -102,9 +104,20 @@ try {
       });
     }
   });
+  const adminPasswordHash = await passwordHasher.hash('admin-demo-password');
+  const userPasswordHash = await passwordHasher.hash('user-demo-password');
+  await db.run({
+    sql: [
+      'INSERT INTO password_credentials (user_id, password_hash, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP), (?, ?, CURRENT_TIMESTAMP)',
+      'ON CONFLICT(user_id) DO UPDATE SET password_hash = excluded.password_hash, updated_at = CURRENT_TIMESTAMP;',
+    ].join(' '),
+    params: [1, adminPasswordHash, 2, userPasswordHash],
+  });
   console.log(`Seeded auth database (${db.dialect})`);
   console.log('Admin key: admin-demo-key');
   console.log('User key: user-demo-key');
+  console.log('Admin login: admin@example.test / admin-demo-password');
+  console.log('User login: user@example.test / user-demo-password');
 } finally {
   await db.close();
 }

@@ -5,6 +5,7 @@ import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
+import CreatePasswordCredentials from '../migrations/0006-create-password-credentials.js';
 
 describe('auth database schema', () => {
   let db: Database;
@@ -28,6 +29,7 @@ describe('auth database schema', () => {
     await new CreateAuthEvents(db).up();
     await new CreateRolePermissions(db).up();
     await new CreateJwtSessions(db).up();
+    await new CreatePasswordCredentials(db).up();
 
     const tables = await db.all({
       sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name;",
@@ -37,6 +39,7 @@ describe('auth database schema', () => {
       'api_keys',
       'auth_events',
       'jwt_sessions',
+      'password_credentials',
       'permissions',
       'role_permissions',
       'roles',
@@ -67,6 +70,14 @@ describe('auth database schema', () => {
       ])
     );
 
+    const passwordForeignKeys = await db.all({
+      sql: 'PRAGMA foreign_key_list(password_credentials);',
+      params: [],
+    });
+    expect(passwordForeignKeys).toEqual([
+      expect.objectContaining({ table: 'users', from: 'user_id', on_delete: 'CASCADE' }),
+    ]);
+
     await db.run({
       sql: 'INSERT INTO users (id, name, email, status) VALUES (?, ?, ?, ?);',
       params: [1, 'Root User', 'root@example.test', 'active'],
@@ -89,6 +100,7 @@ describe('auth database schema', () => {
 
   it('rolls the auth schema back in dependency order', async () => {
     const migration = new CreateAuthSchema(db);
+    await new CreatePasswordCredentials(db).down();
     await new CreateJwtSessions(db).down();
     await new CreateRolePermissions(db).down();
     await new CreateAuthEvents(db).down();

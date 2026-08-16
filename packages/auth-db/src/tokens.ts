@@ -3,5 +3,7 @@ export const AUTH_DB_TOKENS = {
   UserService: Symbol('AuthDbUserService'),
   ApiKeyService: Symbol('AuthDbApiKeyService'),
   JwtSessionService: Symbol('AuthDbJwtSessionService'),
+  PasswordHasher: Symbol('AuthDbPasswordHasher'),
+  PasswordService: Symbol('AuthDbPasswordService'),
   EventStore: Symbol('AuthDbEventStore'),
 };

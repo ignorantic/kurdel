@@ -24,6 +24,14 @@ and revoke the session before the signed token expires. Session creation and
 revocation are transactional and emit sanitized audit events when auditing is
 enabled.
 
+Password authentication uses a separate `password_credentials` table rather
+than adding secrets to the user profile. `DatabasePasswordCredentialRepository`
+resolves credentials by case-insensitive email, while
+`DatabasePasswordService.set()` hashes and upserts a user's password.
+`AuthDatabaseModule` wires both to `PasswordAuthenticationService` and uses
+`ScryptPasswordHasher` by default. Applications can replace it with
+`passwordHasher` in the module configuration.
+
 User listings support status and text filters, stable sorting, and offset
 pagination. `DatabaseUserService` also provides transactional bulk status,
 role, and deletion operations; role lifecycle management with usage counts;
@@ -100,7 +108,8 @@ new AuthDatabaseModule({
 });
 ```
 
-By default, the package expects `users`, `roles`, `user_roles`, and `api_keys`
+By default, the package expects `users`, `roles`, `user_roles`, `api_keys`, and
+`password_credentials`
 tables and uses SHA-256 for API-key lookup. Schema ownership remains with the
 application; see `sample/auth-db` for migrations and a runnable example.
 The management services expect the profile and credential metadata columns

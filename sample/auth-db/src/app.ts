@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
+import { ApiKeyStrategy, AUTH_TOKENS, AuthModule, JwtStrategy } from '@kurdel/auth';
 import { AUTH_DB_TOKENS, AuthDatabaseModule } from '@kurdel/auth-db';
 import { createNodeApplication } from '@kurdel/facade';
 import { StaticFilesModule } from '@kurdel/runtime-node/modules';
@@ -31,6 +31,13 @@ const app = await createNodeApplication({
               credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
               users: ioc.get(AUTH_TOKENS.UserRepository),
               usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
+            }),
+        },
+        {
+          name: 'jwt',
+          useFactory: ioc =>
+            new JwtStrategy(ioc.get(AUTH_TOKENS.JwtService), ioc.get(AUTH_TOKENS.UserRepository), {
+              sessions: ioc.get(AUTH_TOKENS.JwtSessionRepository),
             }),
         },
       ],

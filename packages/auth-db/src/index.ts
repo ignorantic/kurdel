@@ -8,5 +8,7 @@ export * from './database-auth-user-repository.js';
 export * from './database-auth-event-store.js';
 export * from './database-jwt-session-repository.js';
 export * from './database-jwt-session-service.js';
+export * from './database-password-credential-repository.js';
+export * from './database-password-service.js';
 export * from './database-user-service.js';
 export * from './tokens.js';

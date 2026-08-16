@@ -10,4 +10,8 @@ export const environment = loadEnv({
     min: 1,
     max: 65_535,
   }),
+  JWT_SECRET: env.string({
+    default: 'development-only-change-this-jwt-secret',
+    minLength: 32,
+  }),
 });
