@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/template-react",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "description": "React server-side rendering template engine for Kurdel",
   "type": "module",
   "exports": {
@@ -52,16 +52,16 @@
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.3",
     "@vitest/coverage-v8": "^3.2.4",
-    "vitest": "^3.2.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "rimraf": "^6.0.1",
-    "tsc-alias": "^1.8.16"
+    "tsc-alias": "^1.8.16",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@kurdel/core": "0.1.0-beta.1"
+    "@kurdel/core": "0.1.0-beta.2"
   }
 }

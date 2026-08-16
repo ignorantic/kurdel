@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/auth-db",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "description": "Database-backed authentication adapters for @kurdel/auth",
   "type": "module",
   "exports": {
@@ -8,7 +8,9 @@
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "prepack": "npm run build",
     "test": "vitest run",
@@ -17,7 +19,13 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "build:force": "npm run clean && tsc -p tsconfig.build.json --force && tsc-alias -p tsconfig.build.json"
   },
-  "keywords": ["kurdel", "authentication", "database", "api-key", "framework"],
+  "keywords": [
+    "kurdel",
+    "authentication",
+    "database",
+    "api-key",
+    "framework"
+  ],
   "author": "Andrii Sorokin",
   "license": "MIT",
   "engines": {
@@ -37,10 +45,10 @@
     "tag": "beta"
   },
   "dependencies": {
-    "@kurdel/auth": "0.1.0-beta.1",
-    "@kurdel/common": "0.1.0-beta.1",
-    "@kurdel/core": "0.1.0-beta.1",
-    "@kurdel/db": "0.1.0-beta.1"
+    "@kurdel/auth": "0.1.0-beta.2",
+    "@kurdel/common": "0.1.0-beta.2",
+    "@kurdel/core": "0.1.0-beta.2",
+    "@kurdel/db": "0.1.0-beta.2"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",

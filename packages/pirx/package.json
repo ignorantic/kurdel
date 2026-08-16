@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/pirx",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "description": "Command-line tooling for Kurdel applications",
   "type": "module",
   "files": [ "lib" ],
@@ -39,7 +39,7 @@
     "tag": "beta"
   },
   "dependencies": {
-    "@kurdel/migrations": "0.1.0-beta.1",
+    "@kurdel/migrations": "0.1.0-beta.2",
     "ink": "^4.4.1",
     "ink-spinner": "^5.0.0",
     "pastel": "^2.0.2",

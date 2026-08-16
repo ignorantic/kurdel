@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/sample-middlewares",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "private": true,
   "description": "example app with middlewares",
   "type": "module",
@@ -18,8 +18,8 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "dependencies": {
-    "@kurdel/core": "0.1.0-beta.1",
-    "@kurdel/facade": "0.1.0-beta.1"
+    "@kurdel/core": "0.1.0-beta.2",
+    "@kurdel/facade": "0.1.0-beta.2"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",

@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/db",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "description": "Database abstractions and SQLite adapter for Kurdel",
   "type": "module",
   "exports": {
@@ -48,9 +48,9 @@
     "tsc-alias": "^1.8.16"
   },
   "peerDependencies": {
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^6.0.1"
   },
   "dependencies": {
-    "@kurdel/common": "0.1.0-beta.1"
+    "@kurdel/common": "0.1.0-beta.2"
   }
 }

@@ -6,6 +6,17 @@ All notable changes to Kurdel are documented in this file. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-beta.2] - 2026-08-16
+
+### Security
+
+- update the SQLite peer dependency to 6.0.1, replacing the vulnerable
+  `node-gyp` and `tar` dependency chain used by SQLite 5.x
+
+### Changed
+
+- align all public packages and internal dependency ranges on `0.1.0-beta.2`
+
 ## [0.1.0-beta.1] - 2026-08-16
 
 ### Added
@@ -37,5 +48,6 @@ All notable changes to Kurdel are documented in this file. The format follows
 - packages require Node.js 20.19+, 22.12+, or 24+
 - prerelease packages are published under the npm `beta` dist-tag
 
-[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.1...HEAD
+[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.2...HEAD
+[0.1.0-beta.2]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/ignorantic/kurdel/releases/tag/v0.1.0-beta.1
