@@ -61,9 +61,10 @@ for (const { directory, manifest } of ordered) {
   }
 
   console.log(`Publishing ${manifest.name}@${manifest.version} from ${directory}.`);
+  const packageDirectory = path.join(root, directory);
   const result = spawnSync(
     npmCommand,
-    ['publish', directory, '--access', 'public', '--tag', 'beta', '--provenance'],
+    ['publish', packageDirectory, '--access', 'public', '--tag', 'beta', '--provenance'],
     { cwd: root, env: process.env, stdio: 'inherit' }
   );
   if (result.status !== 0) process.exit(result.status ?? 1);
