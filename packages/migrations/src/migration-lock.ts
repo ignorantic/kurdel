@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 
 export class MigrationLockedError extends Error {
   constructor() {
@@ -13,7 +13,7 @@ export class MigrationLock {
   private readonly owner = crypto.randomUUID();
 
   constructor(
-    private readonly connection: IDatabase,
+    private readonly connection: Database,
     private readonly leaseMs = 60 * 60 * 1000,
   ) {}
 

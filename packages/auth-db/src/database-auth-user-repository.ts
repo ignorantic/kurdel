@@ -1,6 +1,6 @@
 import type { AuthUserRepository } from '@kurdel/auth';
 import type { AuthUser } from '@kurdel/common';
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 
 import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
 
@@ -12,7 +12,7 @@ export class DatabaseAuthUserRepository implements AuthUserRepository {
   private readonly tables: AuthDatabaseTables;
 
   constructor(
-    private readonly db: IDatabase,
+    private readonly db: Database,
     tables: Partial<AuthDatabaseTables> = {}
   ) {
     this.tables = resolveAuthDatabaseTables(tables);

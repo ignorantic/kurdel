@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 import { DBConnector } from '@kurdel/db';
 import type { Migration } from './migration.js';
 import { MigrationLoader } from './migration-loader.js';
@@ -13,13 +13,13 @@ export type MigrationStatus = {
 };
 
 export class MigrationManager extends EventEmitter {
-  private connection: IDatabase;
+  private connection: Database;
   private loader: MigrationLoader;
   private registry: MigrationRegistry;
   private lock: MigrationLock;
 
   constructor(
-    connection: IDatabase,
+    connection: Database,
     registry: MigrationRegistry,
     loader = new MigrationLoader(),
     lock = new MigrationLock(connection),

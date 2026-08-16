@@ -1,11 +1,11 @@
-import type { DatabaseQuery, IQueryBuilder } from './interfaces.js';
+import type { DatabaseQuery, QueryBuilderContract } from './interfaces.js';
 
 type SelectOptions = {
   fn?: 'MAX' | 'MIN' | 'COUNT';
   as?: string;
 };
 
-export class QueryBuilder implements IQueryBuilder {
+export class QueryBuilder implements QueryBuilderContract {
   private sql: string = '';
   private params: any[] = [];
 

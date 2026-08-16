@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 
 import { Model } from 'src/db/index.js';
 
@@ -9,7 +9,7 @@ class UserModel extends Model {
 }
 
 describe('Model (base class)', () => {
-  let mockDb: IDatabase;
+  let mockDb: Database;
   let model: UserModel;
 
   beforeEach(() => {

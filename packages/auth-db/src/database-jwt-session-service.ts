@@ -1,12 +1,12 @@
 import crypto from 'node:crypto';
 
 import type { AuthEvent, AuthEventSink } from '@kurdel/auth';
-import type { IDatabase, IDatabaseSession } from '@kurdel/db';
+import type { Database, DatabaseSession } from '@kurdel/db';
 
 import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
 
 type TransactionalAuthEventSink = AuthEventSink & {
-  report(event: AuthEvent, database?: IDatabaseSession): Promise<void> | void;
+  report(event: AuthEvent, database?: DatabaseSession): Promise<void> | void;
 };
 
 export type CreatedJwtSession = {
@@ -32,7 +32,7 @@ export class DatabaseJwtSessionService {
   private readonly tables: AuthDatabaseTables;
 
   constructor(
-    private readonly db: IDatabase,
+    private readonly db: Database,
     tables: Partial<AuthDatabaseTables> = {},
     private readonly events?: TransactionalAuthEventSink,
     private readonly now: () => Date = () => new Date(),

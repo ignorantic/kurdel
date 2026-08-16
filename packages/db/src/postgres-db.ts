@@ -1,6 +1,6 @@
 import { Pool, type PoolClient, type PoolConfig, type QueryResultRow } from 'pg';
 
-import type { DatabaseQuery, IDatabase, IDatabaseSession } from './interfaces.js';
+import type { DatabaseQuery, Database, DatabaseSession } from './interfaces.js';
 
 /** Converts portable question-mark parameters into PostgreSQL positional parameters. */
 export function postgresPlaceholders(sql: string): string {
@@ -14,7 +14,7 @@ export function postgresPlaceholders(sql: string): string {
 }
 
 /** PostgreSQL implementation of the common database contract. */
-export class PostgresDB implements IDatabase {
+export class PostgresDB implements Database {
   readonly dialect = 'postgres' as const;
   private readonly pool: Pool;
 
@@ -39,11 +39,11 @@ export class PostgresDB implements IDatabase {
     await this.query(this.pool, sql, params);
   }
 
-  async transaction<T>(work: (transaction: IDatabaseSession) => Promise<T>): Promise<T> {
+  async transaction<T>(work: (transaction: DatabaseSession) => Promise<T>): Promise<T> {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
-      const transaction: IDatabaseSession = {
+      const transaction: DatabaseSession = {
         get: async query => (await this.query(client, query.sql, query.params)).rows[0],
         all: async query => (await this.query(client, query.sql, query.params)).rows,
         run: async query => { await this.query(client, query.sql, query.params); },

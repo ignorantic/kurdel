@@ -1,4 +1,4 @@
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 
 import {
   DatabaseApiKeyRepository,
@@ -15,7 +15,7 @@ describe('database auth repositories', () => {
       all: vi.fn()
         .mockResolvedValueOnce([{ name: 'admin' }, { name: 'editor' }])
         .mockResolvedValueOnce([{ name: 'users.manage' }]),
-    } as unknown as IDatabase;
+    } as unknown as Database;
     const repository = new DatabaseAuthUserRepository(db);
 
     await expect(repository.findById(7)).resolves.toEqual({
@@ -33,7 +33,7 @@ describe('database auth repositories', () => {
     const db = {
       get: vi.fn(async () => ({ id: 7, status: 'disabled' })),
       all: vi.fn(),
-    } as unknown as IDatabase;
+    } as unknown as Database;
 
     await expect(new DatabaseAuthUserRepository(db).findById(7)).resolves.toBeNull();
     expect(db.all).not.toHaveBeenCalled();
@@ -47,7 +47,7 @@ describe('database auth repositories', () => {
         status: 'active',
         expires_at: '2030-01-01T00:00:00.000Z',
       })),
-    } as unknown as IDatabase;
+    } as unknown as Database;
     const hasher: ApiKeyHasher = { hash: vi.fn(() => 'digest') };
     const repository = new DatabaseApiKeyRepository(db, hasher);
 
@@ -69,7 +69,7 @@ describe('database auth repositories', () => {
         status: 'active',
         expires_at: '2030-01-01T00:00:00.000Z',
       })),
-    } as unknown as IDatabase;
+    } as unknown as Database;
     const repository = new DatabaseJwtSessionRepository(db);
 
     await expect(repository.findById('session-1')).resolves.toEqual({
@@ -87,7 +87,7 @@ describe('database auth repositories', () => {
   it('supports validated custom table names', async () => {
     const db = {
       get: vi.fn(async () => undefined),
-    } as unknown as IDatabase;
+    } as unknown as Database;
     const hasher: ApiKeyHasher = { hash: () => 'digest' };
     const repository = new DatabaseApiKeyRepository(db, hasher, {
       apiKeys: 'application_api_keys',
@@ -106,7 +106,7 @@ describe('database auth repositories', () => {
   });
 
   it('records successful API key usage by stable credential ID', async () => {
-    const db = { run: vi.fn(async () => undefined) } as unknown as IDatabase;
+    const db = { run: vi.fn(async () => undefined) } as unknown as Database;
     const recorder = new DatabaseApiKeyUsageRecorder(db, {
       apiKeys: 'application_api_keys',
     });

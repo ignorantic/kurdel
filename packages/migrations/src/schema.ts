@@ -1,10 +1,10 @@
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 import { Blueprint, type IndexDefinition } from './blueprint.js';
 
 type Configure = (table: Blueprint) => void;
 
 export class Schema {
-  constructor(private readonly connection: IDatabase) {}
+  constructor(private readonly connection: Database) {}
 
   async create(tableName: string, configure: Configure): Promise<void> {
     await this.createTable(tableName, configure, false);

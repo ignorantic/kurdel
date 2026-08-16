@@ -27,7 +27,7 @@ Kurdel applications.
 
 ## Transactions
 
-Use `IDatabase.transaction` to execute related operations atomically:
+Use `Database.transaction` to execute related operations atomically:
 
 ```ts
 const user = await db.transaction(async transaction => {
@@ -44,12 +44,12 @@ const user = await db.transaction(async transaction => {
 ```
 
 The callback result is returned after commit. Throwing or rejecting rolls back
-every operation performed through the supplied `IDatabaseSession`.
+every operation performed through the supplied `DatabaseSession`.
 
 Always use the callback's `transaction` argument inside the callback. Calling
 the outer `db` object would schedule work outside the transaction and may wait
 for the callback to finish. Nested transactions are intentionally not exposed
-by `IDatabaseSession`.
+by `DatabaseSession`.
 
 The SQLite implementation serializes the complete callback with respect to
 all other operations on its connection. This prevents another request from

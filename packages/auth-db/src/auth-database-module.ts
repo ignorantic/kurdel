@@ -1,6 +1,6 @@
 import { AUTH_TOKENS } from '@kurdel/auth';
 import { ModulePriority, type AppModule, type ProviderConfig } from '@kurdel/core/app';
-import { IDatabase } from '@kurdel/db';
+import { Database } from '@kurdel/db';
 import type { Container } from '@kurdel/ioc';
 
 import { Sha256ApiKeyHasher, type ApiKeyHasher } from './api-key-hasher.js';
@@ -24,7 +24,7 @@ export interface AuthDatabaseModuleConfig {
 
 export class AuthDatabaseModule implements AppModule {
   readonly priority = ModulePriority.User;
-  readonly imports = { db: IDatabase };
+  readonly imports = { db: Database };
   readonly exports: Record<string, symbol>;
   readonly providers: ProviderConfig[];
 
@@ -49,14 +49,14 @@ export class AuthDatabaseModule implements AppModule {
       },
       {
         provide: AUTH_TOKENS.UserRepository,
-        useFactory: ioc => new DatabaseAuthUserRepository(ioc.get(IDatabase), tables),
+        useFactory: ioc => new DatabaseAuthUserRepository(ioc.get(Database), tables),
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.ApiKeyRepository,
         useFactory: ioc =>
           new DatabaseApiKeyRepository(
-            ioc.get(IDatabase),
+            ioc.get(Database),
             ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
             tables
           ),
@@ -64,17 +64,17 @@ export class AuthDatabaseModule implements AppModule {
       },
       {
         provide: AUTH_TOKENS.ApiKeyUsageRecorder,
-        useFactory: ioc => new DatabaseApiKeyUsageRecorder(ioc.get(IDatabase), tables),
+        useFactory: ioc => new DatabaseApiKeyUsageRecorder(ioc.get(Database), tables),
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.JwtSessionRepository,
-        useFactory: ioc => new DatabaseJwtSessionRepository(ioc.get(IDatabase), tables),
+        useFactory: ioc => new DatabaseJwtSessionRepository(ioc.get(Database), tables),
         singleton: true,
       },
       {
         provide: AUTH_DB_TOKENS.UserService,
-        useFactory: ioc => new DatabaseUserService(ioc.get(IDatabase), tables),
+        useFactory: ioc => new DatabaseUserService(ioc.get(Database), tables),
         singleton: true,
       },
       ...(config.audit
@@ -82,7 +82,7 @@ export class AuthDatabaseModule implements AppModule {
             {
               provide: AUTH_DB_TOKENS.EventStore,
               useFactory: (ioc: Container) =>
-                new DatabaseAuthEventStore(ioc.get(IDatabase), tables),
+                new DatabaseAuthEventStore(ioc.get(Database), tables),
               singleton: true,
             },
           ]
@@ -91,7 +91,7 @@ export class AuthDatabaseModule implements AppModule {
         provide: AUTH_DB_TOKENS.ApiKeyService,
         useFactory: ioc =>
           new DatabaseApiKeyService(
-            ioc.get(IDatabase),
+            ioc.get(Database),
             ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
             tables,
             config.audit ? ioc.get(AUTH_DB_TOKENS.EventStore) : undefined
@@ -102,7 +102,7 @@ export class AuthDatabaseModule implements AppModule {
         provide: AUTH_DB_TOKENS.JwtSessionService,
         useFactory: ioc =>
           new DatabaseJwtSessionService(
-            ioc.get(IDatabase),
+            ioc.get(Database),
             tables,
             config.audit ? ioc.get(AUTH_DB_TOKENS.EventStore) : undefined,
           ),

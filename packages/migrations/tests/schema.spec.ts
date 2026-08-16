@@ -1,11 +1,11 @@
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 
 import { Schema } from '../src/index.js';
 
 describe('Schema', () => {
   it('creates the table before its indexes', async () => {
     const run = vi.fn(async () => undefined);
-    const schema = new Schema({ run } as unknown as IDatabase);
+    const schema = new Schema({ run } as unknown as Database);
 
     await schema.create('users', table => {
       table.integer('id').primaryKey();
@@ -25,7 +25,7 @@ describe('Schema', () => {
 
   it('awaits drop operations', async () => {
     const run = vi.fn(async () => undefined);
-    const schema = new Schema({ run } as unknown as IDatabase);
+    const schema = new Schema({ run } as unknown as Database);
 
     await schema.dropIfExists('users');
 
@@ -37,7 +37,7 @@ describe('Schema', () => {
 
   it('can initialize shared infrastructure tables idempotently', async () => {
     const run = vi.fn(async () => undefined);
-    const schema = new Schema({ run } as unknown as IDatabase);
+    const schema = new Schema({ run } as unknown as Database);
 
     await schema.createIfNotExists('migration_locks', table => {
       table.integer('id').primaryKey();

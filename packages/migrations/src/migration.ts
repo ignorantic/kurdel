@@ -1,10 +1,10 @@
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 import { Schema } from './schema.js';
 
 export abstract class Migration {
   protected schema: Schema;
 
-  constructor(connection: IDatabase) {
+  constructor(connection: Database) {
     this.schema = new Schema(connection);
   }
 

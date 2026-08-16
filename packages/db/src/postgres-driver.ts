@@ -1,14 +1,14 @@
 import { DatabaseDriver } from './database-driver.js';
-import type { IDatabaseConfig } from './interfaces.js';
+import type { DatabaseConfig } from './interfaces.js';
 import { PostgresDB } from './postgres-db.js';
 
-export interface IPostgresConfig extends IDatabaseConfig {
+export interface PostgresConfig extends DatabaseConfig {
   type: 'postgres';
   database?: string;
   connectionString?: string;
 }
 
-export class PostgresDriver extends DatabaseDriver<IPostgresConfig> {
+export class PostgresDriver extends DatabaseDriver<PostgresConfig> {
   private db?: PostgresDB;
 
   async connect(): Promise<void> {

@@ -1,4 +1,4 @@
-import { PostgresDB, type IDatabase } from '@kurdel/db';
+import { PostgresDB, type Database } from '@kurdel/db';
 import { DatabaseJwtSessionRepository, DatabaseJwtSessionService, DatabaseUserService } from '@kurdel/auth-db';
 import { MigrationLock, MigrationLockedError } from '@kurdel/migrations';
 
@@ -12,7 +12,7 @@ const connectionString = process.env.POSTGRES_TEST_URL;
 const describePostgres = connectionString ? describe : describe.skip;
 
 describePostgres('PostgreSQL auth database integration', () => {
-  let db: IDatabase;
+  let db: Database;
 
   beforeAll(async () => {
     const postgres = new PostgresDB({ connectionString });

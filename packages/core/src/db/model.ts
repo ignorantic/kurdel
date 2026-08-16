@@ -1,15 +1,15 @@
 import type { Newable } from '@kurdel/common';
 import type { Identifier } from '@kurdel/ioc';
-import type { IDatabase, IQueryBuilder } from '@kurdel/db';
+import type { Database, QueryBuilderContract } from '@kurdel/db';
 import { QueryBuilder } from '@kurdel/db';
 
 interface ModelDeps {
-  db: IDatabase;
+  db: Database;
 }
 
 export abstract class Model {
-  private db: IDatabase;
-  private builder: IQueryBuilder;
+  private db: Database;
+  private builder: QueryBuilderContract;
   protected abstract table: string;
 
   constructor(deps: ModelDeps) {

@@ -1,4 +1,4 @@
-import type { IDatabase, DatabaseQuery } from '@kurdel/db';
+import type { Database, DatabaseQuery } from '@kurdel/db';
 import { QueryBuilder } from '@kurdel/db';
 import { Schema } from './schema.js';
 
@@ -9,15 +9,15 @@ export type MigrationRecord = {
 };
 
 export class MigrationRegistry {
-  private connection: IDatabase;
+  private connection: Database;
   private builder: QueryBuilder;
 
-  constructor(connection: IDatabase) {
+  constructor(connection: Database) {
     this.connection = connection;
     this.builder = new QueryBuilder();
   }
 
-  public static async create(connection: IDatabase) {
+  public static async create(connection: Database) {
     const registry = new MigrationRegistry(connection);
     await registry.createMigrationsTable();
     return registry;

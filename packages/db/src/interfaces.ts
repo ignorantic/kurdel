@@ -1,4 +1,4 @@
-export interface IDatabaseConfig {
+export interface DatabaseConfig {
   type: string;
   host?: string;
   filename?: string;
@@ -20,14 +20,14 @@ export type DatabaseQuery = {
   params: any[];
 };
 
-export const IDatabase = Symbol('IDatabase');
-export interface IDatabaseSession {
+export const Database = Symbol('Database');
+export interface DatabaseSession {
   get(query: DatabaseQuery): Promise<any>;
   all(query: DatabaseQuery): Promise<any>;
   run(query: DatabaseQuery): Promise<void>;
 }
 
-export interface IDatabase extends IDatabaseSession {
+export interface Database extends DatabaseSession {
   readonly dialect: DatabaseDialect;
   /**
    * Runs work atomically on an isolated database session.
@@ -35,14 +35,14 @@ export interface IDatabase extends IDatabaseSession {
    * Queries inside the callback must use the supplied transaction session.
    * Resolves with the callback result after commit and rolls back on failure.
    */
-  transaction<T>(work: (transaction: IDatabaseSession) => Promise<T>): Promise<T>;
+  transaction<T>(work: (transaction: DatabaseSession) => Promise<T>): Promise<T>;
   close(): Promise<void>;
 }
 
-export interface IQueryBuilder {
-  insert(table: string, data: Record<string, any>): IQueryBuilder;
-  select(fields: string | string[]): IQueryBuilder;
-  from(table: string): IQueryBuilder;
-  where(condition: string, params?: any[]): IQueryBuilder;
+export interface QueryBuilderContract {
+  insert(table: string, data: Record<string, any>): QueryBuilderContract;
+  select(fields: string | string[]): QueryBuilderContract;
+  from(table: string): QueryBuilderContract;
+  where(condition: string, params?: any[]): QueryBuilderContract;
   build(): DatabaseQuery;
 }

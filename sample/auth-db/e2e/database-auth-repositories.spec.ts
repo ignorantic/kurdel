@@ -1,4 +1,4 @@
-import { DatabaseFactory, type IDatabase } from '@kurdel/db';
+import { DatabaseFactory, type Database } from '@kurdel/db';
 import { ApiKeyStrategy } from '@kurdel/auth';
 import {
   DatabaseApiKeyRepository,
@@ -12,7 +12,7 @@ import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 
 describe('database auth repositories', () => {
-  let db: IDatabase;
+  let db: Database;
   let users: DatabaseAuthUserRepository;
   let apiKeys: DatabaseApiKeyRepository;
   let usage: DatabaseApiKeyUsageRecorder;

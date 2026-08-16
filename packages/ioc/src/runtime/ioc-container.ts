@@ -53,7 +53,7 @@ export class IoCContainer implements Container {
    *
    * @example
    * ```ts
-   * container.bind<IDatabase>(IDatabase).to(SQLiteDatabase);
+   * container.bind<Database>(Database).to(SQLiteDatabase);
    * ```
    */
   public bind<T>(key: Identifier<T>): BindingToContract<T> {

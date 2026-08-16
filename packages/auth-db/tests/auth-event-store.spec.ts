@@ -1,10 +1,10 @@
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 
 import { DatabaseAuthEventStore } from '../src/index.js';
 
 describe('DatabaseAuthEventStore', () => {
   it('persists only the sanitized event fields', async () => {
-    const db = { run: vi.fn(async () => undefined) } as unknown as IDatabase;
+    const db = { run: vi.fn(async () => undefined) } as unknown as Database;
     const store = new DatabaseAuthEventStore(db);
     const occurredAt = new Date('2026-08-15T12:00:00.000Z');
 
@@ -47,7 +47,7 @@ describe('DatabaseAuthEventStore', () => {
         },
       ]),
       get: vi.fn(async () => ({ count: 1 })),
-    } as unknown as IDatabase;
+    } as unknown as Database;
     const store = new DatabaseAuthEventStore(db, { authEvents: 'security_events' });
 
     await expect(

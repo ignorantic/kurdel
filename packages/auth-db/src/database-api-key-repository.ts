@@ -1,5 +1,5 @@
 import type { ApiKeyCredential, ApiKeyRepository } from '@kurdel/auth';
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 
 import type { ApiKeyHasher } from './api-key-hasher.js';
 import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
@@ -15,7 +15,7 @@ export class DatabaseApiKeyRepository implements ApiKeyRepository {
   private readonly tables: AuthDatabaseTables;
 
   constructor(
-    private readonly db: IDatabase,
+    private readonly db: Database,
     private readonly hasher: ApiKeyHasher,
     tables: Partial<AuthDatabaseTables> = {}
   ) {

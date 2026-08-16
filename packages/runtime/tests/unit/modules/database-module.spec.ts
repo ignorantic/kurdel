@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { IDatabase } from '@kurdel/db';
+import { Database } from '@kurdel/db';
 import { TOKENS } from '@kurdel/core/tokens';
 
 import { DatabaseModule, NoopDatabase } from 'src/modules/database-module.js';
@@ -20,7 +20,7 @@ describe('DatabaseModule', () => {
 
   it('should register DB when enabled', async () => {
     vi.mock('@kurdel/db', () => ({
-      IDatabase: Symbol('IDatabase'),
+      Database: Symbol('Database'),
       DBConnector: class {
         async run() {
           return { connected: true, close };
@@ -38,7 +38,7 @@ describe('DatabaseModule', () => {
     const module = new DatabaseModule();
     await module.register(ioc, { db: true });
 
-    expect(ioc.bind).toHaveBeenCalledWith(IDatabase);
+    expect(ioc.bind).toHaveBeenCalledWith(Database);
     expect(toInstance).toHaveBeenCalledWith(expect.objectContaining({ connected: true }));
     expect(onShutdown).toHaveLength(1);
 

@@ -23,7 +23,7 @@ export class BindingToContractImpl<T> implements BindingToContract<T> {
    *
    * @example
    * ```ts
-   * container.bind(IDatabase).to(SQLiteDatabase);
+   * container.bind(Database).to(SQLiteDatabase);
    * ```
    *
    * @param constructor The class to instantiate when resolving this identifier.
@@ -41,7 +41,7 @@ export class BindingToContractImpl<T> implements BindingToContract<T> {
    * @example
    * ```ts
    * const db = new SQLiteDatabase();
-   * container.bind(IDatabase).toInstance(db);
+   * container.bind(Database).toInstance(db);
    * ```
    *
    * @param instance The instance to use when resolving this identifier.

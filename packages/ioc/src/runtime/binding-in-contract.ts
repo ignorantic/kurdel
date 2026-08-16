@@ -19,7 +19,7 @@ export class BindingInContract<T> {
    *
    * @example
    * ```ts
-   * container.bind<IDatabase>(IDatabase).to(SQLiteDatabase).inSingletonScope();
+   * container.bind<Database>(Database).to(SQLiteDatabase).inSingletonScope();
    * ```
    */
   inSingletonScope(): this {

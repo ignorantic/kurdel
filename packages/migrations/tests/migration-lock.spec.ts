@@ -1,4 +1,4 @@
-import { DatabaseFactory, type IDatabase } from '@kurdel/db';
+import { DatabaseFactory, type Database } from '@kurdel/db';
 
 import { MigrationLock, MigrationLockedError } from '../src/index.js';
 
@@ -6,7 +6,7 @@ describe('MigrationLock', () => {
   it('acquires and releases a portable database lease', async () => {
     const get = vi.fn(async query => ({ owner: query.params[1] }));
     const run = vi.fn(async () => undefined);
-    const db = { dialect: 'postgres', get, run } as unknown as IDatabase;
+    const db = { dialect: 'postgres', get, run } as unknown as Database;
     const lock = new MigrationLock(db, 60_000);
 
     await lock.initialize();
@@ -34,7 +34,7 @@ describe('MigrationLock', () => {
     const db = {
       dialect: 'sqlite',
       get: vi.fn(async () => undefined),
-    } as unknown as IDatabase;
+    } as unknown as Database;
 
     await expect(new MigrationLock(db).acquire()).rejects.toBeInstanceOf(MigrationLockedError);
   });

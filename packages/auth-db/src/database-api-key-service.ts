@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 
 import type { AuthEvent, AuthEventSink } from '@kurdel/auth';
-import type { IDatabase, IDatabaseSession } from '@kurdel/db';
+import type { Database, DatabaseSession } from '@kurdel/db';
 
 import type { ApiKeyHasher } from './api-key-hasher.js';
 import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
@@ -21,7 +21,7 @@ type ApiKeyRecord = {
 };
 
 type TransactionalAuthEventSink = AuthEventSink & {
-  report(event: AuthEvent, database?: IDatabaseSession): Promise<void> | void;
+  report(event: AuthEvent, database?: DatabaseSession): Promise<void> | void;
 };
 
 export interface CreateApiKeyInput {
@@ -71,7 +71,7 @@ export class DatabaseApiKeyService {
   private readonly tables: AuthDatabaseTables;
 
   constructor(
-    private readonly db: IDatabase,
+    private readonly db: Database,
     private readonly hasher: ApiKeyHasher,
     tables: Partial<AuthDatabaseTables> = {},
     private readonly events?: TransactionalAuthEventSink,

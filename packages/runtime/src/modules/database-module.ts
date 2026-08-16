@@ -1,9 +1,12 @@
 import type { IoCContainer } from '@kurdel/ioc';
-import { IDatabase, DBConnector } from '@kurdel/db';
+import { Database, DBConnector, type DatabaseDialect } from '@kurdel/db';
 import type { AppConfig, AppModule, OnShutdownHook } from '@kurdel/core/app';
 import { TOKENS } from '@kurdel/core/tokens';
 
-export class NoopDatabase implements IDatabase {
+export class NoopDatabase implements Database {
+  get dialect(): DatabaseDialect {
+    throw new Error('Database is disabled (db=false in config)');
+  }
   query = this.error;
   get = this.error;
   all = this.error;
@@ -22,21 +25,21 @@ export class NoopDatabase implements IDatabase {
  * DatabaseModule
  *
  * - Provides a database connection if enabled
- * - Exports the IDatabase token
+ * - Exports the Database token
  * - Falls back to NoopDatabase when disabled
  */
 export class DatabaseModule implements AppModule<AppConfig> {
-  readonly exports = { db: IDatabase };
+  readonly exports = { db: Database };
 
   async register(ioc: IoCContainer, config: AppConfig): Promise<void> {
     if (config.db === false) {
-      ioc.bind(IDatabase).toInstance(new NoopDatabase());
+      ioc.bind(Database).toInstance(new NoopDatabase());
       return;
     }
 
     const connector = new DBConnector();
     const connection = await connector.run();
-    ioc.bind(IDatabase).toInstance(connection);
+    ioc.bind(Database).toInstance(connection);
     ioc.get<OnShutdownHook[]>(TOKENS.OnShutdown).push(() => connection.close());
   }
 }

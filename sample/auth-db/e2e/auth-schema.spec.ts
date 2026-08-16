@@ -1,4 +1,4 @@
-import { DatabaseFactory, type IDatabase } from '@kurdel/db';
+import { DatabaseFactory, type Database } from '@kurdel/db';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
@@ -7,7 +7,7 @@ import CreateRolePermissions from '../migrations/0004-create-role-permissions.js
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
 
 describe('auth database schema', () => {
-  let db: IDatabase;
+  let db: Database;
 
   beforeAll(async () => {
     const driver = DatabaseFactory.createDriver({ type: 'sqlite', filename: ':memory:' });

@@ -3,7 +3,7 @@
 Database-backed repository adapters for `@kurdel/auth`.
 
 The package keeps authentication strategies storage-agnostic while providing
-standard implementations over Kurdel's `IDatabase` contract.
+standard implementations over Kurdel's `Database` contract.
 
 `DatabaseAuthUserRepository` resolves the current user and roles, while
 `DatabaseApiKeyRepository` resolves safe credential metadata including its
@@ -59,7 +59,7 @@ authorization events. The application must provide the configured
 columns and indexes.
 
 API-key issue or revocation and its database audit event run in the same
-`IDatabase.transaction` callback. If audit persistence fails, the credential
+`Database.transaction` callback. If audit persistence fails, the credential
 mutation is rolled back and the service returns the original error. User
 creation, role replacement, profile updates, and deletion use the same
 transaction API for their multi-statement operations.

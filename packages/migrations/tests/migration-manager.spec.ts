@@ -1,4 +1,4 @@
-import type { IDatabase } from '@kurdel/db';
+import type { Database } from '@kurdel/db';
 
 import { MigrationManager, type MigrationLock } from '../src/index.js';
 import type { MigrationLoader } from '../src/migration-loader.js';
@@ -9,7 +9,7 @@ class PendingMigration {}
 
 describe('MigrationManager', () => {
   it('reports applied, pending, and missing migration files', async () => {
-    const connection = { close: vi.fn() } as unknown as IDatabase;
+    const connection = { close: vi.fn() } as unknown as Database;
     const registry = {
       history: Promise.resolve([
         { id: 1, name: 'AppliedMigration', batch: 1 },
@@ -33,7 +33,7 @@ describe('MigrationManager', () => {
   });
 
   it('always releases the lock when migration discovery fails', async () => {
-    const connection = {} as IDatabase;
+    const connection = {} as Database;
     const registry = { all: Promise.resolve([]) } as unknown as MigrationRegistry;
     const loader = {
       load: vi.fn(async () => { throw new Error('load failed'); }),

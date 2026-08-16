@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { IDatabase } from '@kurdel/db';
+import { Database } from '@kurdel/db';
 import { Model } from '@kurdel/core/db';
 
 import { ModelModule } from 'src/modules/model-module.js';
@@ -18,6 +18,6 @@ describe('ModelModule', () => {
     await module.register(ioc);
 
     expect(put).toHaveBeenCalledWith(TestModel);
-    expect(withFn).toHaveBeenCalledWith({ db: IDatabase });
+    expect(withFn).toHaveBeenCalledWith({ db: Database });
   });
 });

@@ -187,7 +187,7 @@ Before submitting:
 * Middleware zones: `pre`, `controller`, `post`, `final`.
 * Keep the runtime **platform-agnostic** — adapters live in `@kurdel/runtime-node` or `@kurdel/runtime-express`.
 * **Adapters** and **validators** must be optional peer dependencies.
-* **Database** access is abstracted via `IDatabase` token.
+* **Database** access is abstracted via `Database` token.
 
 ---
 

@@ -1,4 +1,4 @@
-import type { IDatabase, IDatabaseSession } from '@kurdel/db';
+import type { Database, DatabaseSession } from '@kurdel/db';
 
 import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
 
@@ -130,7 +130,7 @@ export class DatabaseUserService {
   private readonly tables: AuthDatabaseTables;
 
   constructor(
-    private readonly db: IDatabase,
+    private readonly db: Database,
     tables: Partial<AuthDatabaseTables> = {}
   ) {
     this.tables = resolveAuthDatabaseTables(tables);
@@ -530,7 +530,7 @@ export class DatabaseUserService {
   }
 
   private async replaceRoles(
-    database: IDatabaseSession,
+    database: DatabaseSession,
     userId: number,
     roles: RoleRecord[]
   ): Promise<void> {

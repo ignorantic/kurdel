@@ -1,15 +1,15 @@
 import { DatabaseDriver } from './database-driver.js';
-import type { IDatabaseConfig } from './interfaces.js';
+import type { DatabaseConfig } from './interfaces.js';
 import { SQLiteDB } from './sqlite-db.js';
 
-export interface ISQLiteConfig extends IDatabaseConfig {
+export interface SQLiteConfig extends DatabaseConfig {
   filename: string;
 }
 
-export class SQLiteDriver extends DatabaseDriver<ISQLiteConfig> {
+export class SQLiteDriver extends DatabaseDriver<SQLiteConfig> {
   private db?: SQLiteDB;
 
-  constructor(config: ISQLiteConfig) {
+  constructor(config: SQLiteConfig) {
     super(config);
   }
 

@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
-import type { DatabaseQuery, IDatabase, IDatabaseSession } from './interfaces.js';
+import type { DatabaseQuery, Database, DatabaseSession } from './interfaces.js';
 
-export class SQLiteDB implements IDatabase {
+export class SQLiteDB implements Database {
   readonly dialect = 'sqlite' as const;
   private db: sqlite3.Database;
   private queue: Promise<void> = Promise.resolve();
@@ -26,10 +26,10 @@ export class SQLiteDB implements IDatabase {
     return this.enqueue(() => this.runRaw({ sql, params }));
   }
 
-  public transaction<T>(work: (transaction: IDatabaseSession) => Promise<T>): Promise<T> {
+  public transaction<T>(work: (transaction: DatabaseSession) => Promise<T>): Promise<T> {
     return this.enqueue(async () => {
       await this.runRaw({ sql: 'BEGIN IMMEDIATE;', params: [] });
-      const transaction: IDatabaseSession = {
+      const transaction: DatabaseSession = {
         get: query => this.getRaw(query),
         all: query => this.allRaw(query),
         run: query => this.runRaw(query),

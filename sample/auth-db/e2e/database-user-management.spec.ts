@@ -1,4 +1,4 @@
-import { DatabaseFactory, type IDatabase } from '@kurdel/db';
+import { DatabaseFactory, type Database } from '@kurdel/db';
 import {
   ActiveUserNotFoundError,
   ApiKeyNotFoundError,
@@ -19,7 +19,7 @@ import CreateRolePermissions from '../migrations/0004-create-role-permissions.js
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
 
 describe('database user management', () => {
-  let db: IDatabase;
+  let db: Database;
   let users: DatabaseUserService;
   let apiKeys: DatabaseApiKeyService;
   let events: DatabaseAuthEventStore;
