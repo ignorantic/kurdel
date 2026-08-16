@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/sample-sqlite",
-  "version": "0.1.0-beta.3",
+  "version": "0.1.0-beta.4",
   "private": true,
   "description": "example simple app with sqlite DB",
   "type": "module",
@@ -18,13 +18,13 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "dependencies": {
-    "@kurdel/core": "0.1.0-beta.3",
-    "@kurdel/facade": "0.1.0-beta.3",
+    "@kurdel/core": "0.1.0-beta.4",
+    "@kurdel/facade": "0.1.0-beta.4",
     "sqlite3": "^6.0.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@kurdel/migrations": "0.1.0-beta.3",
+    "@kurdel/migrations": "0.1.0-beta.4",
     "@types/node": "^20.9.0",
     "@types/supertest": "^6.0.3",
     "@vitest/coverage-v8": "^3.2.4",

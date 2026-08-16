@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/runtime-express",
-  "version": "0.1.0-beta.3",
+  "version": "0.1.0-beta.4",
   "description": "Express runtime adapter for Kurdel",
   "type": "module",
   "exports": {
@@ -60,8 +60,8 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
-    "@kurdel/common": "0.1.0-beta.3",
-    "@kurdel/core": "0.1.0-beta.3",
-    "@kurdel/runtime": "0.1.0-beta.3"
+    "@kurdel/common": "0.1.0-beta.4",
+    "@kurdel/core": "0.1.0-beta.4",
+    "@kurdel/runtime": "0.1.0-beta.4"
   }
 }

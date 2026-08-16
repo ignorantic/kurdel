@@ -6,6 +6,28 @@ All notable changes to Kurdel are documented in this file. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-beta.4] - 2026-08-16
+
+### Added
+
+- add PostgreSQL database support and cross-dialect auth integration coverage
+- add serialized migration operations and migration status reporting
+- add declarative environment parsing with aggregated startup validation
+- add role permissions, composable authorization policies, and policy diagnostics
+- add persisted, revocable JWT sessions backed by the auth database
+- add scrypt password hashing, database-backed credentials, and password login
+
+### Changed
+
+- rename database contracts to remove the remaining `I` interface prefixes
+- keep user roles and permissions sourced from current database state during authentication
+
+### Security
+
+- store password credentials separately from user profiles as salted scrypt hashes
+- return the same authentication failure for unknown logins and invalid passwords
+- bind issued JWTs to revocable, expiring server-side sessions
+
 ## [0.1.0-beta.3] - 2026-08-16
 
 ### Added
@@ -58,7 +80,8 @@ All notable changes to Kurdel are documented in this file. The format follows
 - packages require Node.js 20.19+, 22.12+, or 24+
 - prerelease packages are published under the npm `beta` dist-tag
 
-[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.3...HEAD
+[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.4...HEAD
+[0.1.0-beta.4]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.3...v0.1.0-beta.4
 [0.1.0-beta.3]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.2...v0.1.0-beta.3
 [0.1.0-beta.2]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/ignorantic/kurdel/releases/tag/v0.1.0-beta.1
