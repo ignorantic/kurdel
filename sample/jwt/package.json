@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/sample-jwt",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "private": true,
   "description": "example app with jwt auth",
   "type": "module",
@@ -18,10 +18,10 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "dependencies": {
-    "@kurdel/auth": "0.1.0-beta.2",
-    "@kurdel/core": "0.1.0-beta.2",
-    "@kurdel/facade": "0.1.0-beta.2",
-    "@kurdel/ioc": "0.1.0-beta.2"
+    "@kurdel/auth": "0.1.0-beta.3",
+    "@kurdel/core": "0.1.0-beta.3",
+    "@kurdel/facade": "0.1.0-beta.3",
+    "@kurdel/ioc": "0.1.0-beta.3"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",

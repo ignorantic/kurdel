@@ -6,6 +6,16 @@ All notable changes to Kurdel are documented in this file. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-beta.3] - 2026-08-16
+
+### Added
+
+- add searchable and sortable database user listings
+- add transactional bulk status, role, and deletion operations
+- add role lifecycle management with assignment counts
+- add administration dashboard statistics
+- add paginated global audit queries with user, type, and date filters
+
 ## [0.1.0-beta.2] - 2026-08-16
 
 ### Security
@@ -48,6 +58,7 @@ All notable changes to Kurdel are documented in this file. The format follows
 - packages require Node.js 20.19+, 22.12+, or 24+
 - prerelease packages are published under the npm `beta` dist-tag
 
-[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.2...HEAD
+[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.3...HEAD
+[0.1.0-beta.3]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.2...v0.1.0-beta.3
 [0.1.0-beta.2]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/ignorantic/kurdel/releases/tag/v0.1.0-beta.1

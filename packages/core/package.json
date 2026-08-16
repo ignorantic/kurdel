@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/core",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "Core HTTP, routing, controller, and model abstractions for Kurdel",
   "type": "module",
   "exports": {
@@ -60,8 +60,8 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
-    "@kurdel/common": "0.1.0-beta.2",
-    "@kurdel/db": "0.1.0-beta.2",
-    "@kurdel/ioc": "0.1.0-beta.2"
+    "@kurdel/common": "0.1.0-beta.3",
+    "@kurdel/db": "0.1.0-beta.3",
+    "@kurdel/ioc": "0.1.0-beta.3"
   }
 }

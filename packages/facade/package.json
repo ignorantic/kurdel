@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/facade",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "High-level application factories and public facade for Kurdel",
   "type": "module",
   "exports": {
@@ -54,9 +54,9 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
-    "@kurdel/core": "0.1.0-beta.2",
-    "@kurdel/runtime": "0.1.0-beta.2",
-    "@kurdel/runtime-express": "0.1.0-beta.2",
-    "@kurdel/runtime-node": "0.1.0-beta.2"
+    "@kurdel/core": "0.1.0-beta.3",
+    "@kurdel/runtime": "0.1.0-beta.3",
+    "@kurdel/runtime-express": "0.1.0-beta.3",
+    "@kurdel/runtime-node": "0.1.0-beta.3"
   }
 }
