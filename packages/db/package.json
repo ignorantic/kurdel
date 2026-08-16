@@ -1,7 +1,7 @@
 {
   "name": "@kurdel/db",
   "version": "0.1.0-beta.3",
-  "description": "Database abstractions and SQLite adapter for Kurdel",
+  "description": "Database abstractions with SQLite and PostgreSQL adapters for Kurdel",
   "type": "module",
   "exports": {
     ".": "./lib/index.js"
@@ -22,6 +22,7 @@
     "kurdel",
     "database",
     "sqlite",
+    "postgresql",
     "framework"
   ],
   "author": "Andrii Sorokin",
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
+    "@types/pg": "^8.21.0",
     "rimraf": "^3.0.2",
     "tsc-alias": "^1.8.16"
   },
@@ -51,6 +53,7 @@
     "sqlite3": "^6.0.1"
   },
   "dependencies": {
-    "@kurdel/common": "0.1.0-beta.3"
+    "@kurdel/common": "0.1.0-beta.3",
+    "pg": "^8.23.0"
   }
 }

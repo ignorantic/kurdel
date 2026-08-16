@@ -5,7 +5,15 @@ export interface IDatabaseConfig {
   port?: number;
   user?: string;
   password?: string;
+  database?: string;
+  connectionString?: string;
+  ssl?: boolean | {
+    rejectUnauthorized?: boolean;
+    ca?: string;
+  };
 }
+
+export type DatabaseDialect = 'sqlite' | 'postgres';
 
 export type DatabaseQuery = {
   sql: string;
@@ -20,6 +28,7 @@ export interface IDatabaseSession {
 }
 
 export interface IDatabase extends IDatabaseSession {
+  readonly dialect: DatabaseDialect;
   /**
    * Runs work atomically on an isolated database session.
    *

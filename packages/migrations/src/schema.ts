@@ -7,7 +7,7 @@ export class Schema {
   constructor(private readonly connection: IDatabase) {}
 
   async create(tableName: string, configure: Configure): Promise<void> {
-    const blueprint = new Blueprint();
+    const blueprint = new Blueprint(this.connection.dialect);
     configure(blueprint);
     const definitions = blueprint.getColumnDefinitions();
     if (!definitions) throw new Error(`Table '${tableName}' must define at least one column`);

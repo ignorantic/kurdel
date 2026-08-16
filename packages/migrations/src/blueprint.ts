@@ -1,3 +1,5 @@
+import type { DatabaseDialect } from '@kurdel/db';
+
 import { Column } from './column.js';
 
 export interface IndexDefinition {
@@ -10,6 +12,8 @@ export class Blueprint {
   private readonly columns: Column[] = [];
   private readonly constraints: string[] = [];
   private readonly indexes: IndexDefinition[] = [];
+
+  constructor(private readonly dialect: DatabaseDialect = 'sqlite') {}
 
   integer(name: string): Column {
     return this.addColumn(name, 'INTEGER');
@@ -24,7 +28,7 @@ export class Blueprint {
   }
 
   datetime(name: string): Column {
-    return this.addColumn(name, 'DATETIME');
+    return this.addColumn(name, this.dialect === 'postgres' ? 'TIMESTAMPTZ' : 'DATETIME');
   }
 
   /** Supports both the legacy single-column form and composite keys. */
@@ -82,7 +86,7 @@ export class Blueprint {
     if (this.columns.some(column => column.name === name)) {
       throw new Error(`Column '${name}' is already defined`);
     }
-    const column = new Column(name, type);
+    const column = new Column(name, type, this.dialect);
     this.columns.push(column);
     return column;
   }

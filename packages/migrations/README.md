@@ -1,5 +1,9 @@
 # @kurdel/migrations
 
+Schema blueprints use the connected database dialect. SQLite emits its native
+integer primary keys and `DATETIME`, while PostgreSQL emits identity columns,
+`TIMESTAMPTZ`, and native boolean defaults from the same migration source.
+
 Database schema migration primitives for Kurdel. The package provides the
 `Migration`, `MigrationManager`, `Schema`, and `Blueprint` APIs used to define,
 apply, roll back, and refresh migrations.

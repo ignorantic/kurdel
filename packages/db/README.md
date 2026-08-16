@@ -1,5 +1,27 @@
 # @kurdel/db
 
+Kurdel's database contract and built-in SQLite and PostgreSQL adapters.
+
+Create either driver through the same factory:
+
+```ts
+const sqlite = DatabaseFactory.createDriver({
+  type: 'sqlite',
+  filename: './app.db',
+});
+
+const postgres = DatabaseFactory.createDriver({
+  type: 'postgres',
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+});
+```
+
+Portable application queries use `?` placeholders. The PostgreSQL adapter
+converts them to positional parameters before execution. `get`, `all`, `run`,
+transactions, and connection shutdown have the same contract for both
+adapters.
+
 Database contracts, SQLite connectivity, and query-building utilities for
 Kurdel applications.
 

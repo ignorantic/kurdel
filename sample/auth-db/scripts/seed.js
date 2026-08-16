@@ -5,7 +5,9 @@ const hasher = new Sha256ApiKeyHasher();
 const db = await new DBConnector().run();
 
 try {
-  await db.run({ sql: 'PRAGMA foreign_keys = ON;', params: [] });
+  if (db.dialect === 'sqlite') {
+    await db.run({ sql: 'PRAGMA foreign_keys = ON;', params: [] });
+  }
   await db.transaction(async transaction => {
     await transaction.run({
       sql: [
@@ -32,7 +34,10 @@ try {
       params: [1, 'admin', 2, 'user'],
     });
     await transaction.run({
-      sql: 'INSERT OR IGNORE INTO user_roles (user_id, role_id) VALUES (?, ?), (?, ?);',
+      sql: [
+        'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?), (?, ?)',
+        'ON CONFLICT(user_id, role_id) DO NOTHING;',
+      ].join(' '),
       params: [1, 1, 2, 2],
     });
     const permissionNames = [
@@ -50,15 +55,17 @@ try {
     }
     await transaction.run({
       sql: [
-        'INSERT OR IGNORE INTO role_permissions (role_id, permission_id)',
-        "SELECT 1, id FROM permissions WHERE name IN ('users.view.self', 'users.view.any', 'users.manage', 'roles.manage', 'audit.view');",
+        'INSERT INTO role_permissions (role_id, permission_id)',
+        "SELECT 1, id FROM permissions WHERE name IN ('users.view.self', 'users.view.any', 'users.manage', 'roles.manage', 'audit.view')",
+        'ON CONFLICT(role_id, permission_id) DO NOTHING;',
       ].join(' '),
       params: [],
     });
     await transaction.run({
       sql: [
-        'INSERT OR IGNORE INTO role_permissions (role_id, permission_id)',
-        "SELECT 2, id FROM permissions WHERE name = 'users.view.self';",
+        'INSERT INTO role_permissions (role_id, permission_id)',
+        "SELECT 2, id FROM permissions WHERE name = 'users.view.self'",
+        'ON CONFLICT(role_id, permission_id) DO NOTHING;',
       ].join(' '),
       params: [],
     });
@@ -84,8 +91,18 @@ try {
         'active',
       ],
     });
+    if (db.dialect === 'postgres') {
+      await transaction.run({
+        sql: "SELECT setval(pg_get_serial_sequence('users', 'id'), MAX(id)) FROM users;",
+        params: [],
+      });
+      await transaction.run({
+        sql: "SELECT setval(pg_get_serial_sequence('roles', 'id'), MAX(id)) FROM roles;",
+        params: [],
+      });
+    }
   });
-  console.log('Seeded auth.db');
+  console.log(`Seeded auth database (${db.dialect})`);
   console.log('Admin key: admin-demo-key');
   console.log('User key: user-demo-key');
 } finally {

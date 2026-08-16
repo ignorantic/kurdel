@@ -316,7 +316,10 @@ export class DatabaseUserService {
       for (const userId of userIds) {
         for (const role of addRoles) {
           await transaction.run({
-            sql: `INSERT OR IGNORE INTO ${this.tables.userRoles} (user_id, role_id) VALUES (?, ?);`,
+            sql: [
+              `INSERT INTO ${this.tables.userRoles} (user_id, role_id) VALUES (?, ?)`,
+              'ON CONFLICT (user_id, role_id) DO NOTHING;',
+            ].join(' '),
             params: [userId, role.id],
           });
         }
@@ -580,16 +583,22 @@ export class DatabaseUserService {
   }
 
   private rethrowEmailConflict(error: unknown, email?: string): never {
-    if (email && error instanceof Error && error.message.includes(`${this.tables.users}.email`)) {
+    if (email && this.isUniqueConstraintError(error, `${this.tables.users}.email`)) {
       throw new DuplicateUserEmailError(email);
     }
     throw error;
   }
 
   private rethrowRoleConflict(error: unknown, name: string): never {
-    if (error instanceof Error && error.message.includes(`${this.tables.roles}.name`)) {
+    if (this.isUniqueConstraintError(error, `${this.tables.roles}.name`)) {
       throw new DuplicateRoleNameError(name);
     }
     throw error;
+  }
+
+  private isUniqueConstraintError(error: unknown, sqliteColumn: string): boolean {
+    if (!(error instanceof Error)) return false;
+    return error.message.includes(sqliteColumn) ||
+      (error as Error & { code?: string }).code === '23505';
   }
 }

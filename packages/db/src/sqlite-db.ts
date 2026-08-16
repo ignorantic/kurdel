@@ -2,6 +2,7 @@ import sqlite3 from 'sqlite3';
 import type { DatabaseQuery, IDatabase, IDatabaseSession } from './interfaces.js';
 
 export class SQLiteDB implements IDatabase {
+  readonly dialect = 'sqlite' as const;
   private db: sqlite3.Database;
   private queue: Promise<void> = Promise.resolve();
 

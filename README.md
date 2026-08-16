@@ -25,7 +25,7 @@ Kurdel is a **modular monorepo** — every package has a single responsibility a
 | **`@kurdel/template-react`**  | Integration with **React** templates for server-side rendering (JSX).            |
 | **`@kurdel/facade`**          | Public entry point — `createNodeApplication()`, `createExpressApplication()`.    |
 | **`@kurdel/ioc`**             | Lightweight, standalone dependency injection container.                          |
-| **`@kurdel/db`**              | Database abstraction layer (models, connectors, query builders).                 |
+| **`@kurdel/db`**              | Database abstraction with built-in SQLite and PostgreSQL adapters.               |
 | **`@kurdel/migrations`**      | Migration engine and schema management tools.                                    |
 | **`@kurdel/pirx`**            | Developer CLI for database migration workflows.                                  |
 | **`@kurdel/auth`**            | Storage-agnostic authentication strategies and authorization middleware.         |

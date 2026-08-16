@@ -39,3 +39,44 @@ jobs:
 
       - name: Verify repository
         run: npm run ci
+
+  postgres:
+    name: PostgreSQL integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: kurdel_test
+          POSTGRES_USER: kurdel
+          POSTGRES_PASSWORD: kurdel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kurdel -d kurdel_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      POSTGRES_TEST_URL: postgres://kurdel:kurdel@localhost:5432/kurdel_test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.12.0
+          cache: npm
+
+      - name: Use repository npm version
+        run: npm install --global npm@11.19.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build database packages
+        run: npm run build --workspace=@kurdel/db && npm run build --workspace=@kurdel/migrations && npm run build --workspace=@kurdel/auth-db
+
+      - name: Verify PostgreSQL auth integration
+        run: npm test --workspace=@kurdel/sample-auth-db -- postgres-auth.spec.ts

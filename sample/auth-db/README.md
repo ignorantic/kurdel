@@ -51,6 +51,12 @@ Migration `0005-create-jwt-sessions.js` demonstrates persisted, revocable JWT
 session state. A JWT strategy can use `DatabaseJwtSessionRepository` to require
 an active database session matching the token's `jti` and subject.
 
+The sample uses SQLite by default. To run it against PostgreSQL, copy
+`db.postgres.config.example.json` to `db.config.json`, replace the example
+credentials, and run the same migration, seed, and start commands. The CI suite
+also runs the auth schema and user/session workflow against a real PostgreSQL
+service.
+
 The sample build produces both the server and the browser bundle. During UI
 development, rebuild only the client with `npm run build:client:dev` and reload
 the page.
