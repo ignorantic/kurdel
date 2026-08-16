@@ -58,6 +58,30 @@ describePostgres('PostgreSQL auth database integration', () => {
     });
     await expect(users.findById(user.id)).resolves.toEqual(user);
 
+    await db.run({
+      sql: [
+        'INSERT INTO api_keys (id, user_id, key_hash, name, status, expires_at)',
+        'VALUES (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?);',
+      ].join(' '),
+      params: [
+        'active', user.id, 'active-hash', 'Active', 'active', null,
+        'revoked', user.id, 'revoked-hash', 'Revoked', 'revoked', null,
+        'expired', user.id, 'expired-hash', 'Expired', 'active', '2020-01-01T00:00:00.000Z',
+      ],
+    });
+    await db.run({
+      sql: 'INSERT INTO auth_events (type, occurred_at) VALUES (?, ?), (?, ?);',
+      params: [
+        'authentication.failed', new Date().toISOString(),
+        'authentication.failed', '2020-01-01T00:00:00.000Z',
+      ],
+    });
+    await expect(users.dashboardStats()).resolves.toEqual({
+      users: { total: 1, active: 1, disabled: 0 },
+      apiKeys: { active: 1, revoked: 1, expired: 1 },
+      failedAuthenticationsLast24Hours: 1,
+    });
+
     const passwords = new DatabasePasswordService(db, {
       hash: async password => `hashed:${password}`,
       verify: async (password, encoded) => encoded === `hashed:${password}`,

@@ -20,7 +20,9 @@ type UserRecord = {
   updated_at: string;
 };
 
+type AggregateValue = number | string | null;
 type CountRecord = { count: number };
+type AggregateCountRecord = { count: AggregateValue };
 
 export interface CreateUserInput {
   name: string;
@@ -356,6 +358,12 @@ export class DatabaseUserService {
   }
 
   async dashboardStats(): Promise<AdminDashboardStats> {
+    const apiKeyExpiration = this.db.dialect === 'postgres'
+      ? 'expires_at'
+      : 'datetime(expires_at)';
+    const recentFailure = this.db.dialect === 'postgres'
+      ? "occurred_at >= CURRENT_TIMESTAMP - INTERVAL '1 day'"
+      : "datetime(occurred_at) >= datetime('now', '-1 day')";
     const users = (await this.db.get({
       sql: [
         'SELECT COUNT(*) AS total,',
@@ -364,32 +372,36 @@ export class DatabaseUserService {
         `FROM ${this.tables.users};`,
       ].join(' '),
       params: [],
-    })) as { total: number; active: number; disabled: number };
+    })) as { total: AggregateValue; active: AggregateValue; disabled: AggregateValue };
     const apiKeys = (await this.db.get({
       sql: [
-        "SELECT SUM(CASE WHEN status = 'active' AND (expires_at IS NULL OR datetime(expires_at) > CURRENT_TIMESTAMP) THEN 1 ELSE 0 END) AS active,",
+        `SELECT SUM(CASE WHEN status = 'active' AND (expires_at IS NULL OR ${apiKeyExpiration} > CURRENT_TIMESTAMP) THEN 1 ELSE 0 END) AS active,`,
         "SUM(CASE WHEN status = 'revoked' THEN 1 ELSE 0 END) AS revoked,",
-        "SUM(CASE WHEN status = 'active' AND datetime(expires_at) <= CURRENT_TIMESTAMP THEN 1 ELSE 0 END) AS expired",
+        `SUM(CASE WHEN status = 'active' AND ${apiKeyExpiration} <= CURRENT_TIMESTAMP THEN 1 ELSE 0 END) AS expired`,
         `FROM ${this.tables.apiKeys};`,
       ].join(' '),
       params: [],
-    })) as { active: number | null; revoked: number | null; expired: number | null };
+    })) as { active: AggregateValue; revoked: AggregateValue; expired: AggregateValue };
     const failures = (await this.db.get({
       sql: [
         'SELECT COUNT(*) AS count',
         `FROM ${this.tables.authEvents}`,
-        "WHERE type = 'authentication.failed' AND datetime(occurred_at) >= datetime('now', '-1 day');",
+        `WHERE type = 'authentication.failed' AND ${recentFailure};`,
       ].join(' '),
       params: [],
-    })) as CountRecord;
+    })) as AggregateCountRecord;
     return {
-      users: { total: users.total, active: users.active ?? 0, disabled: users.disabled ?? 0 },
-      apiKeys: {
-        active: apiKeys.active ?? 0,
-        revoked: apiKeys.revoked ?? 0,
-        expired: apiKeys.expired ?? 0,
+      users: {
+        total: this.toCount(users.total),
+        active: this.toCount(users.active),
+        disabled: this.toCount(users.disabled),
       },
-      failedAuthenticationsLast24Hours: failures.count,
+      apiKeys: {
+        active: this.toCount(apiKeys.active),
+        revoked: this.toCount(apiKeys.revoked),
+        expired: this.toCount(apiKeys.expired),
+      },
+      failedAuthenticationsLast24Hours: this.toCount(failures.count),
     };
   }
 
@@ -600,5 +612,13 @@ export class DatabaseUserService {
     if (!(error instanceof Error)) return false;
     return error.message.includes(sqliteColumn) ||
       (error as Error & { code?: string }).code === '23505';
+  }
+
+  private toCount(value: AggregateValue): number {
+    const count = Number(value ?? 0);
+    if (!Number.isSafeInteger(count) || count < 0) {
+      throw new TypeError(`Invalid database aggregate count '${String(value)}'`);
+    }
+    return count;
   }
 }
