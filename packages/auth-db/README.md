@@ -17,6 +17,13 @@ role assignments, and issue, list, or revoke API keys. `AuthDatabaseModule`
 registers both services as `AUTH_DB_TOKENS.UserService` and
 `AUTH_DB_TOKENS.ApiKeyService`.
 
+The module also exposes `DatabaseJwtSessionRepository` and
+`DatabaseJwtSessionService`. Applications can create a server-side session,
+place its ID in the JWT `jti` claim, configure that repository on `JwtStrategy`,
+and revoke the session before the signed token expires. Session creation and
+revocation are transactional and emit sanitized audit events when auditing is
+enabled.
+
 User listings support status and text filters, stable sorting, and offset
 pagination. `DatabaseUserService` also provides transactional bulk status,
 role, and deletion operations; role lifecycle management with usage counts;

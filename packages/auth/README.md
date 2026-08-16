@@ -226,6 +226,19 @@ the repository credential ID when one exists. The JWT strategy exposes
 `credential.type` as `jwt`, uses the `jti` claim as its optional ID, and places
 the verified payload in `claims`.
 
+To make JWTs revocable before their cryptographic expiration, configure a
+`JwtSessionRepository` on the strategy. Session-backed JWTs must contain a
+`jti`; authentication then verifies that the referenced session exists, belongs
+to the token subject, has not been revoked, and has not expired:
+
+```ts
+new JwtStrategy(jwtService, users, {
+  sessions: jwtSessions,
+});
+```
+
+Without `sessions`, JWT verification remains stateless and backward compatible.
+
 ## User and credential repositories
 
 Authentication strategies do not own user data. Both built-in strategies load

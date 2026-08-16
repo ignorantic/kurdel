@@ -6,5 +6,7 @@ export * from './database-api-key-service.js';
 export * from './database-api-key-usage-recorder.js';
 export * from './database-auth-user-repository.js';
 export * from './database-auth-event-store.js';
+export * from './database-jwt-session-repository.js';
+export * from './database-jwt-session-service.js';
 export * from './database-user-service.js';
 export * from './tokens.js';

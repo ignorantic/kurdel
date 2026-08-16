@@ -79,6 +79,8 @@ const authEventTypes = [
   'authorization.denied',
   'api-key.issued',
   'api-key.revoked',
+  'jwt-session.created',
+  'jwt-session.revoked',
 ] as const;
 
 const listAuthEventsSchema = z.object({

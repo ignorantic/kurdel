@@ -4,6 +4,8 @@ import {
   ApiKeyNotFoundError,
   DatabaseApiKeyService,
   DatabaseAuthEventStore,
+  DatabaseJwtSessionRepository,
+  DatabaseJwtSessionService,
   DatabaseUserService,
   Sha256ApiKeyHasher,
   UserNotFoundError,
@@ -14,12 +16,14 @@ import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
+import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
 
 describe('database user management', () => {
   let db: IDatabase;
   let users: DatabaseUserService;
   let apiKeys: DatabaseApiKeyService;
   let events: DatabaseAuthEventStore;
+  let jwtSessions: DatabaseJwtSessionService;
   const hasher = new Sha256ApiKeyHasher();
 
   beforeAll(async () => {
@@ -32,6 +36,7 @@ describe('database user management', () => {
     await new AddUserProfile(db).up();
     await new CreateAuthEvents(db).up();
     await new CreateRolePermissions(db).up();
+    await new CreateJwtSessions(db).up();
     await db.run({
       sql: 'INSERT INTO roles (id, name) VALUES (?, ?), (?, ?);',
       params: [1, 'admin', 2, 'user'],
@@ -43,6 +48,7 @@ describe('database user management', () => {
     users = new DatabaseUserService(db);
     events = new DatabaseAuthEventStore(db);
     apiKeys = new DatabaseApiKeyService(db, hasher, {}, events);
+    jwtSessions = new DatabaseJwtSessionService(db, {}, events);
   });
 
   afterAll(async () => {
@@ -76,6 +82,38 @@ describe('database user management', () => {
       params: [user.id],
     });
     expect(assignments).toEqual([{ name: 'admin' }, { name: 'user' }]);
+  });
+
+  it('creates and revokes server-side JWT sessions', async () => {
+    const user = await users.create({
+      name: 'Session User',
+      email: 'session@example.test',
+      roles: ['user'],
+    });
+    const expiresAt = new Date(Date.now() + 60_000);
+    const created = await jwtSessions.create(user.id, expiresAt);
+    const repository = new DatabaseJwtSessionRepository(db);
+
+    await expect(repository.findById(created.id)).resolves.toEqual({
+      id: created.id,
+      userId: user.id,
+      revoked: false,
+      expiresAt,
+    });
+
+    await jwtSessions.revoke(user.id, created.id);
+    await expect(repository.findById(created.id)).resolves.toEqual({
+      id: created.id,
+      userId: user.id,
+      revoked: true,
+      expiresAt,
+    });
+    await expect(events.list({ userId: user.id })).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'jwt-session.created', credentialId: created.id }),
+        expect.objectContaining({ type: 'jwt-session.revoked', credentialId: created.id }),
+      ]),
+    );
   });
 
   it('lists available roles in a stable order', async () => {

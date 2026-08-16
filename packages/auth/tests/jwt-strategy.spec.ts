@@ -40,4 +40,47 @@ describe('JwtStrategy', () => {
 
     await expect(strategy.authenticate(request(`Bearer ${token}`))).resolves.toBeNull();
   });
+
+  it('accepts only active server-side sessions when a session repository is configured', async () => {
+    const token = service.sign({ sub: 1, roles: [], jti: 'session-1' });
+    const users = new InMemoryAuthUserRepository([{ id: 1, roles: ['user'] }]);
+    const sessions = {
+      findById: vi.fn(async () => ({
+        id: 'session-1',
+        userId: 1,
+        revoked: false,
+        expiresAt: new Date(Date.now() + 60_000),
+      })),
+    };
+    const strategy = new JwtStrategy(service, users, { sessions });
+
+    await expect(strategy.authenticate(request(`Bearer ${token}`)))
+      .resolves.toEqual(expect.objectContaining({ user: { id: 1, roles: ['user'] } }));
+    expect(sessions.findById).toHaveBeenCalledWith('session-1');
+  });
+
+  it.each([
+    ['missing jti', { sub: 1, roles: [] }, null],
+    ['missing session', { sub: 1, roles: [], jti: 'missing' }, null],
+    ['revoked session', { sub: 1, roles: [], jti: 'session-1' }, {
+      id: 'session-1', userId: 1, revoked: true,
+    }],
+    ['another user session', { sub: 1, roles: [], jti: 'session-1' }, {
+      id: 'session-1', userId: 2, revoked: false,
+    }],
+    ['expired session', { sub: 1, roles: [], jti: 'session-1' }, {
+      id: 'session-1', userId: 1, revoked: false, expiresAt: new Date(0),
+    }],
+    ['invalid session expiration', { sub: 1, roles: [], jti: 'session-1' }, {
+      id: 'session-1', userId: 1, revoked: false, expiresAt: new Date(Number.NaN),
+    }],
+  ])('rejects a token with %s', async (_case, payload, session) => {
+    const token = service.sign(payload);
+    const users = new InMemoryAuthUserRepository([{ id: 1, roles: ['user'] }]);
+    const strategy = new JwtStrategy(service, users, {
+      sessions: { findById: vi.fn(async () => session) },
+    });
+
+    await expect(strategy.authenticate(request(`Bearer ${token}`))).resolves.toBeNull();
+  });
 });

@@ -4,6 +4,7 @@ import {
   DatabaseApiKeyRepository,
   DatabaseApiKeyUsageRecorder,
   DatabaseAuthUserRepository,
+  DatabaseJwtSessionRepository,
   type ApiKeyHasher,
 } from '../src/index.js';
 
@@ -58,6 +59,29 @@ describe('database auth repositories', () => {
     });
     expect(hasher.hash).toHaveBeenCalledWith('raw-key');
     expect(db.get).toHaveBeenCalledWith(expect.objectContaining({ params: ['digest'] }));
+  });
+
+  it('loads server-side JWT revocation state', async () => {
+    const db = {
+      get: vi.fn(async () => ({
+        id: 'session-1',
+        user_id: 7,
+        status: 'active',
+        expires_at: '2030-01-01T00:00:00.000Z',
+      })),
+    } as unknown as IDatabase;
+    const repository = new DatabaseJwtSessionRepository(db);
+
+    await expect(repository.findById('session-1')).resolves.toEqual({
+      id: 'session-1',
+      userId: 7,
+      revoked: false,
+      expiresAt: new Date('2030-01-01T00:00:00.000Z'),
+    });
+    expect(db.get).toHaveBeenCalledWith(expect.objectContaining({
+      sql: expect.stringContaining('FROM jwt_sessions WHERE id = ?'),
+      params: ['session-1'],
+    }));
   });
 
   it('supports validated custom table names', async () => {

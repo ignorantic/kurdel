@@ -47,6 +47,10 @@ issue, and key revocation history. The event records contain identifiers and
 safe reason codes only; raw API keys, hashes, JWTs, and request bodies are never
 stored.
 
+Migration `0005-create-jwt-sessions.js` demonstrates persisted, revocable JWT
+session state. A JWT strategy can use `DatabaseJwtSessionRepository` to require
+an active database session matching the token's `jti` and subject.
+
 The sample build produces both the server and the browser bundle. During UI
 development, rebuild only the client with `npm run build:client:dev` and reload
 the page.

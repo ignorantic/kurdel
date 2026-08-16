@@ -38,7 +38,9 @@ export type AuthEventType =
   | 'authentication.failed'
   | 'authorization.denied'
   | 'api-key.issued'
-  | 'api-key.revoked';
+  | 'api-key.revoked'
+  | 'jwt-session.created'
+  | 'jwt-session.revoked';
 
 export type AuthEvent = {
   id: number;
