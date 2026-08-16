@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/sample-auth",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "private": true,
   "description": "example app with auth",
   "type": "module",
@@ -18,10 +18,10 @@
   "author": "Andrii Sorokin",
   "license": "MIT",
   "dependencies": {
-    "@kurdel/auth": "0.1.0-beta.4",
-    "@kurdel/core": "0.1.0-beta.4",
-    "@kurdel/facade": "0.1.0-beta.4",
-    "@kurdel/ioc": "0.1.0-beta.4"
+    "@kurdel/auth": "0.1.0-beta.5",
+    "@kurdel/core": "0.1.0-beta.5",
+    "@kurdel/facade": "0.1.0-beta.5",
+    "@kurdel/ioc": "0.1.0-beta.5"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",

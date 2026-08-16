@@ -6,6 +6,13 @@ All notable changes to Kurdel are documented in this file. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-beta.5] - 2026-08-16
+
+### Fixed
+
+- make dashboard API-key expiration and recent authentication queries portable to PostgreSQL
+- normalize PostgreSQL aggregate counts to numbers before returning administration statistics
+
 ## [0.1.0-beta.4] - 2026-08-16
 
 ### Added
@@ -80,7 +87,8 @@ All notable changes to Kurdel are documented in this file. The format follows
 - packages require Node.js 20.19+, 22.12+, or 24+
 - prerelease packages are published under the npm `beta` dist-tag
 
-[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.4...HEAD
+[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.5...HEAD
+[0.1.0-beta.5]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.4...v0.1.0-beta.5
 [0.1.0-beta.4]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.3...v0.1.0-beta.4
 [0.1.0-beta.3]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.2...v0.1.0-beta.3
 [0.1.0-beta.2]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.1...v0.1.0-beta.2

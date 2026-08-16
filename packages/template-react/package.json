@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/template-react",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "description": "React server-side rendering template engine for Kurdel",
   "type": "module",
   "exports": {
@@ -62,6 +62,6 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@kurdel/core": "0.1.0-beta.4"
+    "@kurdel/core": "0.1.0-beta.5"
   }
 }

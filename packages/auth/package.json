@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/auth",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "description": "Authentication and authorization primitives for Kurdel applications",
   "type": "module",
   "exports": {
@@ -49,8 +49,8 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
-    "@kurdel/common": "0.1.0-beta.4",
-    "@kurdel/core": "0.1.0-beta.4",
-    "@kurdel/ioc": "0.1.0-beta.4"
+    "@kurdel/common": "0.1.0-beta.5",
+    "@kurdel/core": "0.1.0-beta.5",
+    "@kurdel/ioc": "0.1.0-beta.5"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/sample-react",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "private": true,
   "description": "example simple app with react template",
   "type": "module",
@@ -24,10 +24,10 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
-    "@kurdel/core": "0.1.0-beta.4",
-    "@kurdel/facade": "0.1.0-beta.4",
-    "@kurdel/runtime-node": "0.1.0-beta.4",
-    "@kurdel/template-react": "0.1.0-beta.4",
+    "@kurdel/core": "0.1.0-beta.5",
+    "@kurdel/facade": "0.1.0-beta.5",
+    "@kurdel/runtime-node": "0.1.0-beta.5",
+    "@kurdel/template-react": "0.1.0-beta.5",
     "cross-env": "^10.1.0"
   },
   "devDependencies": {
