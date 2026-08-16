@@ -4,10 +4,7 @@ import type { AuthEvent, AuthEventSink } from '@kurdel/auth';
 import type { IDatabase, IDatabaseSession } from '@kurdel/db';
 
 import type { ApiKeyHasher } from './api-key-hasher.js';
-import {
-  resolveAuthDatabaseTables,
-  type AuthDatabaseTables,
-} from './auth-database-tables.js';
+import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
 
 type UserRecord = {
   id: number;
@@ -78,7 +75,7 @@ export class DatabaseApiKeyService {
     private readonly hasher: ApiKeyHasher,
     tables: Partial<AuthDatabaseTables> = {},
     private readonly events?: TransactionalAuthEventSink,
-    private readonly now: () => Date = () => new Date(),
+    private readonly now: () => Date = () => new Date()
   ) {
     this.tables = resolveAuthDatabaseTables(tables);
   }
@@ -130,12 +127,15 @@ export class DatabaseApiKeyService {
         params: [id, input.userId, this.hasher.hash(key), input.name, 'active', expiresAt],
       });
 
-      await this.events?.report({
-        type: 'api-key.issued',
-        occurredAt: this.now(),
-        userId: input.userId,
-        credential: { type: 'api-key', id },
-      }, transaction);
+      await this.events?.report(
+        {
+          type: 'api-key.issued',
+          occurredAt: this.now(),
+          userId: input.userId,
+          credential: { type: 'api-key', id },
+        },
+        transaction
+      );
     });
 
     return { id, key, name: input.name, expiresAt };
@@ -154,12 +154,15 @@ export class DatabaseApiKeyService {
         params: [apiKeyId, userId],
       });
 
-      await this.events?.report({
-        type: 'api-key.revoked',
-        occurredAt: this.now(),
-        userId,
-        credential: { type: 'api-key', id: apiKeyId },
-      }, transaction);
+      await this.events?.report(
+        {
+          type: 'api-key.revoked',
+          occurredAt: this.now(),
+          userId,
+          credential: { type: 'api-key', id: apiKeyId },
+        },
+        transaction
+      );
     });
   }
 

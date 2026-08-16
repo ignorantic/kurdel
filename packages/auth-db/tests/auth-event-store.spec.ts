@@ -33,38 +33,51 @@ describe('DatabaseAuthEventStore', () => {
 
   it('filters and maps stored events', async () => {
     const db = {
-      all: vi.fn(async () => [{
-        id: 3,
-        type: 'authorization.denied',
-        occurred_at: '2026-08-15T12:00:00.000Z',
-        strategy: 'api-key',
-        user_id: '7',
-        credential_type: 'api-key',
-        credential_id: 'credential-1',
-        reason: 'policy-rejected',
-        policy: 'manage-users',
-      }]),
+      all: vi.fn(async () => [
+        {
+          id: 3,
+          type: 'authorization.denied',
+          occurred_at: '2026-08-15T12:00:00.000Z',
+          strategy: 'api-key',
+          user_id: '7',
+          credential_type: 'api-key',
+          credential_id: 'credential-1',
+          reason: 'policy-rejected',
+          policy: 'manage-users',
+        },
+      ]),
+      get: vi.fn(async () => ({ count: 1 })),
     } as unknown as IDatabase;
     const store = new DatabaseAuthEventStore(db, { authEvents: 'security_events' });
 
-    await expect(store.list({
-      userId: 7,
-      type: 'authorization.denied',
-      limit: 20,
-    })).resolves.toEqual([{
-      id: 3,
-      type: 'authorization.denied',
-      occurredAt: '2026-08-15T12:00:00.000Z',
-      strategy: 'api-key',
-      userId: '7',
-      credentialType: 'api-key',
-      credentialId: 'credential-1',
-      reason: 'policy-rejected',
-      policy: 'manage-users',
-    }]);
-    expect(db.all).toHaveBeenCalledWith(expect.objectContaining({
-      sql: expect.stringContaining('FROM security_events WHERE user_id = ? AND type = ?'),
-      params: ['7', 'authorization.denied', 20],
-    }));
+    await expect(
+      store.list({
+        userId: 7,
+        type: 'authorization.denied',
+        limit: 20,
+      })
+    ).resolves.toEqual([
+      {
+        id: 3,
+        type: 'authorization.denied',
+        occurredAt: '2026-08-15T12:00:00.000Z',
+        strategy: 'api-key',
+        userId: '7',
+        credentialType: 'api-key',
+        credentialId: 'credential-1',
+        reason: 'policy-rejected',
+        policy: 'manage-users',
+      },
+    ]);
+    expect(db.all).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sql: expect.stringContaining('FROM security_events WHERE user_id = ? AND type = ?'),
+        params: ['7', 'authorization.denied', 20, 0],
+      })
+    );
+    expect(db.get).toHaveBeenCalledWith({
+      sql: 'SELECT COUNT(*) AS count FROM security_events WHERE user_id = ? AND type = ?;',
+      params: ['7', 'authorization.denied'],
+    });
   });
 });

@@ -17,6 +17,14 @@ role assignments, and issue, list, or revoke API keys. `AuthDatabaseModule`
 registers both services as `AUTH_DB_TOKENS.UserService` and
 `AUTH_DB_TOKENS.ApiKeyService`.
 
+User listings support status and text filters, stable sorting, and offset
+pagination. `DatabaseUserService` also provides transactional bulk status,
+role, and deletion operations; role lifecycle management with usage counts;
+and dashboard statistics for users, credentials, and recent authentication
+failures. `DatabaseAuthEventStore.listPage()` exposes global or per-user audit
+history with type, date range, and offset filters while the existing `list()`
+method remains available for simple queries.
+
 `DatabaseApiKeyUsageRecorder` updates `last_used_at` after successful
 authentication. `AuthDatabaseModule` exposes it through
 `AUTH_TOKENS.ApiKeyUsageRecorder`, ready to pass to `ApiKeyStrategy` as its

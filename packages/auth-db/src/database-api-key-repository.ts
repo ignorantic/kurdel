@@ -2,10 +2,7 @@ import type { ApiKeyCredential, ApiKeyRepository } from '@kurdel/auth';
 import type { IDatabase } from '@kurdel/db';
 
 import type { ApiKeyHasher } from './api-key-hasher.js';
-import {
-  resolveAuthDatabaseTables,
-  type AuthDatabaseTables,
-} from './auth-database-tables.js';
+import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
 
 type ApiKeyRecord = {
   id: string;
@@ -20,20 +17,20 @@ export class DatabaseApiKeyRepository implements ApiKeyRepository {
   constructor(
     private readonly db: IDatabase,
     private readonly hasher: ApiKeyHasher,
-    tables: Partial<AuthDatabaseTables> = {},
+    tables: Partial<AuthDatabaseTables> = {}
   ) {
     this.tables = resolveAuthDatabaseTables(tables);
   }
 
   async findByKey(key: string): Promise<ApiKeyCredential | null> {
-    const record = await this.db.get({
+    const record = (await this.db.get({
       sql: [
         'SELECT id, user_id, status, expires_at',
         `FROM ${this.tables.apiKeys}`,
         'WHERE key_hash = ?;',
       ].join(' '),
       params: [this.hasher.hash(key)],
-    }) as ApiKeyRecord | undefined;
+    })) as ApiKeyRecord | undefined;
     if (!record) return null;
 
     return {

@@ -50,11 +50,12 @@ export class AuthDatabaseModule implements AppModule {
       },
       {
         provide: AUTH_TOKENS.ApiKeyRepository,
-        useFactory: ioc => new DatabaseApiKeyRepository(
-          ioc.get(IDatabase),
-          ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
-          tables,
-        ),
+        useFactory: ioc =>
+          new DatabaseApiKeyRepository(
+            ioc.get(IDatabase),
+            ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
+            tables
+          ),
         singleton: true,
       },
       {
@@ -68,20 +69,24 @@ export class AuthDatabaseModule implements AppModule {
         singleton: true,
       },
       ...(config.audit
-        ? [{
-            provide: AUTH_DB_TOKENS.EventStore,
-            useFactory: (ioc: Container) => new DatabaseAuthEventStore(ioc.get(IDatabase), tables),
-            singleton: true,
-          }]
+        ? [
+            {
+              provide: AUTH_DB_TOKENS.EventStore,
+              useFactory: (ioc: Container) =>
+                new DatabaseAuthEventStore(ioc.get(IDatabase), tables),
+              singleton: true,
+            },
+          ]
         : []),
       {
         provide: AUTH_DB_TOKENS.ApiKeyService,
-        useFactory: ioc => new DatabaseApiKeyService(
-          ioc.get(IDatabase),
-          ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
-          tables,
-          config.audit ? ioc.get(AUTH_DB_TOKENS.EventStore) : undefined,
-        ),
+        useFactory: ioc =>
+          new DatabaseApiKeyService(
+            ioc.get(IDatabase),
+            ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
+            tables,
+            config.audit ? ioc.get(AUTH_DB_TOKENS.EventStore) : undefined
+          ),
         singleton: true,
       },
     ];

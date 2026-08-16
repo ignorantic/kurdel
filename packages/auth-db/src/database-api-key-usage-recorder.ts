@@ -1,10 +1,7 @@
 import type { ApiKeyUsageRecorder } from '@kurdel/auth';
 import type { IDatabase } from '@kurdel/db';
 
-import {
-  resolveAuthDatabaseTables,
-  type AuthDatabaseTables,
-} from './auth-database-tables.js';
+import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
 
 /** Records the most recent successful use of a database-backed API key. */
 export class DatabaseApiKeyUsageRecorder implements ApiKeyUsageRecorder {
@@ -12,7 +9,7 @@ export class DatabaseApiKeyUsageRecorder implements ApiKeyUsageRecorder {
 
   constructor(
     private readonly db: IDatabase,
-    tables: Partial<AuthDatabaseTables> = {},
+    tables: Partial<AuthDatabaseTables> = {}
   ) {
     this.tables = resolveAuthDatabaseTables(tables);
   }

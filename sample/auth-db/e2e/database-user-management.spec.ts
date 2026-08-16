@@ -76,6 +76,27 @@ describe('database user management', () => {
     await expect(users.listRoles()).resolves.toEqual(['admin', 'user']);
   });
 
+  it('creates, renames, summarizes and removes roles', async () => {
+    const role = await users.createRole('support');
+    expect(role).toMatchObject({ name: 'support', userCount: 0 });
+    const assigned = await users.create({
+      name: 'Support Agent',
+      email: 'support-agent@example.test',
+      roles: ['support'],
+    });
+    await expect(users.listRoleSummaries()).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: role.id, userCount: 1 })])
+    );
+    await expect(users.deleteRole(role.id)).rejects.toMatchObject({ userCount: 1 });
+    await expect(users.renameRole(role.id, 'customer-support')).resolves.toMatchObject({
+      name: 'customer-support',
+      userCount: 1,
+    });
+    await users.update(assigned.id, { roles: ['user'] });
+    await users.deleteRole(role.id);
+    await expect(users.listRoles()).resolves.not.toContain('customer-support');
+  });
+
   it('rejects unknown roles before creating a user', async () => {
     const before = await db.get({ sql: 'SELECT COUNT(*) AS count FROM users;', params: [] });
 
@@ -167,20 +188,26 @@ describe('database user management', () => {
     };
     const failingService = new DatabaseApiKeyService(db, hasher, {}, auditFailure);
 
-    await expect(failingService.create({ userId: user.id, name: 'Rolled back key' }))
-      .rejects.toThrow('Audit persistence failed');
-    await expect(db.get({
-      sql: 'SELECT COUNT(*) AS count FROM api_keys WHERE user_id = ?;',
-      params: [user.id],
-    })).resolves.toEqual({ count: 0 });
+    await expect(
+      failingService.create({ userId: user.id, name: 'Rolled back key' })
+    ).rejects.toThrow('Audit persistence failed');
+    await expect(
+      db.get({
+        sql: 'SELECT COUNT(*) AS count FROM api_keys WHERE user_id = ?;',
+        params: [user.id],
+      })
+    ).resolves.toEqual({ count: 0 });
 
     const credential = await apiKeys.create({ userId: user.id, name: 'Active key' });
-    await expect(failingService.revoke(user.id, credential.id))
-      .rejects.toThrow('Audit persistence failed');
-    await expect(db.get({
-      sql: 'SELECT status FROM api_keys WHERE id = ?;',
-      params: [credential.id],
-    })).resolves.toEqual({ status: 'active' });
+    await expect(failingService.revoke(user.id, credential.id)).rejects.toThrow(
+      'Audit persistence failed'
+    );
+    await expect(
+      db.get({
+        sql: 'SELECT status FROM api_keys WHERE id = ?;',
+        params: [credential.id],
+      })
+    ).resolves.toEqual({ status: 'active' });
   });
 
   it('lists, loads and updates user profiles and access state', async () => {
@@ -222,6 +249,78 @@ describe('database user management', () => {
         roles: ['user'],
       })
     ).rejects.toMatchObject({ email: 'unique@example.test' });
+  });
+
+  it('searches and sorts users by supported fields', async () => {
+    await users.create({ name: 'Zulu Search', email: 'zulu-search@example.test', roles: ['user'] });
+    await users.create({
+      name: 'Alpha Search',
+      email: 'alpha-search@example.test',
+      roles: ['user'],
+    });
+    const result = await users.list({
+      limit: 10,
+      offset: 0,
+      search: 'SEARCH',
+      sortBy: 'name',
+      sortDirection: 'asc',
+    });
+    expect(result.users.map(user => user.name)).toEqual(['Alpha Search', 'Zulu Search']);
+    expect(result.total).toBe(2);
+  });
+
+  it('updates and deletes user selections atomically', async () => {
+    const first = await users.create({
+      name: 'Bulk First',
+      email: 'bulk-first@example.test',
+      roles: ['user'],
+    });
+    const second = await users.create({
+      name: 'Bulk Second',
+      email: 'bulk-second@example.test',
+      roles: ['user'],
+    });
+    const updated = await users.bulkUpdate({
+      userIds: [first.id, second.id],
+      status: 'disabled',
+      addRoles: ['admin'],
+      removeRoles: ['user'],
+    });
+    expect(updated).toEqual([
+      expect.objectContaining({ id: first.id, status: 'disabled', roles: ['admin'] }),
+      expect.objectContaining({ id: second.id, status: 'disabled', roles: ['admin'] }),
+    ]);
+    await users.bulkDelete([first.id, second.id]);
+    await expect(users.findById(first.id)).rejects.toBeInstanceOf(UserNotFoundError);
+    await expect(users.findById(second.id)).rejects.toBeInstanceOf(UserNotFoundError);
+  });
+
+  it('returns dashboard statistics for users, credentials and failures', async () => {
+    const statsUser = await users.create({
+      name: 'Stats User',
+      email: 'stats@example.test',
+      roles: ['user'],
+    });
+    await apiKeys.create({ userId: statsUser.id, name: 'Stats key' });
+    await events.report({
+      type: 'authentication.failed',
+      occurredAt: new Date(),
+      strategy: 'api-key',
+      reason: 'invalid-credential',
+    });
+    await expect(users.dashboardStats()).resolves.toMatchObject({
+      users: {
+        total: expect.any(Number),
+        active: expect.any(Number),
+        disabled: expect.any(Number),
+      },
+      apiKeys: {
+        active: expect.any(Number),
+        revoked: expect.any(Number),
+        expired: expect.any(Number),
+      },
+      failedAuthenticationsLast24Hours: 1,
+    });
   });
 
   it('deletes a user together with role assignments and credentials', async () => {

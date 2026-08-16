@@ -15,7 +15,7 @@ export const DEFAULT_AUTH_DATABASE_TABLES: Readonly<AuthDatabaseTables> = {
 };
 
 export function resolveAuthDatabaseTables(
-  tables: Partial<AuthDatabaseTables> = {},
+  tables: Partial<AuthDatabaseTables> = {}
 ): AuthDatabaseTables {
   const resolved = { ...DEFAULT_AUTH_DATABASE_TABLES, ...tables };
   Object.values(resolved).forEach(assertSqlIdentifier);

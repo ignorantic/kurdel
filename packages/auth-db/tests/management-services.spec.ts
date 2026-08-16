@@ -1,10 +1,6 @@
 import type { IDatabase } from '@kurdel/db';
 
-import {
-  DatabaseApiKeyService,
-  DatabaseUserService,
-  type ApiKeyHasher,
-} from '../src/index.js';
+import { DatabaseApiKeyService, DatabaseUserService, type ApiKeyHasher } from '../src/index.js';
 
 describe('database auth management services', () => {
   it('loads roles through validated custom table names', async () => {
@@ -36,18 +32,22 @@ describe('database auth management services', () => {
       sql: 'SELECT id, status FROM application_users WHERE id = ?;',
       params: [7],
     });
-    expect(db.all).toHaveBeenCalledWith(expect.objectContaining({
-      sql: expect.stringContaining('FROM application_api_keys'),
-    }));
+    expect(db.all).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sql: expect.stringContaining('FROM application_api_keys'),
+      })
+    );
   });
 
   it('rejects unsafe table names before executing management queries', () => {
     const db = {} as IDatabase;
     const hasher: ApiKeyHasher = { hash: key => key };
 
-    expect(() => new DatabaseUserService(db, { users: 'users; DROP TABLE users' }))
-      .toThrow('Invalid auth database table name');
-    expect(() => new DatabaseApiKeyService(db, hasher, { apiKeys: 'api keys' }))
-      .toThrow('Invalid auth database table name');
+    expect(() => new DatabaseUserService(db, { users: 'users; DROP TABLE users' })).toThrow(
+      'Invalid auth database table name'
+    );
+    expect(() => new DatabaseApiKeyService(db, hasher, { apiKeys: 'api keys' })).toThrow(
+      'Invalid auth database table name'
+    );
   });
 });

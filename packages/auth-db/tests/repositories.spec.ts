@@ -68,11 +68,14 @@ describe('database auth repositories', () => {
 
     await repository.findByKey('key');
 
-    expect(db.get).toHaveBeenCalledWith(expect.objectContaining({
-      sql: expect.stringContaining('FROM application_api_keys'),
-    }));
-    expect(() => new DatabaseAuthUserRepository(db, { users: 'users; DROP TABLE users' }))
-      .toThrow('Invalid auth database table name');
+    expect(db.get).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sql: expect.stringContaining('FROM application_api_keys'),
+      })
+    );
+    expect(() => new DatabaseAuthUserRepository(db, { users: 'users; DROP TABLE users' })).toThrow(
+      'Invalid auth database table name'
+    );
   });
 
   it('records successful API key usage by stable credential ID', async () => {
