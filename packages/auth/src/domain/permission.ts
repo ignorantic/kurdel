@@ -9,5 +9,9 @@ export function hasPermission(user: Readonly<AuthUser>, permission: string): boo
 
 /** Creates a policy that requires one resolved permission. */
 export function permissionPolicy(permission: string): AuthorizationPolicy {
-  return { authorize: auth => hasPermission(auth.user, permission) };
+  return {
+    authorize: auth => hasPermission(auth.user, permission)
+      ? { allowed: true }
+      : { allowed: false, reason: `missing-permission:${permission}` },
+  };
 }

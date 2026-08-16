@@ -21,6 +21,7 @@ export type AuthEvent =
       strategy?: string;
       reason: 'missing-role' | 'missing-authentication' | 'policy-rejected';
       policy?: string;
+      decisionReason?: string;
     })
   | (AuthEventBase & {
       type: 'api-key.issued' | 'api-key.revoked';

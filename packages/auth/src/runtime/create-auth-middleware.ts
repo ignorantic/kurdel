@@ -1,5 +1,10 @@
 import type { Middleware } from '@kurdel/core/http';
-import { NoopAuthEventSink, type AuthContext, type AuthEventSink } from 'src/domain/index.js';
+import {
+  authorizationDecision,
+  NoopAuthEventSink,
+  type AuthContext,
+  type AuthEventSink,
+} from 'src/domain/index.js';
 
 import type { AuthStrategyRegistry } from './auth-strategy-registry.js';
 import { AuthorizationPolicyRegistry } from './authorization-policy-registry.js';
@@ -88,7 +93,8 @@ export function createAuthMiddleware(
           return ctx.json(500, { error: `Unknown authorization policy '${name}'` });
         }
 
-        if (!(await policy.authorize(auth, ctx))) {
+        const decision = authorizationDecision(await policy.authorize(auth, ctx));
+        if (!decision.allowed) {
           await events.report({
             type: 'authorization.denied',
             occurredAt: now(),
@@ -97,6 +103,7 @@ export function createAuthMiddleware(
             ...(auth.credential ? { credential: auth.credential } : {}),
             reason: 'policy-rejected',
             policy: name,
+            ...(decision.reason ? { decisionReason: decision.reason } : {}),
           });
           return ctx.json(403, { error: 'Forbidden' });
         }

@@ -11,6 +11,15 @@ describe('permission authorization helpers', () => {
 
   it('creates a reusable permission policy', async () => {
     const policy = permissionPolicy('users.update');
-    expect(await policy.authorize({ strategy: 'test', user }, {} as any)).toBe(true);
+    expect(await policy.authorize({ strategy: 'test', user }, {} as any)).toEqual({
+      allowed: true,
+    });
+    expect(await permissionPolicy('users.delete').authorize(
+      { strategy: 'test', user },
+      {} as any,
+    )).toEqual({
+      allowed: false,
+      reason: 'missing-permission:users.delete',
+    });
   });
 });

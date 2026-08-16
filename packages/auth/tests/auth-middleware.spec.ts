@@ -165,6 +165,32 @@ describe('createAuthMiddleware', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  it('reports a safe diagnostic reason returned by a policy', async () => {
+    const strategies = new AuthStrategyRegistry();
+    strategies.register('api-key', {
+      authenticate: vi.fn(async () => ({ user: { id: 7, roles: [] } })),
+    });
+    const policies = new AuthorizationPolicyRegistry();
+    policies.register('manage-users', {
+      authorize: () => ({ allowed: false, reason: 'missing-permission:users.manage' }),
+    });
+    const events = { report: vi.fn(async () => undefined) };
+    const ctx = {
+      route: { auth: { strategy: 'api-key', policies: ['manage-users'] } },
+      req: { method: 'GET', url: '/', query: {}, headers: {} },
+      json: vi.fn(() => ({ status: 403 })),
+    } as any;
+
+    await createAuthMiddleware(strategies, policies, events, () => occurredAt)(ctx, vi.fn());
+
+    expect(events.report).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'authorization.denied',
+      reason: 'policy-rejected',
+      policy: 'manage-users',
+      decisionReason: 'missing-permission:users.manage',
+    }));
+  });
+
   it('reports an unknown authorization policy as a server error', async () => {
     const strategies = new AuthStrategyRegistry();
     strategies.register('api-key', {

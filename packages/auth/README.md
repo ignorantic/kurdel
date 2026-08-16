@@ -128,10 +128,12 @@ route({
 ```
 
 A policy receives the complete `AuthContext` and current `HttpContext`, and may
-return a boolean or a promise. When several policies are listed, every policy
-must grant access. Policies and `roles` may be combined; both checks must then
-succeed. A rejected policy returns `403 Forbidden`, while an unknown policy is
-reported as an application configuration error.
+return a boolean, an `AuthorizationDecision`, or a promise. Decisions can carry
+a safe reason code that is included in authorization-denied events. When
+several policies are listed, every policy must grant access. Policies and
+`roles` may be combined; both checks must then succeed. A rejected policy
+returns `403 Forbidden`, while an unknown policy is reported as an application
+configuration error.
 
 Policy providers also support `useFactory`, allowing policies to resolve
 application services from the dependency container.
@@ -140,18 +142,28 @@ For role-permission models, strategies may resolve `AuthUser.permissions` and
 policies can use the built-in helpers:
 
 ```ts
-import { hasPermission, permissionPolicy } from '@kurdel/auth';
+import { allOf, anyOf, permissionPolicy } from '@kurdel/auth';
 
-const manageUsers = permissionPolicy('users.manage');
-const viewUser = {
-  authorize: (auth, ctx) =>
-    hasPermission(auth.user, 'users.view.any') ||
-    (hasPermission(auth.user, 'users.view.self') && String(auth.user.id) === ctx.params.id),
+const apiKeyOnly = {
+  authorize: auth => auth.credential?.type === 'api-key'
+    ? { allowed: true }
+    : { allowed: false, reason: 'api-key-required' },
 };
+const ownsRequestedUser = {
+  authorize: (auth, ctx) => String(auth.user.id) === ctx.params.id
+    ? { allowed: true }
+    : { allowed: false, reason: 'self-access-required' },
+};
+
+const manageUsers = allOf(apiKeyOnly, permissionPolicy('users.manage'));
+const viewUser = anyOf(permissionPolicy('users.view.any'), ownsRequestedUser);
 ```
 
 Permissions express reusable capabilities, while policies remain executable
 rules that may also inspect the request, credential, or target resource.
+`allOf`, `anyOf`, and `not` compose policies and short-circuit evaluation while
+preserving a nested denial reason for diagnostics. Boolean policies remain
+fully supported.
 
 ## Security events
 
@@ -172,7 +184,8 @@ new AuthModule({
 The package reports successful and failed authentication plus authorization
 denials. API-key management services may additionally report credential issue
 and revocation events. Events contain timestamps, strategy names, user and
-credential identifiers, safe reason codes, and policy names. Raw API keys,
+credential identifiers, safe reason codes, policy names, and optional policy
+decision reasons. Raw API keys,
 JWTs, credential hashes, headers, and request bodies are never part of the
 event contract.
 

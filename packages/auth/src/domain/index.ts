@@ -4,5 +4,6 @@ export * from './auth-event-sink-provider.js';
 export * from './auth-strategy-provider.js';
 export * from './auth-strategy.js';
 export * from './authorization-policy.js';
+export * from './authorization-policy-composition.js';
 export * from './authorization-policy-provider.js';
 export * from './permission.js';
