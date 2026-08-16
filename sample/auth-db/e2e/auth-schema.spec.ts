@@ -3,6 +3,7 @@ import { DatabaseFactory, type IDatabase } from '@kurdel/db';
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
+import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 
 describe('auth database schema', () => {
   let db: IDatabase;
@@ -24,6 +25,7 @@ describe('auth database schema', () => {
     await migration.up();
     await new AddUserProfile(db).up();
     await new CreateAuthEvents(db).up();
+    await new CreateRolePermissions(db).up();
 
     const tables = await db.all({
       sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name;",
@@ -32,6 +34,8 @@ describe('auth database schema', () => {
     expect(tables.map((table: { name: string }) => table.name)).toEqual([
       'api_keys',
       'auth_events',
+      'permissions',
+      'role_permissions',
       'roles',
       'user_roles',
       'users',
@@ -61,25 +65,28 @@ describe('auth database schema', () => {
     );
 
     await db.run({
-      sql: "INSERT INTO users (id, name, email, status) VALUES (?, ?, ?, ?);",
+      sql: 'INSERT INTO users (id, name, email, status) VALUES (?, ?, ?, ?);',
       params: [1, 'Root User', 'root@example.test', 'active'],
     });
     await db.run({
-      sql: "INSERT INTO roles (id, name) VALUES (?, ?);",
+      sql: 'INSERT INTO roles (id, name) VALUES (?, ?);',
       params: [1, 'root'],
     });
     await db.run({
       sql: 'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?);',
       params: [1, 1],
     });
-    await expect(db.run({
-      sql: 'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?);',
-      params: [1, 1],
-    })).rejects.toThrow();
+    await expect(
+      db.run({
+        sql: 'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?);',
+        params: [1, 1],
+      })
+    ).rejects.toThrow();
   });
 
   it('rolls the auth schema back in dependency order', async () => {
     const migration = new CreateAuthSchema(db);
+    await new CreateRolePermissions(db).down();
     await new CreateAuthEvents(db).down();
     await new AddUserProfile(db).down();
     await migration.down();

@@ -9,6 +9,8 @@ type RoleRecord = {
   name: string;
 };
 
+type PermissionRecord = { id: number; name: string };
+
 type UserRecord = {
   id: number;
   name: string;
@@ -53,6 +55,7 @@ export interface RoleSummary {
   id: number;
   name: string;
   userCount: number;
+  permissions: string[];
 }
 
 export interface AdminDashboardStats {
@@ -81,6 +84,12 @@ export interface UserList {
 export class UnknownRolesError extends Error {
   constructor(readonly roles: string[]) {
     super(`Unknown roles: ${roles.join(', ')}`);
+  }
+}
+
+export class UnknownPermissionsError extends Error {
+  constructor(readonly permissions: string[]) {
+    super(`Unknown permissions: ${permissions.join(', ')}`);
   }
 }
 
@@ -144,7 +153,39 @@ export class DatabaseUserService {
       ].join(' '),
       params: [],
     })) as Array<{ id: number; name: string; user_count: number }>;
-    return records.map(role => ({ id: role.id, name: role.name, userCount: role.user_count }));
+    const permissions = await this.loadRolePermissions(records.map(role => role.id));
+    return records.map(role => ({
+      id: role.id,
+      name: role.name,
+      userCount: role.user_count,
+      permissions: permissions.get(role.id) ?? [],
+    }));
+  }
+
+  async listPermissions(): Promise<string[]> {
+    const records = (await this.db.all({
+      sql: `SELECT name FROM ${this.tables.permissions} ORDER BY name;`,
+      params: [],
+    })) as Array<{ name: string }>;
+    return records.map(permission => permission.name);
+  }
+
+  async setRolePermissions(roleId: number, names: string[]): Promise<RoleSummary> {
+    if (!(await this.findRole(roleId))) throw new RoleNotFoundError(roleId);
+    const permissions = await this.resolvePermissions(names);
+    await this.db.transaction(async transaction => {
+      await transaction.run({
+        sql: `DELETE FROM ${this.tables.rolePermissions} WHERE role_id = ?;`,
+        params: [roleId],
+      });
+      for (const permission of permissions) {
+        await transaction.run({
+          sql: `INSERT INTO ${this.tables.rolePermissions} (role_id, permission_id) VALUES (?, ?);`,
+          params: [roleId, permission.id],
+        });
+      }
+    });
+    return (await this.listRoleSummaries()).find(role => role.id === roleId)!;
   }
 
   async createRole(name: string): Promise<RoleSummary> {
@@ -154,7 +195,7 @@ export class DatabaseUserService {
         sql: `INSERT INTO ${this.tables.roles} (name) VALUES (?) RETURNING id, name;`,
         params: [normalized],
       })) as RoleRecord;
-      return { ...role, userCount: 0 };
+      return { ...role, userCount: 0, permissions: [] };
     } catch (error) {
       this.rethrowRoleConflict(error, normalized);
     }
@@ -452,6 +493,37 @@ export class DatabaseUserService {
     if (unknown.length > 0) throw new UnknownRolesError(unknown);
     const byName = new Map(records.map(role => [role.name, role]));
     return uniqueNames.map(name => byName.get(name)!);
+  }
+
+  private async resolvePermissions(names: string[]): Promise<PermissionRecord[]> {
+    const uniqueNames = [...new Set(names)];
+    if (uniqueNames.length === 0) return [];
+    const records = (await this.db.all({
+      sql: `SELECT id, name FROM ${this.tables.permissions} WHERE name IN (${uniqueNames.map(() => '?').join(', ')});`,
+      params: uniqueNames,
+    })) as PermissionRecord[];
+    const byName = new Map(records.map(permission => [permission.name, permission]));
+    const unknown = uniqueNames.filter(name => !byName.has(name));
+    if (unknown.length > 0) throw new UnknownPermissionsError(unknown);
+    return uniqueNames.map(name => byName.get(name)!);
+  }
+
+  private async loadRolePermissions(roleIds: number[]): Promise<Map<number, string[]>> {
+    const result = new Map<number, string[]>();
+    if (roleIds.length === 0) return result;
+    const records = (await this.db.all({
+      sql: [
+        `SELECT rp.role_id, p.name FROM ${this.tables.rolePermissions} rp`,
+        `INNER JOIN ${this.tables.permissions} p ON p.id = rp.permission_id`,
+        `WHERE rp.role_id IN (${roleIds.map(() => '?').join(', ')})`,
+        'ORDER BY p.name;',
+      ].join(' '),
+      params: roleIds,
+    })) as Array<{ role_id: number; name: string }>;
+    for (const permission of records) {
+      result.set(permission.role_id, [...(result.get(permission.role_id) ?? []), permission.name]);
+    }
+    return result;
   }
 
   private async replaceRoles(

@@ -25,6 +25,14 @@ failures. `DatabaseAuthEventStore.listPage()` exposes global or per-user audit
 history with type, date range, and offset filters while the existing `list()`
 method remains available for simple queries.
 
+Applications may also model authorization as roles containing permissions.
+`DatabaseUserService.listPermissions()` exposes the application-owned catalog,
+and `setRolePermissions()` replaces a role's assignments transactionally.
+`DatabaseAuthUserRepository` resolves the union of permissions from every
+current role into `AuthUser.permissions`. The application schema must provide
+`permissions` and `role_permissions` tables; the runnable sample contains the
+corresponding migration and seed data.
+
 `DatabaseApiKeyUsageRecorder` updates `last_used_at` after successful
 authentication. `AuthDatabaseModule` exposes it through
 `AUTH_TOKENS.ApiKeyUsageRecorder`, ready to pass to `ApiKeyStrategy` as its
@@ -59,12 +67,13 @@ const modules = [
     strategies: [
       {
         name: 'api-key',
-        useFactory: ioc => new ApiKeyStrategy({
-          header: 'x-api-key',
-          credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
-          users: ioc.get(AUTH_TOKENS.UserRepository),
-          usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
-        }),
+        useFactory: ioc =>
+          new ApiKeyStrategy({
+            header: 'x-api-key',
+            credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
+            users: ioc.get(AUTH_TOKENS.UserRepository),
+            usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
+          }),
       },
     ],
   }),

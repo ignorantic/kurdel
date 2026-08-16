@@ -13,6 +13,7 @@ import {
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
+import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 
 describe('database user management', () => {
   let db: IDatabase;
@@ -30,9 +31,14 @@ describe('database user management', () => {
     await new CreateAuthSchema(db).up();
     await new AddUserProfile(db).up();
     await new CreateAuthEvents(db).up();
+    await new CreateRolePermissions(db).up();
     await db.run({
       sql: 'INSERT INTO roles (id, name) VALUES (?, ?), (?, ?);',
       params: [1, 'admin', 2, 'user'],
+    });
+    await db.run({
+      sql: 'INSERT INTO permissions (id, name) VALUES (?, ?), (?, ?);',
+      params: [1, 'users.view', 2, 'users.manage'],
     });
     users = new DatabaseUserService(db);
     events = new DatabaseAuthEventStore(db);
@@ -74,6 +80,19 @@ describe('database user management', () => {
 
   it('lists available roles in a stable order', async () => {
     await expect(users.listRoles()).resolves.toEqual(['admin', 'user']);
+  });
+
+  it('assigns validated permissions to roles atomically', async () => {
+    await expect(users.listPermissions()).resolves.toEqual(['users.manage', 'users.view']);
+    await expect(
+      users.setRolePermissions(1, ['users.manage', 'users.view'])
+    ).resolves.toMatchObject({
+      id: 1,
+      permissions: ['users.manage', 'users.view'],
+    });
+    await expect(users.setRolePermissions(1, ['missing'])).rejects.toMatchObject({
+      permissions: ['missing'],
+    });
   });
 
   it('creates, renames, summarizes and removes roles', async () => {

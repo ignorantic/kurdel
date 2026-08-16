@@ -9,6 +9,7 @@ import {
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
+import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 
 describe('database auth repositories', () => {
   let db: IDatabase;
@@ -25,12 +26,19 @@ describe('database auth repositories', () => {
     await db.run({ sql: 'PRAGMA foreign_keys = ON;', params: [] });
     await new CreateAuthSchema(db).up();
     await new AddUserProfile(db).up();
+    await new CreateRolePermissions(db).up();
 
     await db.run({
       sql: 'INSERT INTO users (id, name, email, status) VALUES (?, ?, ?, ?), (?, ?, ?, ?);',
       params: [
-        1, 'Active User', 'active@example.test', 'active',
-        2, 'Disabled User', 'disabled@example.test', 'disabled',
+        1,
+        'Active User',
+        'active@example.test',
+        'active',
+        2,
+        'Disabled User',
+        'disabled@example.test',
+        'disabled',
       ],
     });
     await db.run({
@@ -42,15 +50,38 @@ describe('database auth repositories', () => {
       params: [1, 1, 1, 2],
     });
     await db.run({
+      sql: 'INSERT INTO permissions (id, name) VALUES (?, ?), (?, ?);',
+      params: [1, 'users.manage', 2, 'audit.view'],
+    });
+    await db.run({
+      sql: 'INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?), (?, ?), (?, ?);',
+      params: [1, 1, 1, 2, 2, 2],
+    });
+    await db.run({
       sql: [
         'INSERT INTO api_keys',
         '(id, user_id, key_hash, name, status, expires_at)',
         'VALUES (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?);',
       ].join(' '),
       params: [
-        'active', 1, hasher.hash('active-key'), 'Active', 'active', null,
-        'revoked', 1, hasher.hash('revoked-key'), 'Revoked', 'revoked', null,
-        'expired', 1, hasher.hash('expired-key'), 'Expired', 'active', '2020-01-01T00:00:00.000Z',
+        'active',
+        1,
+        hasher.hash('active-key'),
+        'Active',
+        'active',
+        null,
+        'revoked',
+        1,
+        hasher.hash('revoked-key'),
+        'Revoked',
+        'revoked',
+        null,
+        'expired',
+        1,
+        hasher.hash('expired-key'),
+        'Expired',
+        'active',
+        '2020-01-01T00:00:00.000Z',
       ],
     });
 
@@ -67,6 +98,7 @@ describe('database auth repositories', () => {
     await expect(users.findById(1)).resolves.toEqual({
       id: 1,
       roles: ['admin', 'editor'],
+      permissions: ['audit.view', 'users.manage'],
     });
   });
 

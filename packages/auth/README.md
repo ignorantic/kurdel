@@ -97,7 +97,9 @@ expressed by roles alone. Register them alongside strategies:
 
 ```ts
 const auth = new AuthModule({
-  strategies: [/* ... */],
+  strategies: [
+    /* ... */
+  ],
   policies: [
     {
       name: 'manage-users',
@@ -134,6 +136,23 @@ reported as an application configuration error.
 Policy providers also support `useFactory`, allowing policies to resolve
 application services from the dependency container.
 
+For role-permission models, strategies may resolve `AuthUser.permissions` and
+policies can use the built-in helpers:
+
+```ts
+import { hasPermission, permissionPolicy } from '@kurdel/auth';
+
+const manageUsers = permissionPolicy('users.manage');
+const viewUser = {
+  authorize: (auth, ctx) =>
+    hasPermission(auth.user, 'users.view.any') ||
+    (hasPermission(auth.user, 'users.view.self') && String(auth.user.id) === ctx.params.id),
+};
+```
+
+Permissions express reusable capabilities, while policies remain executable
+rules that may also inspect the request, credential, or target resource.
+
 ## Security events
 
 Configure an event sink to observe sanitized authentication and authorization
@@ -144,7 +163,9 @@ new AuthModule({
   events: {
     useFactory: ioc => ioc.get(APP_TOKENS.AuthEventSink),
   },
-  strategies: [/* ... */],
+  strategies: [
+    /* ... */
+  ],
 });
 ```
 
@@ -177,7 +198,8 @@ interface AuthContext {
 }
 ```
 
-- `user` is the current application identity and its current roles.
+- `user` is the current application identity, its current roles, and optional
+  resolved permissions.
 - `strategy` is the registered name selected by route metadata.
 - `credential` identifies the credential kind and, when available, its stable
   identifier. It never contains the raw API key or JWT.

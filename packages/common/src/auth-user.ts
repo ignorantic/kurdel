@@ -3,12 +3,13 @@
  *
  * Unified representation of an authenticated identity within the Kurdel runtime.
  *
- * Produced exclusively by authentication strategies.  
+ * Produced exclusively by authentication strategies.
  * Used later by authorization middleware to determine access rights.
  *
  * Properties:
  * - `id` — public stable identity of the user (string or number).
  * - `roles` — zero or more logical roles (e.g., `"admin"`, `"user"`, `"system"`).
+ * - `permissions` — optional capabilities resolved for the current identity.
  * - Additional fields may be attached by strategies (JWT payload, profile data, etc.).
  *
  * @remarks
@@ -18,6 +19,7 @@
 export interface AuthUser {
   id: string | number;
   roles: string[];
+  permissions?: string[];
   [key: string]: unknown;
 }
 

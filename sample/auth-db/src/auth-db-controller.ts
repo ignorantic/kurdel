@@ -18,6 +18,8 @@ import {
   ApiKeyUserNotFoundError,
   DuplicateUserEmailError,
   UnknownRolesError,
+  UnknownPermissionsError,
+  RoleNotFoundError,
   UserNotFoundError,
   type CreateUserInput,
   type DatabaseApiKeyService,
@@ -103,6 +105,14 @@ const userIdSchema = z.object({
   id: z.string().regex(/^\d+$/, 'User ID must be numeric'),
 });
 
+const roleIdSchema = z.object({
+  id: z.string().regex(/^\d+$/, 'Role ID must be numeric'),
+});
+
+const rolePermissionsSchema = z.object({
+  permissions: z.array(z.string().trim().min(1)).max(100),
+});
+
 const apiKeyParamsSchema = z.object({
   id: z.string().regex(/^\d+$/, 'User ID must be numeric'),
   keyId: z
@@ -128,6 +138,20 @@ export class AuthDbController extends Controller<Deps> {
       path: '/roles',
       auth: { strategy: 'api-key', policies: ['manage-users'] },
     })(this.listRoles),
+    listPermissions: route({
+      method: 'GET',
+      path: '/permissions',
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
+    })(this.listPermissions),
+    setRolePermissions: route({
+      method: 'PUT',
+      path: '/roles/:id/permissions',
+      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      schema: {
+        body: zodAdapter(rolePermissionsSchema),
+        params: zodAdapter(roleIdSchema),
+      },
+    })(this.setRolePermissions),
     createUser: route({
       method: 'POST',
       path: '/users',
@@ -209,6 +233,22 @@ export class AuthDbController extends Controller<Deps> {
     return Ok({ roles: await this.deps.users.listRoles() });
   }
 
+  async listPermissions() {
+    return Ok({ permissions: await this.deps.users.listPermissions() });
+  }
+
+  async setRolePermissions(
+    ctx: HttpContext<{ permissions: string[] }, RouteParams<'/roles/:id/permissions'>>
+  ) {
+    try {
+      return Ok({
+        ...(await this.deps.users.setRolePermissions(Number(ctx.params.id), ctx.body!.permissions)),
+      });
+    } catch (error) {
+      this.handleUserError(error);
+    }
+  }
+
   async createUser(ctx: HttpContext<CreateUserInput>) {
     try {
       const user = await this.deps.users.create(ctx.body!);
@@ -238,7 +278,7 @@ export class AuthDbController extends Controller<Deps> {
 
   async listAuthEvents(ctx: HttpContext<unknown, RouteParams<'/users/:id'>>) {
     const userId = Number(ctx.params.id);
-    const query = ctx.query as { type?: typeof authEventTypes[number]; limit?: string };
+    const query = ctx.query as { type?: (typeof authEventTypes)[number]; limit?: string };
     try {
       await this.deps.users.findById(userId);
       return Ok({
@@ -312,13 +352,19 @@ export class AuthDbController extends Controller<Deps> {
   }
 
   private serializeUser(ctx: HttpContext) {
-    return ctx.user ? { id: ctx.user.id, roles: ctx.user.roles } : null;
+    return ctx.user
+      ? { id: ctx.user.id, roles: ctx.user.roles, permissions: ctx.user.permissions ?? [] }
+      : null;
   }
 
   private handleUserError(error: unknown): never {
     if (error instanceof UnknownRolesError) {
       throw BadRequest(error.message, { roles: error.roles });
     }
+    if (error instanceof UnknownPermissionsError) {
+      throw BadRequest(error.message, { permissions: error.permissions });
+    }
+    if (error instanceof RoleNotFoundError) throw NotFound(error.message);
     if (error instanceof UserNotFoundError) throw NotFound(error.message);
     if (error instanceof DuplicateUserEmailError) {
       throw Conflict(error.message, { email: error.email });

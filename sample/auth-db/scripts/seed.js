@@ -35,6 +35,33 @@ try {
       sql: 'INSERT OR IGNORE INTO user_roles (user_id, role_id) VALUES (?, ?), (?, ?);',
       params: [1, 1, 2, 2],
     });
+    const permissionNames = [
+      'users.view.self',
+      'users.view.any',
+      'users.manage',
+      'roles.manage',
+      'audit.view',
+    ];
+    for (const name of permissionNames) {
+      await transaction.run({
+        sql: 'INSERT INTO permissions (name) VALUES (?) ON CONFLICT(name) DO NOTHING;',
+        params: [name],
+      });
+    }
+    await transaction.run({
+      sql: [
+        'INSERT OR IGNORE INTO role_permissions (role_id, permission_id)',
+        "SELECT 1, id FROM permissions WHERE name IN ('users.view.self', 'users.view.any', 'users.manage', 'roles.manage', 'audit.view');",
+      ].join(' '),
+      params: [],
+    });
+    await transaction.run({
+      sql: [
+        'INSERT OR IGNORE INTO role_permissions (role_id, permission_id)',
+        "SELECT 2, id FROM permissions WHERE name = 'users.view.self';",
+      ].join(' '),
+      params: [],
+    });
     await transaction.run({
       sql: [
         'INSERT INTO api_keys',

@@ -11,13 +11,16 @@ describe('database auth repositories', () => {
   it('loads active identities and their current roles', async () => {
     const db = {
       get: vi.fn(async () => ({ id: 7, status: 'active' })),
-      all: vi.fn(async () => [{ name: 'admin' }, { name: 'editor' }]),
+      all: vi.fn()
+        .mockResolvedValueOnce([{ name: 'admin' }, { name: 'editor' }])
+        .mockResolvedValueOnce([{ name: 'users.manage' }]),
     } as unknown as IDatabase;
     const repository = new DatabaseAuthUserRepository(db);
 
     await expect(repository.findById(7)).resolves.toEqual({
       id: 7,
       roles: ['admin', 'editor'],
+      permissions: ['users.manage'],
     });
     expect(db.get).toHaveBeenCalledWith({
       sql: 'SELECT id, status FROM users WHERE id = ?;',

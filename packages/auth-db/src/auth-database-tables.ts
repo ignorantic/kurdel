@@ -2,6 +2,8 @@ export interface AuthDatabaseTables {
   users: string;
   roles: string;
   userRoles: string;
+  permissions: string;
+  rolePermissions: string;
   apiKeys: string;
   authEvents: string;
 }
@@ -10,6 +12,8 @@ export const DEFAULT_AUTH_DATABASE_TABLES: Readonly<AuthDatabaseTables> = {
   users: 'users',
   roles: 'roles',
   userRoles: 'user_roles',
+  permissions: 'permissions',
+  rolePermissions: 'role_permissions',
   apiKeys: 'api_keys',
   authEvents: 'auth_events',
 };
