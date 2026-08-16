@@ -2,7 +2,7 @@ import type { IDatabase, DatabaseQuery } from '@kurdel/db';
 import { QueryBuilder } from '@kurdel/db';
 import { Schema } from './schema.js';
 
-type MigrationRecord = {
+export type MigrationRecord = {
   id: number;
   name: string;
   batch: number;
@@ -19,16 +19,18 @@ export class MigrationRegistry {
 
   public static async create(connection: IDatabase) {
     const registry = new MigrationRegistry(connection);
-    const exists = await registry.existsMigrtionsTable();
-    if (!exists) {
-      await registry.createMigrationsTable();
-    }
+    await registry.createMigrationsTable();
     return registry;
   }
 
   public get all(): Promise<string[]> {
     const query = this.builder.select('*').from('migrations').build();
     return this.get(query);
+  }
+
+  public get history(): Promise<MigrationRecord[]> {
+    const query = this.builder.select('*').from('migrations').build();
+    return this.connection.all(query) as Promise<MigrationRecord[]>;
   }
 
   public getBatch(batch: number) {
@@ -72,22 +74,9 @@ export class MigrationRegistry {
     return (await this.getLastBatch()) + 1;
   }
 
-  private async existsMigrtionsTable(): Promise<boolean> {
-    const selectCountQuery = this.builder
-      .select('batch', { fn: 'COUNT' })
-      .from('migrations')
-      .build();
-    try {
-      await this.connection.get(selectCountQuery);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   private async createMigrationsTable(): Promise<void> {
     const schema = new Schema(this.connection);
-    await schema.create('migrations', table => {
+    await schema.createIfNotExists('migrations', table => {
       table.integer('id');
       table.primaryKey('id');
       table.string('name');

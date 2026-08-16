@@ -34,4 +34,18 @@ describe('Schema', () => {
       params: [],
     });
   });
+
+  it('can initialize shared infrastructure tables idempotently', async () => {
+    const run = vi.fn(async () => undefined);
+    const schema = new Schema({ run } as unknown as IDatabase);
+
+    await schema.createIfNotExists('migration_locks', table => {
+      table.integer('id').primaryKey();
+    });
+
+    expect(run).toHaveBeenCalledWith({
+      sql: 'CREATE TABLE IF NOT EXISTS migration_locks (id INTEGER PRIMARY KEY);',
+      params: [],
+    });
+  });
 });

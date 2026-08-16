@@ -5,11 +5,12 @@ import { Box, Text } from 'ink';
 import MigrateRun from '../components/migrate-run.js';
 import MigrateRollback from '../components/migrate-rollback.js';
 import MigrateRefresh from '../components/migrate-refresh.js';
+import MigrateStatus from '../components/migrate-status.js';
 import Checkmark from '../components/checkmark.js';
 import useMigrationManager from '../hooks/use-migration-manager.js';
 
 export const args = zod.tuple([
-  zod.enum(['run', 'rollback', 'refresh']).describe(
+  zod.enum(['run', 'rollback', 'refresh', 'status']).describe(
     argument({
       name: 'command',
       description: 'Command name',
@@ -33,7 +34,7 @@ export default function MigrateCommand({ args: [command] }: Props) {
       {!!manager && command === 'run' && <MigrateRun manager={manager}/>}
       {!!manager && command === 'rollback' && <MigrateRollback manager={manager}/>}
       {!!manager && command === 'refresh' && <MigrateRefresh manager={manager}/>}
+      {!!manager && command === 'status' && <MigrateStatus manager={manager}/>}
     </Box>
   );
 }
-

@@ -1,5 +1,6 @@
 import { PostgresDB, type IDatabase } from '@kurdel/db';
 import { DatabaseJwtSessionRepository, DatabaseJwtSessionService, DatabaseUserService } from '@kurdel/auth-db';
+import { MigrationLock, MigrationLockedError } from '@kurdel/migrations';
 
 import CreateAuthSchema from '../migrations/0001-create-auth-schema.js';
 import AddUserProfile from '../migrations/0002-add-user-profile.js';
@@ -35,6 +36,7 @@ describePostgres('PostgreSQL auth database integration', () => {
     await new CreateAuthEvents(db).down();
     await new AddUserProfile(db).down();
     await new CreateAuthSchema(db).down();
+    await db.run({ sql: 'DROP TABLE IF EXISTS migration_locks;', params: [] });
     await db.close();
   });
 
@@ -60,5 +62,17 @@ describePostgres('PostgreSQL auth database integration', () => {
     await expect(repository.findById(created.id)).resolves.toEqual(expect.objectContaining({
       revoked: true,
     }));
+  });
+
+  it('serializes competing PostgreSQL migration operations', async () => {
+    const first = new MigrationLock(db);
+    const second = new MigrationLock(db);
+    await first.initialize();
+
+    await first.acquire();
+    await expect(second.acquire()).rejects.toBeInstanceOf(MigrationLockedError);
+    await first.release();
+    await expect(second.acquire()).resolves.toBeUndefined();
+    await second.release();
   });
 });

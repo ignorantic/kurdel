@@ -4,6 +4,12 @@ Schema blueprints use the connected database dialect. SQLite emits its native
 integer primary keys and `DATETIME`, while PostgreSQL emits identity columns,
 `TIMESTAMPTZ`, and native boolean defaults from the same migration source.
 
+`MigrationManager` serializes `run`, `rollback`, and `refresh` through a
+portable database lease. This prevents concurrent processes from applying the
+same migration and releases the lease even when discovery or execution fails.
+Use `manager.status()` to inspect applied batches and pending migration files
+without acquiring the mutation lock.
+
 Database schema migration primitives for Kurdel. The package provides the
 `Migration`, `MigrationManager`, `Schema`, and `Blueprint` APIs used to define,
 apply, roll back, and refresh migrations.

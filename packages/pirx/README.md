@@ -15,10 +15,17 @@ npm install --save-dev @kurdel/pirx@beta
 npx pirx migrate run
 npx pirx migrate rollback
 npx pirx migrate refresh
+npx pirx migrate status
 ```
 
 The commands use the database and migration configuration of the current
 Kurdel application.
+
+Mutating commands acquire a database-backed lease before discovering or
+executing migrations, preventing concurrent deploys from applying the same
+migration. The lease is released after success or failure. `status` is
+read-only and lists applied migrations with their batch, pending files, and
+applied records whose migration file is missing.
 
 ## Requirements
 
