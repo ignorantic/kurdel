@@ -238,6 +238,10 @@ new JwtStrategy(jwtService, users, {
 ```
 
 Without `sessions`, JWT verification remains stateless and backward compatible.
+Database-backed applications can pair short-lived access JWTs with rotating
+opaque refresh tokens through `DatabaseJwtSessionService` from
+`@kurdel/auth-db`. Refresh tokens are not JWTs and should never be placed in
+authorization headers or persisted in plaintext by an application.
 
 ## User and credential repositories
 

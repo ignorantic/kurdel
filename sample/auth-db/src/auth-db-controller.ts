@@ -20,6 +20,8 @@ import {
   ApiKeyUserNotFoundError,
   DuplicateUserEmailError,
   PasswordUserNotFoundError,
+  InvalidRefreshTokenError,
+  JwtSessionNotFoundError,
   UnknownRolesError,
   UnknownPermissionsError,
   RoleNotFoundError,
@@ -45,6 +47,7 @@ type Deps = {
 };
 
 type LoginBody = { email: string; password: string };
+type RefreshBody = { refreshToken: string };
 
 type CreateApiKeyBody = {
   name: string;
@@ -54,6 +57,14 @@ type CreateApiKeyBody = {
 const loginSchema = z.object({
   email: z.string().trim().email().max(254),
   password: z.string().min(8).max(1024),
+});
+
+const refreshSchema = z.object({
+  refreshToken: z.string().startsWith('kdl_rt_').max(128),
+});
+
+const sessionIdSchema = z.object({
+  sessionId: z.string().uuid(),
 });
 
 const setPasswordSchema = z.object({
@@ -100,6 +111,7 @@ const authEventTypes = [
   'api-key.issued',
   'api-key.revoked',
   'jwt-session.created',
+  'jwt-session.refreshed',
   'jwt-session.revoked',
 ] as const;
 
@@ -153,6 +165,33 @@ export class AuthDbController extends Controller<Deps> {
       auth: { public: true },
       schema: { body: zodAdapter(loginSchema) },
     })(this.login),
+    refresh: route({
+      method: 'POST',
+      path: '/auth/refresh',
+      auth: { public: true },
+      schema: { body: zodAdapter(refreshSchema) },
+    })(this.refresh),
+    logout: route({
+      method: 'POST',
+      path: '/auth/logout',
+      auth: { strategy: 'jwt' },
+    })(this.logout),
+    listSessions: route({
+      method: 'GET',
+      path: '/auth/sessions',
+      auth: { strategy: 'jwt' },
+    })(this.listSessions),
+    revokeSession: route({
+      method: 'DELETE',
+      path: '/auth/sessions/:sessionId',
+      auth: { strategy: 'jwt' },
+      schema: { params: zodAdapter(sessionIdSchema) },
+    })(this.revokeSession),
+    revokeAllSessions: route({
+      method: 'DELETE',
+      path: '/auth/sessions',
+      auth: { strategy: 'jwt' },
+    })(this.revokeAllSessions),
     sessionProfile: route({
       method: 'GET',
       path: '/session/profile',
@@ -275,20 +314,61 @@ export class AuthDbController extends Controller<Deps> {
       throw Unauthorized('Invalid email or password');
     }
 
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-    const session = await this.deps.jwtSessions.create(Number(user.id), expiresAt);
-    const accessToken = this.deps.jwt.sign({
-      sub: user.id,
-      roles: user.roles,
-      jti: session.id,
-    });
+    const refreshExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const session = await this.deps.jwtSessions.createRefreshable(
+      Number(user.id),
+      refreshExpiresAt,
+    );
     await this.deps.events.report({
       type: 'authentication.succeeded',
       occurredAt: new Date(),
       strategy: 'password',
       userId: user.id,
     });
-    return Ok({ accessToken, tokenType: 'Bearer', expiresAt: session.expiresAt });
+    return Ok(this.issueTokens(user, session));
+  }
+
+  async refresh(ctx: HttpContext<RefreshBody>) {
+    try {
+      const session = await this.deps.jwtSessions.refresh(ctx.body!.refreshToken);
+      const user = await this.deps.users.findById(session.userId);
+      return Ok(this.issueTokens(user, session));
+    } catch (error) {
+      if (error instanceof InvalidRefreshTokenError || error instanceof UserNotFoundError) {
+        throw Unauthorized('Invalid or expired refresh token');
+      }
+      throw error;
+    }
+  }
+
+  async logout(ctx: HttpContext) {
+    const sessionId = this.currentSessionId(ctx);
+    await this.deps.jwtSessions.revoke(Number(ctx.auth!.user.id), sessionId);
+    return NoContent();
+  }
+
+  async listSessions(ctx: HttpContext) {
+    return Ok({
+      sessions: await this.deps.jwtSessions.list(Number(ctx.auth!.user.id)),
+      currentSessionId: this.currentSessionId(ctx),
+    });
+  }
+
+  async revokeSession(
+    ctx: HttpContext<unknown, RouteParams<'/auth/sessions/:sessionId'>>,
+  ) {
+    try {
+      await this.deps.jwtSessions.revoke(Number(ctx.auth!.user.id), ctx.params.sessionId);
+      return NoContent();
+    } catch (error) {
+      if (error instanceof JwtSessionNotFoundError) throw NotFound('Session not found');
+      throw error;
+    }
+  }
+
+  async revokeAllSessions(ctx: HttpContext) {
+    await this.deps.jwtSessions.revokeAll(Number(ctx.auth!.user.id));
+    return NoContent();
   }
 
   async profile(ctx: HttpContext) {
@@ -435,6 +515,26 @@ export class AuthDbController extends Controller<Deps> {
     return ctx.user
       ? { id: ctx.user.id, roles: ctx.user.roles, permissions: ctx.user.permissions ?? [] }
       : null;
+  }
+
+  private issueTokens(
+    user: { id: string | number; roles: string[] },
+    session: { id: string; refreshToken: string; refreshExpiresAt: string },
+  ) {
+    const accessExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    return {
+      accessToken: this.deps.jwt.sign({ sub: user.id, roles: user.roles, jti: session.id }),
+      refreshToken: session.refreshToken,
+      tokenType: 'Bearer',
+      expiresAt: accessExpiresAt,
+      refreshExpiresAt: session.refreshExpiresAt,
+    };
+  }
+
+  private currentSessionId(ctx: HttpContext): string {
+    const sessionId = ctx.auth?.claims?.jti;
+    if (typeof sessionId !== 'string') throw Unauthorized('JWT session is missing');
+    return sessionId;
   }
 
   private handleUserError(error: unknown): never {

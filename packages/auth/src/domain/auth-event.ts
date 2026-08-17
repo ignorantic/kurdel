@@ -27,7 +27,7 @@ export type AuthEvent =
       type: 'api-key.issued' | 'api-key.revoked';
     })
   | (AuthEventBase & {
-      type: 'jwt-session.created' | 'jwt-session.revoked';
+      type: 'jwt-session.created' | 'jwt-session.refreshed' | 'jwt-session.revoked';
     });
 
 /** Receives sanitized authentication and authorization lifecycle events. */

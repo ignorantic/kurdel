@@ -17,6 +17,7 @@ import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
+import CreateJwtRefreshTokens from '../migrations/0007-create-jwt-refresh-tokens.js';
 
 describe('database user management', () => {
   let db: Database;
@@ -37,6 +38,7 @@ describe('database user management', () => {
     await new CreateAuthEvents(db).up();
     await new CreateRolePermissions(db).up();
     await new CreateJwtSessions(db).up();
+    await new CreateJwtRefreshTokens(db).up();
     await db.run({
       sql: 'INSERT INTO roles (id, name) VALUES (?, ?), (?, ?);',
       params: [1, 'admin', 2, 'user'],
@@ -114,6 +116,41 @@ describe('database user management', () => {
         expect.objectContaining({ type: 'jwt-session.revoked', credentialId: created.id }),
       ]),
     );
+  });
+
+  it('rotates hashed refresh tokens and manages active sessions', async () => {
+    const user = await users.create({
+      name: 'Refresh User',
+      email: 'refresh@example.test',
+      roles: ['user'],
+    });
+    const refreshExpiresAt = new Date(Date.now() + 60_000);
+    const first = await jwtSessions.createRefreshable(user.id, refreshExpiresAt);
+
+    expect(first.refreshToken).toMatch(/^kdl_rt_[A-Za-z0-9_-]{43}$/);
+    const stored = await db.get({
+      sql: 'SELECT token_hash FROM jwt_refresh_tokens WHERE session_id = ?;',
+      params: [first.id],
+    });
+    expect(stored.token_hash).not.toBe(first.refreshToken);
+
+    const refreshed = await jwtSessions.refresh(first.refreshToken);
+    expect(refreshed).toMatchObject({ id: first.id, userId: user.id });
+    expect(refreshed.refreshToken).not.toBe(first.refreshToken);
+    await expect(jwtSessions.refresh(first.refreshToken)).rejects.toThrow(
+      'Refresh token is invalid or expired',
+    );
+    await expect(jwtSessions.list(user.id)).resolves.toEqual([
+      expect.objectContaining({ id: first.id, status: 'active' }),
+    ]);
+
+    await jwtSessions.revokeAll(user.id);
+    await expect(jwtSessions.refresh(refreshed.refreshToken)).rejects.toThrow(
+      'Refresh token is invalid or expired',
+    );
+    await expect(jwtSessions.list(user.id)).resolves.toEqual([
+      expect.objectContaining({ id: first.id, status: 'revoked' }),
+    ]);
   });
 
   it('lists available roles in a stable order', async () => {

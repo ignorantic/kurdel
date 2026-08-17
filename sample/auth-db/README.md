@@ -56,7 +56,11 @@ The seed creates `admin@example.test / admin-demo-password` and
 `user@example.test / user-demo-password`. A successful `POST /auth/login`
 creates a persisted JWT session and returns a 15-minute bearer token; use it on
 `GET /session/profile`. Unknown emails and incorrect passwords deliberately
-produce the same `401` response.
+produce the same `401` response. Migration
+`0007-create-jwt-refresh-tokens.js` adds hashed, rotating refresh tokens. Login
+returns a 15-minute access token and a 30-day refresh token; `POST
+/auth/refresh` rotates the refresh token, while the session endpoints list and
+revoke active sessions.
 
 The sample uses SQLite by default. To run it against PostgreSQL, copy
 `db.postgres.config.example.json` to `db.config.json`, replace the example
@@ -109,6 +113,17 @@ $session = Invoke-RestMethod `
 Invoke-RestMethod `
   -Uri "http://localhost:3000/session/profile" `
   -Headers @{ Authorization = "Bearer $($session.accessToken)" }
+
+$refreshBody = @{ refreshToken = $session.refreshToken } | ConvertTo-Json
+$session = Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:3000/auth/refresh" `
+  -ContentType "application/json" `
+  -Body $refreshBody
+
+$headers = @{ Authorization = "Bearer $($session.accessToken)" }
+Invoke-RestMethod -Uri "http://localhost:3000/auth/sessions" -Headers $headers
+Invoke-RestMethod -Method Post -Uri "http://localhost:3000/auth/logout" -Headers $headers
 ```
 
 The final request returns `403` because the user key does not have the `admin`

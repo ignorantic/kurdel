@@ -6,6 +6,7 @@ import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
 import CreatePasswordCredentials from '../migrations/0006-create-password-credentials.js';
+import CreateJwtRefreshTokens from '../migrations/0007-create-jwt-refresh-tokens.js';
 
 describe('auth database schema', () => {
   let db: Database;
@@ -29,6 +30,7 @@ describe('auth database schema', () => {
     await new CreateAuthEvents(db).up();
     await new CreateRolePermissions(db).up();
     await new CreateJwtSessions(db).up();
+    await new CreateJwtRefreshTokens(db).up();
     await new CreatePasswordCredentials(db).up();
 
     const tables = await db.all({
@@ -38,6 +40,7 @@ describe('auth database schema', () => {
     expect(tables.map((table: { name: string }) => table.name)).toEqual([
       'api_keys',
       'auth_events',
+      'jwt_refresh_tokens',
       'jwt_sessions',
       'password_credentials',
       'permissions',
@@ -78,6 +81,14 @@ describe('auth database schema', () => {
       expect.objectContaining({ table: 'users', from: 'user_id', on_delete: 'CASCADE' }),
     ]);
 
+    const refreshTokenForeignKeys = await db.all({
+      sql: 'PRAGMA foreign_key_list(jwt_refresh_tokens);',
+      params: [],
+    });
+    expect(refreshTokenForeignKeys).toEqual([
+      expect.objectContaining({ table: 'jwt_sessions', from: 'session_id', on_delete: 'CASCADE' }),
+    ]);
+
     await db.run({
       sql: 'INSERT INTO users (id, name, email, status) VALUES (?, ?, ?, ?);',
       params: [1, 'Root User', 'root@example.test', 'active'],
@@ -101,6 +112,7 @@ describe('auth database schema', () => {
   it('rolls the auth schema back in dependency order', async () => {
     const migration = new CreateAuthSchema(db);
     await new CreatePasswordCredentials(db).down();
+    await new CreateJwtRefreshTokens(db).down();
     await new CreateJwtSessions(db).down();
     await new CreateRolePermissions(db).down();
     await new CreateAuthEvents(db).down();

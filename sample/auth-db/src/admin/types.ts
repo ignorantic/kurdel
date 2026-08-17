@@ -40,6 +40,7 @@ export type AuthEventType =
   | 'api-key.issued'
   | 'api-key.revoked'
   | 'jwt-session.created'
+  | 'jwt-session.refreshed'
   | 'jwt-session.revoked';
 
 export type AuthEvent = {

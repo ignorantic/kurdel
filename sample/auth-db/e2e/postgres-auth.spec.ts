@@ -14,6 +14,7 @@ import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
 import CreatePasswordCredentials from '../migrations/0006-create-password-credentials.js';
+import CreateJwtRefreshTokens from '../migrations/0007-create-jwt-refresh-tokens.js';
 
 const connectionString = process.env.POSTGRES_TEST_URL;
 const describePostgres = connectionString ? describe : describe.skip;
@@ -30,6 +31,7 @@ describePostgres('PostgreSQL auth database integration', () => {
     await new CreateAuthEvents(db).up();
     await new CreateRolePermissions(db).up();
     await new CreateJwtSessions(db).up();
+    await new CreateJwtRefreshTokens(db).up();
     await new CreatePasswordCredentials(db).up();
     await db.run({
       sql: 'INSERT INTO roles (name) VALUES (?), (?);',
@@ -40,6 +42,7 @@ describePostgres('PostgreSQL auth database integration', () => {
   afterAll(async () => {
     if (!db) return;
     await new CreatePasswordCredentials(db).down();
+    await new CreateJwtRefreshTokens(db).down();
     await new CreateJwtSessions(db).down();
     await new CreateRolePermissions(db).down();
     await new CreateAuthEvents(db).down();
@@ -104,6 +107,16 @@ describePostgres('PostgreSQL auth database integration', () => {
     await expect(repository.findById(created.id)).resolves.toEqual(expect.objectContaining({
       revoked: true,
     }));
+
+    const renewable = await sessions.createRefreshable(
+      user.id,
+      new Date(Date.now() + 60_000),
+    );
+    const refreshed = await sessions.refresh(renewable.refreshToken);
+    expect(refreshed).toMatchObject({ id: renewable.id, userId: user.id });
+    await expect(sessions.refresh(renewable.refreshToken)).rejects.toThrow(
+      'Refresh token is invalid or expired',
+    );
   });
 
   it('serializes competing PostgreSQL migration operations', async () => {

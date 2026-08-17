@@ -24,6 +24,14 @@ and revoke the session before the signed token expires. Session creation and
 revocation are transactional and emit sanitized audit events when auditing is
 enabled.
 
+For renewable sessions, `createRefreshable()` returns an opaque refresh token
+whose SHA-256 hash is persisted separately from the JWT session. `refresh()`
+rotates that secret atomically, so a token stops working as soon as it has been
+used. `list()`, `revoke()`, and `revokeAll()` provide the primitives for active
+device/session management. Applications choose access-token and refresh-token
+lifetimes independently; the persisted session should live for the refresh
+window while each signed access token keeps a short expiration.
+
 Password authentication uses a separate `password_credentials` table rather
 than adding secrets to the user profile. `DatabasePasswordCredentialRepository`
 resolves credentials by case-insensitive email, while
@@ -108,8 +116,8 @@ new AuthDatabaseModule({
 });
 ```
 
-By default, the package expects `users`, `roles`, `user_roles`, `api_keys`, and
-`password_credentials`
+By default, the package expects `users`, `roles`, `user_roles`, `api_keys`,
+`jwt_sessions`, `jwt_refresh_tokens`, and `password_credentials`
 tables and uses SHA-256 for API-key lookup. Schema ownership remains with the
 application; see `sample/auth-db` for migrations and a runnable example.
 The management services expect the profile and credential metadata columns
