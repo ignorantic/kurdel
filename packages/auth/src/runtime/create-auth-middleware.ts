@@ -9,6 +9,38 @@ import {
 import type { AuthStrategyRegistry } from './auth-strategy-registry.js';
 import { AuthorizationPolicyRegistry } from './authorization-policy-registry.js';
 
+/**
+ * ## createAuthMiddleware
+ *
+ * Creates the authentication and authorization middleware.
+ *
+ * Responsibilities:
+ * - authenticate incoming requests
+ * - populate `HttpContext.auth` and `HttpContext.user`
+ * - enforce route role requirements
+ * - evaluate configured authorization policies
+ * - emit sanitized authentication lifecycle events
+ *
+ * Guarantees:
+ * - authentication executes before authorization
+ * - route handlers execute only after successful authorization
+ * - authentication events are emitted in execution order
+ * - authorization policies execute sequentially
+ *
+ * Non-responsibilities:
+ * - credential persistence
+ * - user management
+ * - session management
+ *
+ * Pipeline:
+ *
+ * 1. Skip public routes.
+ * 2. Authenticate using the configured strategy.
+ * 3. Populate the authentication context.
+ * 4. Validate required roles.
+ * 5. Evaluate authorization policies.
+ * 6. Continue the middleware pipeline.
+ */
 export function createAuthMiddleware(
   registry: AuthStrategyRegistry,
   policies: AuthorizationPolicyRegistry = new AuthorizationPolicyRegistry(),
@@ -24,7 +56,10 @@ export function createAuthMiddleware(
 
     const { strategy, roles, policies: requiredPolicies } = meta;
 
-    // --- 1️⃣ Authenticate ---
+    // ---------------------------------------------------------------------
+    // 1. Authentication
+    // ---------------------------------------------------------------------
+    
     let auth: AuthContext | undefined;
 
     if (strategy) {
@@ -59,7 +94,10 @@ export function createAuthMiddleware(
       });
     }
 
-    // --- 2️⃣ Authorize ---
+    // ---------------------------------------------------------------------
+    // 2. Role authorization
+    // ---------------------------------------------------------------------
+
     if (roles && roles.length > 0) {
       const ok = auth && Array.isArray(auth.user.roles)
         ? roles.some(r => auth.user.roles.includes(r))
@@ -76,6 +114,10 @@ export function createAuthMiddleware(
         return ctx.json(403, { error: 'Forbidden' });
       }
     }
+
+    // ---------------------------------------------------------------------
+    // 3. Policy authorization
+    // ---------------------------------------------------------------------
 
     if (requiredPolicies && requiredPolicies.length > 0) {
       if (!auth) {

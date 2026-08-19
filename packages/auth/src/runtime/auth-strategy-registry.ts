@@ -3,31 +3,48 @@ import type { AuthStrategy } from 'src/domain/index.js';
 /**
  * ## AuthStrategyRegistry
  *
- * Holds named authentication strategies (e.g. `jwt`, `apikey`, `session`).
- * Strategies are resolved by middleware per request.
+ * Stores authentication strategies by name.
+ *
+ * Responsibilities:
+ * - register authentication strategies during application startup
+ * - resolve strategies by name during request processing
+ * - allow strategies to be replaced or removed if required
+ *
+ * Guarantees:
+ * - at most one strategy exists for a given name
+ * - registering an existing name replaces the previous strategy
+ *
+ * Non-responsibilities:
+ * - strategy execution
+ * - authentication orchestration
+ * - request handling
  */
 export class AuthStrategyRegistry {
   private readonly strategies = new Map<string, AuthStrategy>();
 
   /**
-   * Registers a new authentication strategy.
+   * Registers or replaces an authentication strategy.
    *
-   * @param name - Strategy identifier (e.g. "jwt", "apikey").
-   * @param strategy - Implementation of {@link AuthStrategy}.
+   * @param name Strategy identifier.
+   * @param strategy Authentication strategy implementation.
    */
   register(name: string, strategy: AuthStrategy): void {
     this.strategies.set(name, strategy);
   }
 
   /**
-   * Returns a strategy by name, if registered.
+   * Returns the strategy registered under the specified name.
+   *
+   * @param name Strategy identifier.
    */
   get(name: string): AuthStrategy | undefined {
     return this.strategies.get(name);
   }
-
+  
   /**
-   * Removes a strategy (rarely used).
+   * Removes the strategy associated with the specified name.
+   *
+   * @param name Strategy identifier.
    */
   unregister(name: string): void {
     this.strategies.delete(name);

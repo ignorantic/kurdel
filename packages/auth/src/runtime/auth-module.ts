@@ -20,19 +20,14 @@ import { AUTH_TOKENS } from 'src/tokens.js';
 /**
  * ## AuthModuleConfig
  *
- * Defines authentication strategies supplied by the application.
+ * Configures authentication infrastructure provided by `AuthModule`.
  *
- * Example:
- * ```ts
- * new AuthModule({
- *   strategies: [
- *     { name: 'api-key', use: new ApiKeyStrategy({...}) },
- *     { name: 'jwt', use: new JwtStrategy({...}) },
- *   ]
- * })
- * ```
+ * Applications declare:
+ * - authentication strategies
+ * - authorization policies
+ * - optional authentication event sink
  *
- * Strategies are registered **once** during module initialization.
+ * All configured components are registered once during application startup.
  */
 export interface AuthModuleConfig {
   /** List of user-provided authentication strategies. */
@@ -46,30 +41,37 @@ export interface AuthModuleConfig {
 /**
  * ## AuthModule
  *
+ * Registers the authentication runtime.
+ *
  * Provides:
- * - singleton `AuthStrategyRegistry`
- * - automatic registration of configured strategies
+ * - AuthStrategyRegistry
+ * - AuthorizationPolicyRegistry
+ * - AuthEventSink
+ * 
+ * Registers:
+ * - authentication middleware
  *
  * Responsibilities:
- * - expose a DI-managed registry storing all auth strategies
- * - populate it during `register()`
+ * - register configured strategies
+ * - register configured authorization policies
+ * - register the authentication middleware
+ * - expose authentication infrastructure through DI
+ *
+ * Guarantees:
+ * - configured strategies are registered exactly once
+ * - configured policies are registered exactly once
+ * - authentication middleware is installed in the `auth` zone
+ * - an `AuthEventSink` is always available
  *
  * Non-responsibilities:
- * - no transport logic
- * - no middleware ordering
- * - no policy evaluation
- *
- * Identity repositories, credentials and strategy-specific services are
- * application concerns and must be supplied outside this module.
+ * - credential persistence
+ * - authentication implementations
+ * - authorization decisions
+ * - user management
  */
 export class AuthModule implements AppModule<AuthModuleConfig> {
   readonly priority = ModulePriority.Auth;
   
-  /**
-   * Providers exposed by the module.
-   *
-   * - `StrategyRegistry` → a singleton container of auth strategies
-   */
   readonly providers: ProviderConfig[];
 
   constructor(private readonly config: AuthModuleConfig = {}) {
@@ -99,11 +101,13 @@ export class AuthModule implements AppModule<AuthModuleConfig> {
   }
 
   /**
-   * Registers all configured authentication strategies.
+   * Registers authentication runtime components.
    *
-   * Called once during app startup.
+   * 1. Registers authentication strategies.
+   * 2️. Registers authorization policies.
+   * 3️. Installs the authentication middleware.
    */
-  async register(ioc: Container) {
+  async register(ioc: Container): Promise<void> {
     const registry = ioc.get<AuthStrategyRegistry>(AUTH_TOKENS.StrategyRegistry);
     const policies = ioc.get<AuthorizationPolicyRegistry>(AUTH_TOKENS.PolicyRegistry);
     const events = ioc.get<AuthEventSink>(AUTH_TOKENS.EventSink);
