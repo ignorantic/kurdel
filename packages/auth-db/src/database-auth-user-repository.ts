@@ -8,9 +8,37 @@ type UserRecord = { id: string | number; status: string };
 type RoleRecord = { name: string };
 type PermissionRecord = { name: string };
 
+/**
+ * ## DatabaseAuthUserRepository
+ *
+ * Database-backed repository for authenticated users.
+ *
+ * Responsibilities:
+ * - resolve authenticated users by identifier
+ * - load user roles and effective permissions
+ * - map database records to `AuthUser`
+ * - isolate authentication from the underlying database schema
+ *
+ * Guarantees:
+ * - returns `null` for missing or inactive users
+ * - resolves effective permissions from assigned roles
+ * - remains database-agnostic (SQLite/PostgreSQL)
+ *
+ * Non-responsibilities:
+ * - user management
+ * - role or permission management
+ * - authentication workflows
+ * - HTTP request handling
+ */
 export class DatabaseAuthUserRepository implements AuthUserRepository {
   private readonly tables: AuthDatabaseTables;
 
+  /**
+   * Creates a new database-backed authenticated user repository.
+   *
+   * @param db Database abstraction used for persistence.
+   * @param tables Optional table name overrides.
+   */
   constructor(
     private readonly db: Database,
     tables: Partial<AuthDatabaseTables> = {}

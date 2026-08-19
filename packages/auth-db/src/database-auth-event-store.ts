@@ -43,16 +43,47 @@ type AuthEventRecord = {
   policy: string | null;
 };
 
-/** Persists and queries sanitized authentication audit events. */
+/**
+ * ## DatabaseAuthEventStore
+ *
+ * Database-backed store for authentication audit events.
+ *
+ * Responsibilities:
+ * - persist authentication audit events
+ * - provide filtered and paginated audit queries
+ * - map database records to audit event DTOs
+ * - isolate audit persistence from the underlying database schema
+ *
+ * Guarantees:
+ * - stores sanitized authentication events only
+ * - supports transactional event persistence
+ * - remains database-agnostic (SQLite/PostgreSQL)
+ *
+ * Non-responsibilities:
+ * - authentication
+ * - authorization policy evaluation
+ * - event dispatching
+ * - HTTP request handling
+ */
 export class DatabaseAuthEventStore implements AuthEventSink {
   private readonly tables: AuthDatabaseTables;
 
+  /**
+   * Creates a new database-backed authentication audit store.
+   *
+   * @param db Database abstraction used for persistence.
+   * @param tables Optional table name overrides.
+   */
   constructor(
     private readonly db: Database,
     tables: Partial<AuthDatabaseTables> = {}
   ) {
     this.tables = resolveAuthDatabaseTables(tables);
   }
+
+  // ---------------------------------------------------------------------
+  // Event persistence
+  // ---------------------------------------------------------------------
 
   async report(event: AuthEvent, database: DatabaseSession = this.db): Promise<void> {
     await database.run({
@@ -74,6 +105,10 @@ export class DatabaseAuthEventStore implements AuthEventSink {
     });
   }
 
+  // ---------------------------------------------------------------------
+  // Event queries
+  // ---------------------------------------------------------------------
+  
   async list(input: ListAuthEventsInput = {}): Promise<StoredAuthEvent[]> {
     return (await this.listPage(input)).events;
   }
@@ -131,6 +166,10 @@ export class DatabaseAuthEventStore implements AuthEventSink {
       offset,
     };
   }
+
+  // ---------------------------------------------------------------------
+  // Utilities
+  // ---------------------------------------------------------------------
 
   private serializeDate(value: Date | string): string {
     return value instanceof Date ? value.toISOString() : value;

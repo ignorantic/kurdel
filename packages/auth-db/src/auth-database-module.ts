@@ -22,6 +22,11 @@ import { DatabasePasswordService } from './database-password-service.js';
 import { DatabaseUserService } from './database-user-service.js';
 import { AUTH_DB_TOKENS } from './tokens.js';
 
+/**
+ * ## AuthDatabaseModuleConfig
+ *
+ * Configures database-backed authentication services.
+ */
 export interface AuthDatabaseModuleConfig {
   tables?: Partial<AuthDatabaseTables>;
   apiKeyHasher?: ApiKeyHasher;
@@ -30,6 +35,29 @@ export interface AuthDatabaseModuleConfig {
   audit?: boolean;
 }
 
+/**
+ * ## AuthDatabaseModule
+ *
+ * Integrates `@kurdel/auth` with a relational database.
+ *
+ * Provides:
+ * - authentication repositories
+ * - application services
+ * - password authentication
+ * - JWT session persistence
+ * - API key management
+ * - optional authentication audit storage
+ *
+ * Responsibilities:
+ * - register database-backed auth infrastructure
+ * - expose public DI services
+ * - configure hashing implementations
+ *
+ * Non-responsibilities:
+ * - database migrations
+ * - runtime authentication pipeline
+ * - authorization policies
+ */
 export class AuthDatabaseModule implements AppModule {
   readonly priority = ModulePriority.User;
   readonly imports = { db: Database };

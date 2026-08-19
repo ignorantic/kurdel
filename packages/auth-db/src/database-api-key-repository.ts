@@ -11,9 +11,38 @@ type ApiKeyRecord = {
   expires_at: string | null;
 };
 
+/**
+ * ## DatabaseApiKeyRepository
+ *
+ * Repository that resolves persisted API key credentials for
+ * authentication.
+ *
+ * Responsibilities:
+ * - locate API key credentials by plaintext API key
+ * - resolve credential metadata required for authentication
+ *
+ * Guarantees:
+ * - hashes incoming API keys before querying the database
+ * - never exposes or returns stored key hashes
+ * - remains database-agnostic (SQLite/PostgreSQL)
+ *
+ * Non-responsibilities:
+ * - API key issuance
+ * - API key revocation
+ * - usage recording
+ * - authorization policy evaluation
+ * - HTTP request handling
+ */
 export class DatabaseApiKeyRepository implements ApiKeyRepository {
   private readonly tables: AuthDatabaseTables;
 
+  /**
+   * Creates a new database-backed API key repository.
+   *
+   * @param db Database abstraction used for credential lookups.
+   * @param hasher Hashing strategy used to derive lookup hashes.
+   * @param tables Optional table name overrides.
+   */
   constructor(
     private readonly db: Database,
     private readonly hasher: ApiKeyHasher,

@@ -5,9 +5,36 @@ import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-datab
 
 type CredentialRecord = { user_id: string | number; password_hash: string };
 
+/**
+ * ## DatabasePasswordCredentialRepository
+ *
+ * Database-backed repository for password authentication credentials.
+ *
+ * Responsibilities:
+ * - locate password credentials by login identifier
+ * - map database records to `PasswordCredential`
+ * - isolate authentication from the underlying database schema
+ *
+ * Guarantees:
+ * - returns `null` when no matching credentials exist
+ * - performs case-insensitive login lookup
+ * - remains database-agnostic (SQLite/PostgreSQL)
+ *
+ * Non-responsibilities:
+ * - password verification
+ * - password hashing
+ * - user management
+ * - authentication workflows
+ */
 export class DatabasePasswordCredentialRepository implements PasswordCredentialRepository {
   private readonly tables: AuthDatabaseTables;
 
+  /**
+   * Creates a new database-backed password credential repository.
+   *
+   * @param db Database abstraction used for persistence.
+   * @param tables Optional table name overrides.
+   */
   constructor(
     private readonly db: Database,
     tables: Partial<AuthDatabaseTables> = {}

@@ -83,6 +83,10 @@ export interface UserList {
   offset: number;
 }
 
+// ---------------------------------------------------------------------
+// Errors
+// ---------------------------------------------------------------------
+
 export class UnknownRolesError extends Error {
   constructor(readonly roles: string[]) {
     super(`Unknown roles: ${roles.join(', ')}`);
@@ -128,9 +132,42 @@ export class RoleInUseError extends Error {
   }
 }
 
+/**
+ * ## DatabaseUserService
+ *
+ * Application service responsible for user, role and permission management
+ * backed by a relational database through the `Database` abstraction.
+ *
+ * Responsibilities:
+ * - manage users and their lifecycle
+ * - assign and revoke user roles
+ * - manage roles and role permissions
+ * - provide paginated user listings
+ * - execute bulk user operations
+ * - expose dashboard statistics
+ *
+ * Guarantees:
+ * - validates referenced roles and permissions before persisting changes
+ * - keeps user-role relationships consistent using database transactions
+ * - translates database constraint violations into domain-specific errors
+ * - remains database-agnostic (SQLite/PostgreSQL)
+ *
+ * Non-responsibilities:
+ * - authentication
+ * - authorization policy evaluation
+ * - password management
+ * - JWT or API key validation
+ * - HTTP request handling
+ */
 export class DatabaseUserService {
   private readonly tables: AuthDatabaseTables;
 
+  /**
+   * Creates a new database-backed user management service.
+   *
+   * @param db Database abstraction used for all persistence operations.
+   * @param tables Optional table name overrides.
+   */
   constructor(
     private readonly db: Database,
     tables: Partial<AuthDatabaseTables> = {}
@@ -138,100 +175,9 @@ export class DatabaseUserService {
     this.tables = resolveAuthDatabaseTables(tables);
   }
 
-  async listRoles(): Promise<string[]> {
-    const roles = (await this.db.all({
-      sql: `SELECT name FROM ${this.tables.roles} ORDER BY name;`,
-      params: [],
-    })) as Array<{ name: string }>;
-    return roles.map(role => role.name);
-  }
-
-  async listRoleSummaries(): Promise<RoleSummary[]> {
-    const records = (await this.db.all({
-      sql: [
-        `SELECT r.id, r.name, COUNT(ur.user_id) AS user_count FROM ${this.tables.roles} r`,
-        `LEFT JOIN ${this.tables.userRoles} ur ON ur.role_id = r.id`,
-        'GROUP BY r.id, r.name ORDER BY r.name;',
-      ].join(' '),
-      params: [],
-    })) as Array<{ id: number; name: string; user_count: number }>;
-    const permissions = await this.loadRolePermissions(records.map(role => role.id));
-    return records.map(role => ({
-      id: role.id,
-      name: role.name,
-      userCount: role.user_count,
-      permissions: permissions.get(role.id) ?? [],
-    }));
-  }
-
-  async listPermissions(): Promise<string[]> {
-    const records = (await this.db.all({
-      sql: `SELECT name FROM ${this.tables.permissions} ORDER BY name;`,
-      params: [],
-    })) as Array<{ name: string }>;
-    return records.map(permission => permission.name);
-  }
-
-  async setRolePermissions(roleId: number, names: string[]): Promise<RoleSummary> {
-    if (!(await this.findRole(roleId))) throw new RoleNotFoundError(roleId);
-    const permissions = await this.resolvePermissions(names);
-    await this.db.transaction(async transaction => {
-      await transaction.run({
-        sql: `DELETE FROM ${this.tables.rolePermissions} WHERE role_id = ?;`,
-        params: [roleId],
-      });
-      for (const permission of permissions) {
-        await transaction.run({
-          sql: `INSERT INTO ${this.tables.rolePermissions} (role_id, permission_id) VALUES (?, ?);`,
-          params: [roleId, permission.id],
-        });
-      }
-    });
-    return (await this.listRoleSummaries()).find(role => role.id === roleId)!;
-  }
-
-  async createRole(name: string): Promise<RoleSummary> {
-    const normalized = name.trim();
-    try {
-      const role = (await this.db.get({
-        sql: `INSERT INTO ${this.tables.roles} (name) VALUES (?) RETURNING id, name;`,
-        params: [normalized],
-      })) as RoleRecord;
-      return { ...role, userCount: 0, permissions: [] };
-    } catch (error) {
-      this.rethrowRoleConflict(error, normalized);
-    }
-  }
-
-  async renameRole(roleId: number, name: string): Promise<RoleSummary> {
-    const existing = await this.findRole(roleId);
-    if (!existing) throw new RoleNotFoundError(roleId);
-    const normalized = name.trim();
-    try {
-      await this.db.run({
-        sql: `UPDATE ${this.tables.roles} SET name = ? WHERE id = ?;`,
-        params: [normalized, roleId],
-      });
-    } catch (error) {
-      this.rethrowRoleConflict(error, normalized);
-    }
-    return (await this.listRoleSummaries()).find(role => role.id === roleId)!;
-  }
-
-  async deleteRole(roleId: number): Promise<void> {
-    const existing = await this.findRole(roleId);
-    if (!existing) throw new RoleNotFoundError(roleId);
-    const usage = (await this.db.get({
-      sql: `SELECT COUNT(*) AS count FROM ${this.tables.userRoles} WHERE role_id = ?;`,
-      params: [roleId],
-    })) as CountRecord;
-    if (usage.count > 0) throw new RoleInUseError(roleId, usage.count);
-    await this.db.run({
-      sql: `DELETE FROM ${this.tables.roles} WHERE id = ?;`,
-      params: [roleId],
-    });
-  }
-
+  // ---------------------------------------------------------------------
+  // User management
+  // ---------------------------------------------------------------------
   async create(input: CreateUserInput): Promise<ManagedUser> {
     const email = this.normalizeEmail(input.email);
     const roles = await this.resolveRoles(input.roles);
@@ -255,6 +201,78 @@ export class DatabaseUserService {
     } catch (error) {
       this.rethrowEmailConflict(error, email);
     }
+  }
+
+  async update(userId: number, input: UpdateUserInput): Promise<ManagedUser> {
+    const existing = await this.findRecord(userId);
+    if (!existing) throw new UserNotFoundError(userId);
+    const roles = input.roles ? await this.resolveRoles(input.roles) : undefined;
+    const email = input.email ? this.normalizeEmail(input.email) : undefined;
+
+    try {
+      await this.db.transaction(async transaction => {
+        const updates: string[] = [];
+        const params: unknown[] = [];
+        for (const [column, value] of [
+          ['name', input.name],
+          ['email', email],
+          ['status', input.status],
+        ] as const) {
+          if (value !== undefined) {
+            updates.push(`${column} = ?`);
+            params.push(value);
+          }
+        }
+        if (updates.length > 0 || roles) {
+          updates.push('updated_at = CURRENT_TIMESTAMP');
+          await transaction.run({
+            sql: `UPDATE ${this.tables.users} SET ${updates.join(', ')} WHERE id = ?;`,
+            params: [...params, userId],
+          });
+        }
+        if (roles) await this.replaceRoles(transaction, userId, roles);
+      });
+    } catch (error) {
+      this.rethrowEmailConflict(error, email);
+    }
+    return this.findById(userId);
+  }
+
+  async delete(userId: number): Promise<void> {
+    const existing = await this.findRecord(userId);
+    if (!existing) throw new UserNotFoundError(userId);
+
+    await this.db.transaction(async transaction => {
+      await transaction.run({
+        sql: `DELETE FROM ${this.tables.apiKeys} WHERE user_id = ?;`,
+        params: [userId],
+      });
+      await transaction.run({
+        sql: `DELETE FROM ${this.tables.userRoles} WHERE user_id = ?;`,
+        params: [userId],
+      });
+      await transaction.run({
+        sql: `DELETE FROM ${this.tables.users} WHERE id = ?;`,
+        params: [userId],
+      });
+    });
+  }
+
+  async findById(userId: number): Promise<ManagedUser> {
+    const user = await this.findRecord(userId);
+    if (!user) throw new UserNotFoundError(userId);
+    const roles = await this.loadRoles([userId]);
+    return this.mapUser(user, roles.get(userId) ?? []);
+  }
+
+  private async findRecord(userId: number): Promise<UserRecord | undefined> {
+    return (await this.db.get({
+      sql: [
+        'SELECT id, name, email, status, created_at, updated_at',
+        `FROM ${this.tables.users} WHERE id = ?;`,
+      ].join(' '),
+      params: [userId],
+    })) as UserRecord | undefined;
   }
 
   async list(input: ListUsersInput): Promise<UserList> {
@@ -357,6 +375,116 @@ export class DatabaseUserService {
     });
   }
 
+  // ---------------------------------------------------------------------
+  // Role management
+  // ---------------------------------------------------------------------
+  async createRole(name: string): Promise<RoleSummary> {
+    const normalized = name.trim();
+    try {
+      const role = (await this.db.get({
+        sql: `INSERT INTO ${this.tables.roles} (name) VALUES (?) RETURNING id, name;`,
+        params: [normalized],
+      })) as RoleRecord;
+      return { ...role, userCount: 0, permissions: [] };
+    } catch (error) {
+      this.rethrowRoleConflict(error, normalized);
+    }
+  }
+
+  async renameRole(roleId: number, name: string): Promise<RoleSummary> {
+    const existing = await this.findRole(roleId);
+    if (!existing) throw new RoleNotFoundError(roleId);
+    const normalized = name.trim();
+    try {
+      await this.db.run({
+        sql: `UPDATE ${this.tables.roles} SET name = ? WHERE id = ?;`,
+        params: [normalized, roleId],
+      });
+    } catch (error) {
+      this.rethrowRoleConflict(error, normalized);
+    }
+    return (await this.listRoleSummaries()).find(role => role.id === roleId)!;
+  }
+
+  async deleteRole(roleId: number): Promise<void> {
+    const existing = await this.findRole(roleId);
+    if (!existing) throw new RoleNotFoundError(roleId);
+    const usage = (await this.db.get({
+      sql: `SELECT COUNT(*) AS count FROM ${this.tables.userRoles} WHERE role_id = ?;`,
+      params: [roleId],
+    })) as CountRecord;
+    if (usage.count > 0) throw new RoleInUseError(roleId, usage.count);
+    await this.db.run({
+      sql: `DELETE FROM ${this.tables.roles} WHERE id = ?;`,
+      params: [roleId],
+    });
+  }
+
+  async listRoles(): Promise<string[]> {
+    const roles = (await this.db.all({
+      sql: `SELECT name FROM ${this.tables.roles} ORDER BY name;`,
+      params: [],
+    })) as Array<{ name: string }>;
+    return roles.map(role => role.name);
+  }
+
+  async listRoleSummaries(): Promise<RoleSummary[]> {
+    const records = (await this.db.all({
+      sql: [
+        `SELECT r.id, r.name, COUNT(ur.user_id) AS user_count FROM ${this.tables.roles} r`,
+        `LEFT JOIN ${this.tables.userRoles} ur ON ur.role_id = r.id`,
+        'GROUP BY r.id, r.name ORDER BY r.name;',
+      ].join(' '),
+      params: [],
+    })) as Array<{ id: number; name: string; user_count: number }>;
+    const permissions = await this.loadRolePermissions(records.map(role => role.id));
+    return records.map(role => ({
+      id: role.id,
+      name: role.name,
+      userCount: role.user_count,
+      permissions: permissions.get(role.id) ?? [],
+    }));
+  }
+
+  private async findRole(roleId: number): Promise<RoleRecord | undefined> {
+    return (await this.db.get({
+      sql: `SELECT id, name FROM ${this.tables.roles} WHERE id = ?;`,
+      params: [roleId],
+    })) as RoleRecord | undefined;
+  }
+
+  // ---------------------------------------------------------------------
+  // Permission management
+  // ---------------------------------------------------------------------
+  async listPermissions(): Promise<string[]> {
+    const records = (await this.db.all({
+      sql: `SELECT name FROM ${this.tables.permissions} ORDER BY name;`,
+      params: [],
+    })) as Array<{ name: string }>;
+    return records.map(permission => permission.name);
+  }
+
+  async setRolePermissions(roleId: number, names: string[]): Promise<RoleSummary> {
+    if (!(await this.findRole(roleId))) throw new RoleNotFoundError(roleId);
+    const permissions = await this.resolvePermissions(names);
+    await this.db.transaction(async transaction => {
+      await transaction.run({
+        sql: `DELETE FROM ${this.tables.rolePermissions} WHERE role_id = ?;`,
+        params: [roleId],
+      });
+      for (const permission of permissions) {
+        await transaction.run({
+          sql: `INSERT INTO ${this.tables.rolePermissions} (role_id, permission_id) VALUES (?, ?);`,
+          params: [roleId, permission.id],
+        });
+      }
+    });
+    return (await this.listRoleSummaries()).find(role => role.id === roleId)!;
+  }
+
+  // ---------------------------------------------------------------------
+  // Dashboard
+  // ---------------------------------------------------------------------
   async dashboardStats(): Promise<AdminDashboardStats> {
     const apiKeyExpiration = this.db.dialect === 'postgres'
       ? 'expires_at'
@@ -405,84 +533,9 @@ export class DatabaseUserService {
     };
   }
 
-  async findById(userId: number): Promise<ManagedUser> {
-    const user = await this.findRecord(userId);
-    if (!user) throw new UserNotFoundError(userId);
-    const roles = await this.loadRoles([userId]);
-    return this.mapUser(user, roles.get(userId) ?? []);
-  }
-
-  async update(userId: number, input: UpdateUserInput): Promise<ManagedUser> {
-    const existing = await this.findRecord(userId);
-    if (!existing) throw new UserNotFoundError(userId);
-    const roles = input.roles ? await this.resolveRoles(input.roles) : undefined;
-    const email = input.email ? this.normalizeEmail(input.email) : undefined;
-
-    try {
-      await this.db.transaction(async transaction => {
-        const updates: string[] = [];
-        const params: unknown[] = [];
-        for (const [column, value] of [
-          ['name', input.name],
-          ['email', email],
-          ['status', input.status],
-        ] as const) {
-          if (value !== undefined) {
-            updates.push(`${column} = ?`);
-            params.push(value);
-          }
-        }
-        if (updates.length > 0 || roles) {
-          updates.push('updated_at = CURRENT_TIMESTAMP');
-          await transaction.run({
-            sql: `UPDATE ${this.tables.users} SET ${updates.join(', ')} WHERE id = ?;`,
-            params: [...params, userId],
-          });
-        }
-        if (roles) await this.replaceRoles(transaction, userId, roles);
-      });
-    } catch (error) {
-      this.rethrowEmailConflict(error, email);
-    }
-    return this.findById(userId);
-  }
-
-  async delete(userId: number): Promise<void> {
-    const existing = await this.findRecord(userId);
-    if (!existing) throw new UserNotFoundError(userId);
-
-    await this.db.transaction(async transaction => {
-      await transaction.run({
-        sql: `DELETE FROM ${this.tables.apiKeys} WHERE user_id = ?;`,
-        params: [userId],
-      });
-      await transaction.run({
-        sql: `DELETE FROM ${this.tables.userRoles} WHERE user_id = ?;`,
-        params: [userId],
-      });
-      await transaction.run({
-        sql: `DELETE FROM ${this.tables.users} WHERE id = ?;`,
-        params: [userId],
-      });
-    });
-  }
-
-  private async findRecord(userId: number): Promise<UserRecord | undefined> {
-    return (await this.db.get({
-      sql: [
-        'SELECT id, name, email, status, created_at, updated_at',
-        `FROM ${this.tables.users} WHERE id = ?;`,
-      ].join(' '),
-      params: [userId],
-    })) as UserRecord | undefined;
-  }
-
-  private async findRole(roleId: number): Promise<RoleRecord | undefined> {
-    return (await this.db.get({
-      sql: `SELECT id, name FROM ${this.tables.roles} WHERE id = ?;`,
-      params: [roleId],
-    })) as RoleRecord | undefined;
-  }
+  // ---------------------------------------------------------------------
+  // Validation
+  // ---------------------------------------------------------------------
 
   private async ensureUsersExist(userIds: number[]): Promise<void> {
     if (userIds.length === 0) return;
@@ -523,6 +576,10 @@ export class DatabaseUserService {
     return uniqueNames.map(name => byName.get(name)!);
   }
 
+  // ---------------------------------------------------------------------
+  // Loading
+  // ---------------------------------------------------------------------
+
   private async loadRolePermissions(roleIds: number[]): Promise<Map<number, string[]>> {
     const result = new Map<number, string[]>();
     if (roleIds.length === 0) return result;
@@ -539,23 +596,6 @@ export class DatabaseUserService {
       result.set(permission.role_id, [...(result.get(permission.role_id) ?? []), permission.name]);
     }
     return result;
-  }
-
-  private async replaceRoles(
-    database: DatabaseSession,
-    userId: number,
-    roles: RoleRecord[]
-  ): Promise<void> {
-    await database.run({
-      sql: `DELETE FROM ${this.tables.userRoles} WHERE user_id = ?;`,
-      params: [userId],
-    });
-    for (const role of roles) {
-      await database.run({
-        sql: `INSERT INTO ${this.tables.userRoles} (user_id, role_id) VALUES (?, ?);`,
-        params: [userId, role.id],
-      });
-    }
   }
 
   private async loadRoles(userIds: number[]): Promise<Map<number, string[]>> {
@@ -578,6 +618,31 @@ export class DatabaseUserService {
     return result;
   }
 
+  // ---------------------------------------------------------------------
+  // Persistence
+  // ---------------------------------------------------------------------
+
+  private async replaceRoles(
+    database: DatabaseSession,
+    userId: number,
+    roles: RoleRecord[]
+  ): Promise<void> {
+    await database.run({
+      sql: `DELETE FROM ${this.tables.userRoles} WHERE user_id = ?;`,
+      params: [userId],
+    });
+    for (const role of roles) {
+      await database.run({
+        sql: `INSERT INTO ${this.tables.userRoles} (user_id, role_id) VALUES (?, ?);`,
+        params: [userId, role.id],
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Mapping
+  // ---------------------------------------------------------------------
+
   private mapUser(user: UserRecord, roles: string[]): ManagedUser {
     return {
       id: user.id,
@@ -593,6 +658,10 @@ export class DatabaseUserService {
   private normalizeEmail(email: string): string {
     return email.toLowerCase();
   }
+
+  // ---------------------------------------------------------------------
+  // Error translation
+  // ---------------------------------------------------------------------
 
   private rethrowEmailConflict(error: unknown, email?: string): never {
     if (email && this.isUniqueConstraintError(error, `${this.tables.users}.email`)) {
@@ -613,6 +682,10 @@ export class DatabaseUserService {
     return error.message.includes(sqliteColumn) ||
       (error as Error & { code?: string }).code === '23505';
   }
+
+  // ---------------------------------------------------------------------
+  // Utilities
+  // ---------------------------------------------------------------------
 
   private toCount(value: AggregateValue): number {
     const count = Number(value ?? 0);

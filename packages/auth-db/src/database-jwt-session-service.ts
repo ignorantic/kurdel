@@ -48,10 +48,43 @@ export class InvalidRefreshTokenError extends Error {
   }
 }
 
-/** Creates and revokes the server-side state referenced by JWT `jti` claims. */
+/**
+ * ## DatabaseJwtSessionService
+ *
+ * Application service responsible for managing persistent JWT sessions
+ * backed by a relational database through the `Database` abstraction.
+ *
+ * Responsibilities:
+ * - create server-side JWT sessions
+ * - issue and rotate refresh tokens
+ * - list active and historical sessions
+ * - revoke individual or all user sessions
+ * - emit JWT session audit events
+ *
+ * Guarantees:
+ * - validates that sessions belong to active users
+ * - stores refresh tokens as SHA-256 hashes only
+ * - rotates refresh tokens atomically
+ * - performs all state changes inside database transactions
+ * - remains database-agnostic (SQLite/PostgreSQL)
+ *
+ * Non-responsibilities:
+ * - JWT signing or verification
+ * - access token generation
+ * - authorization policy evaluation
+ * - HTTP request handling
+ */
 export class DatabaseJwtSessionService {
   private readonly tables: AuthDatabaseTables;
 
+  /**
+   * Creates a new database-backed JWT session service.
+   *
+   * @param db Database abstraction used for persistence.
+   * @param tables Optional table name overrides.
+   * @param events Optional transactional audit event sink.
+   * @param now Time provider used for expiration checks and timestamps.
+   */
   constructor(
     private readonly db: Database,
     tables: Partial<AuthDatabaseTables> = {},
@@ -60,6 +93,10 @@ export class DatabaseJwtSessionService {
   ) {
     this.tables = resolveAuthDatabaseTables(tables);
   }
+
+  // ---------------------------------------------------------------------
+  // JWT session lyfecycle
+  // ---------------------------------------------------------------------
 
   async create(userId: number, expiresAt: Date): Promise<CreatedJwtSession> {
     const expirationTime = expiresAt.getTime();
@@ -198,6 +235,10 @@ export class DatabaseJwtSessionService {
     });
   }
 
+  // ---------------------------------------------------------------------
+  // Session management
+  // ---------------------------------------------------------------------
+  
   async list(userId: number): Promise<JwtSessionSummary[]> {
     const now = this.now().getTime();
     const records = await this.db.all({
@@ -267,6 +308,10 @@ export class DatabaseJwtSessionService {
       }, transaction);
     });
   }
+
+  // ---------------------------------------------------------------------
+  // Security helpers
+  // ---------------------------------------------------------------------
 
   private generateRefreshToken(): string {
     return `kdl_rt_${crypto.randomBytes(32).toString('base64url')}`;

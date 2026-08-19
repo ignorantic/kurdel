@@ -9,9 +9,40 @@ export class PasswordUserNotFoundError extends Error {
   }
 }
 
+/**
+ * ## DatabasePasswordService
+ *
+ * Application service responsible for managing user password credentials
+ * backed by a relational database through the `Database` abstraction.
+ *
+ * Responsibilities:
+ * - set or replace user password credentials
+ * - hash passwords before persisting them
+ * - ensure the target user exists
+ *
+ * Guarantees:
+ * - never stores plaintext passwords
+ * - delegates password hashing to the configured `PasswordHasher`
+ * - performs updates atomically using a database transaction
+ * - remains database-agnostic (SQLite/PostgreSQL)
+ *
+ * Non-responsibilities:
+ * - password verification
+ * - password policy enforcement
+ * - password reset workflows
+ * - authentication
+ * - HTTP request handling
+ */
 export class DatabasePasswordService {
   private readonly tables: AuthDatabaseTables;
 
+  /**
+   * Creates a new database-backed password management service.
+   *
+   * @param db Database abstraction used for persistence.
+   * @param hasher Password hasher used to derive secure password hashes.
+   * @param tables Optional table name overrides.
+   */
   constructor(
     private readonly db: Database,
     private readonly hasher: PasswordHasher,

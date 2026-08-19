@@ -67,9 +67,42 @@ export class ApiKeyNotFoundError extends Error {
   }
 }
 
+/**
+ * ## DatabaseApiKeyService
+ *
+ * Application service responsible for issuing, listing and revoking
+ * database-backed API keys.
+ *
+ * Responsibilities:
+ * - issue API keys for active users
+ * - list API keys owned by a user
+ * - revoke existing API keys
+ * - publish API key lifecycle audit events
+ *
+ * Guarantees:
+ * - only active users can receive new API keys
+ * - API keys are persisted atomically using database transactions
+ * - plaintext API keys are returned only during creation
+ * - remains database-agnostic (SQLite/PostgreSQL)
+ *
+ * Non-responsibilities:
+ * - API key authentication
+ * - API key hash verification
+ * - authorization policy evaluation
+ * - HTTP request handling
+ */
 export class DatabaseApiKeyService {
   private readonly tables: AuthDatabaseTables;
 
+  /**
+   * Creates a new database-backed API key management service.
+   *
+   * @param db Database abstraction used for persistence.
+   * @param hasher Hashing strategy used before storing API keys.
+   * @param tables Optional table name overrides.
+   * @param events Optional authentication audit event sink.
+   * @param now Clock provider used for timestamps and testing.
+   */
   constructor(
     private readonly db: Database,
     private readonly hasher: ApiKeyHasher,

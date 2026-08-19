@@ -1,84 +1,47 @@
 # @kurdel/auth-db
 
-Database-backed repository adapters for `@kurdel/auth`.
+Database-backed infrastructure for `@kurdel/auth`.
 
-The package keeps authentication strategies storage-agnostic while providing
-standard implementations over Kurdel's `Database` contract.
+The package provides production-ready implementations of the repositories and
+application services defined by `@kurdel/auth` on top of Kurdel's `Database`
+abstraction. Authentication strategies remain storage-agnostic while
+applications own their database schema and migrations.
 
-`DatabaseAuthUserRepository` resolves the current user and roles, while
-`DatabaseApiKeyRepository` resolves safe credential metadata including its
-stable ID. After a strategy succeeds, this data is available through
-`ctx.auth.user` and `ctx.auth.credential`; raw API keys are never exposed in the
-authentication context.
+## Features
 
-The package also provides `DatabaseUserService` and `DatabaseApiKeyService` for
-administrative workflows. They create, list, update, and delete users, manage
-role assignments, and issue, list, or revoke API keys. `AuthDatabaseModule`
-registers both services as `AUTH_DB_TOKENS.UserService` and
-`AUTH_DB_TOKENS.ApiKeyService`.
+- Database-backed authentication repositories
+- User, role and permission management
+- API key lifecycle management
+- JWT session persistence and revocation
+- Refresh token rotation
+- Password credential storage
+- Authentication audit persistence
+- SQLite and PostgreSQL support
 
-The module also exposes `DatabaseJwtSessionRepository` and
-`DatabaseJwtSessionService`. Applications can create a server-side session,
-place its ID in the JWT `jti` claim, configure that repository on `JwtStrategy`,
-and revoke the session before the signed token expires. Session creation and
-revocation are transactional and emit sanitized audit events when auditing is
-enabled.
+## Registered services
 
-For renewable sessions, `createRefreshable()` returns an opaque refresh token
-whose SHA-256 hash is persisted separately from the JWT session. `refresh()`
-rotates that secret atomically, so a token stops working as soon as it has been
-used. `list()`, `revoke()`, and `revokeAll()` provide the primitives for active
-device/session management. Applications choose access-token and refresh-token
-lifetimes independently; the persisted session should live for the refresh
-window while each signed access token keeps a short expiration.
+`AuthDatabaseModule` registers the following infrastructure:
 
-Password authentication uses a separate `password_credentials` table rather
-than adding secrets to the user profile. `DatabasePasswordCredentialRepository`
-resolves credentials by case-insensitive email, while
-`DatabasePasswordService.set()` hashes and upserts a user's password.
-`AuthDatabaseModule` wires both to `PasswordAuthenticationService` and uses
-`ScryptPasswordHasher` by default. Applications can replace it with
-`passwordHasher` in the module configuration.
+| Token | Implementation |
+|-------|----------------|
+| `AUTH_TOKENS.UserRepository` | `DatabaseAuthUserRepository` |
+| `AUTH_TOKENS.ApiKeyRepository` | `DatabaseApiKeyRepository` |
+| `AUTH_TOKENS.JwtSessionRepository` | `DatabaseJwtSessionRepository` |
+| `AUTH_TOKENS.PasswordCredentialRepository` | `DatabasePasswordCredentialRepository` |
+| `AUTH_TOKENS.ApiKeyUsageRecorder` | `DatabaseApiKeyUsageRecorder` |
+| `AUTH_TOKENS.PasswordAuthenticationService` | `PasswordAuthenticationService` |
+| `AUTH_DB_TOKENS.UserService` | `DatabaseUserService` |
+| `AUTH_DB_TOKENS.ApiKeyService` | `DatabaseApiKeyService` |
+| `AUTH_DB_TOKENS.JwtSessionService` | `DatabaseJwtSessionService` |
+| `AUTH_DB_TOKENS.PasswordService` | `DatabasePasswordService` |
 
-User listings support status and text filters, stable sorting, and offset
-pagination. `DatabaseUserService` also provides transactional bulk status,
-role, and deletion operations; role lifecycle management with usage counts;
-and dashboard statistics for users, credentials, and recent authentication
-failures. `DatabaseAuthEventStore.listPage()` exposes global or per-user audit
-history with type, date range, and offset filters while the existing `list()`
-method remains available for simple queries.
+When audit persistence is enabled, the module also registers:
 
-Applications may also model authorization as roles containing permissions.
-`DatabaseUserService.listPermissions()` exposes the application-owned catalog,
-and `setRolePermissions()` replaces a role's assignments transactionally.
-`DatabaseAuthUserRepository` resolves the union of permissions from every
-current role into `AuthUser.permissions`. The application schema must provide
-`permissions` and `role_permissions` tables; the runnable sample contains the
-corresponding migration and seed data.
+| Token | Implementation |
+|-------|----------------|
+| `AUTH_DB_TOKENS.EventStore` | `DatabaseAuthEventStore` |
 
-`DatabaseApiKeyUsageRecorder` updates `last_used_at` after successful
-authentication. `AuthDatabaseModule` exposes it through
-`AUTH_TOKENS.ApiKeyUsageRecorder`, ready to pass to `ApiKeyStrategy` as its
-`usage` option.
-
-Database audit persistence is opt-in because applications own their schema:
-
-```ts
-new AuthDatabaseModule({ audit: true });
-```
-
-This registers `DatabaseAuthEventStore` as `AUTH_DB_TOKENS.EventStore` and
-wires API-key issue and revoke events into the management service. Pass the
-same store to `AuthModule.events` to persist runtime authentication and
-authorization events. The application must provide the configured
-`auth_events` table; the runnable sample includes a migration with the expected
-columns and indexes.
-
-API-key issue or revocation and its database audit event run in the same
-`Database.transaction` callback. If audit persistence fails, the credential
-mutation is rolled back and the service returns the original error. User
-creation, role replacement, profile updates, and deletion use the same
-transaction API for their multi-statement operations.
+## Usage
 
 ```ts
 import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
@@ -86,6 +49,7 @@ import { AuthDatabaseModule } from '@kurdel/auth-db';
 
 const modules = [
   new AuthDatabaseModule(),
+
   new AuthModule({
     strategies: [
       {
@@ -103,8 +67,111 @@ const modules = [
 ];
 ```
 
-Custom table names and hashing implementations can be supplied through the
-module configuration:
+## User management
+
+`DatabaseUserService` provides transactional user administration.
+
+Features include:
+
+- create, update and delete users
+- paginated user listing
+- bulk status updates
+- bulk role assignment
+- bulk deletion
+- role lifecycle management
+- permission assignment
+- dashboard statistics
+
+Applications may model authorization as roles containing permissions.
+`DatabaseAuthUserRepository` resolves the union of permissions from all
+assigned roles into `AuthUser.permissions`.
+
+## API keys
+
+`DatabaseApiKeyService` manages the complete lifecycle of API keys.
+
+It supports:
+
+- issuing new keys
+- listing active keys
+- revoking keys
+- expiration
+- usage tracking
+
+Only SHA-256 hashes are persisted. Raw API keys are returned only during
+creation and are never stored.
+
+`DatabaseApiKeyUsageRecorder` automatically updates `last_used_at` after
+successful authentication.
+
+## JWT sessions
+
+`DatabaseJwtSessionService` manages server-side JWT sessions referenced by the
+JWT `jti` claim.
+
+It provides:
+
+- `create()`
+- `createRefreshable()`
+- `refresh()`
+- `list()`
+- `revoke()`
+- `revokeAll()`
+
+Refresh tokens are stored only as SHA-256 hashes and rotated atomically on
+every successful refresh.
+
+Applications are free to choose independent lifetimes for access tokens and
+refresh tokens.
+
+`DatabaseJwtSessionRepository` resolves persisted session metadata used by
+`JwtStrategy` to detect revoked sessions.
+
+## Password authentication
+
+Passwords are stored separately from user profiles.
+
+The package provides:
+
+- `DatabasePasswordCredentialRepository`
+- `DatabasePasswordService`
+- `PasswordAuthenticationService`
+
+`DatabasePasswordService` hashes and stores passwords using
+`ScryptPasswordHasher` by default.
+
+Applications may replace the hasher:
+
+```ts
+new AuthDatabaseModule({
+  passwordHasher: customHasher,
+});
+```
+
+## Authentication audit
+
+Audit persistence is optional.
+
+```ts
+new AuthDatabaseModule({
+  audit: true,
+});
+```
+
+When enabled:
+
+- `DatabaseAuthEventStore` is registered
+- management services persist audit events
+- the same store can be passed to `AuthModule.events`
+
+Authentication events are stored in the application's `auth_events` table.
+
+API key creation, revocation and audit persistence execute within the same
+database transaction.
+
+## Configuration
+
+Applications may customize table names and hashing implementations.
 
 ```ts
 new AuthDatabaseModule({
@@ -112,22 +179,50 @@ new AuthDatabaseModule({
     users: 'application_users',
     apiKeys: 'application_api_keys',
   },
-  apiKeyHasher: customHasher,
+
+  apiKeyHasher: customApiKeyHasher,
+  passwordHasher: customPasswordHasher,
 });
 ```
 
-By default, the package expects `users`, `roles`, `user_roles`, `api_keys`,
-`jwt_sessions`, `jwt_refresh_tokens`, and `password_credentials`
-tables and uses SHA-256 for API-key lookup. Schema ownership remains with the
-application; see `sample/auth-db` for migrations and a runnable example.
-The management services expect the profile and credential metadata columns
-shown in those migrations, including user name, email, status and timestamps,
-plus API-key name, status, expiration and last-use timestamps.
-When audit persistence is enabled, the default event table is `auth_events`;
-it can be changed through `tables.authEvents`.
+## Database schema
+
+By default the package expects the following tables:
+
+- `users`
+- `roles`
+- `user_roles`
+- `permissions`
+- `role_permissions`
+- `api_keys`
+- `jwt_sessions`
+- `jwt_refresh_tokens`
+- `password_credentials`
+- `auth_events`
+
+Applications own the schema and migrations.
+
+See `sample/auth-db` for a complete runnable example including migrations and
+seed data.
+
+## Architecture
+
+`@kurdel/auth-db` is an infrastructure package.
+
+Its responsibilities are:
+
+- resolve persisted authentication data
+- manage authentication-related entities
+- persist authentication audit events
+- integrate authentication with relational databases
+
+It does **not** implement authentication strategies.
+
+Authentication strategies remain part of `@kurdel/auth`, while this package
+provides the storage layer they depend on.
 
 See the [`@kurdel/auth` documentation](../auth/README.md) for route protection,
-authentication context, and custom strategy contracts.
+authentication middleware, and custom authentication strategies.
 
 ## License
 
