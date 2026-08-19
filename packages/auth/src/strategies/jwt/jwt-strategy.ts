@@ -7,20 +7,54 @@ import type { JwtService } from 'src/strategies/index.js';
 /**
  * ## JwtStrategyOptions
  *
- * Configures how the strategy extracts and validates JWT tokens.
+ * Configures JWT authentication.
  */
 export interface JwtStrategyOptions {
-  header?: string;     // default: 'authorization'
-  prefix?: string;     // default: 'Bearer'
-  /** When configured, every token must reference an active session through `jti`. */
+  /**
+   * Request header containing the JWT.
+   *
+   * @default "authorization"
+   */
+  header?: string;
+
+   /**
+   * Authentication scheme expected in the header.
+   *
+   * @default "Bearer"
+   */
+  prefix?: string;
+
+  /**
+   * Optional repository for server-side session validation.
+   *
+   * When configured, every JWT must reference an active session
+   * through its `jti` claim.
+   */
   sessions?: JwtSessionRepository;
 }
 
 /**
  * ## JwtStrategy
  *
- * Authentication strategy that validates a JWT token from
- * the HttpRequest and returns an AuthUser.
+ * Authenticates requests using JSON Web Tokens.
+ *
+ * Responsibilities:
+ * - extract a JWT from the configured request header
+ * - verify the token signature and claims
+ * - optionally validate the referenced server-side session
+ * - resolve the current authenticated user
+ *
+ * Guarantees:
+ * - invalid tokens never authenticate
+ * - revoked or expired sessions never authenticate
+ * - inactive or missing users never authenticate
+ * - verified JWT claims are exposed through the authentication result
+ *
+ * Non-responsibilities:
+ * - JWT creation
+ * - session persistence
+ * - authorization policy evaluation
+ * - user management
  */
 export class JwtStrategy implements AuthStrategy {
   private readonly header: string;
@@ -37,6 +71,13 @@ export class JwtStrategy implements AuthStrategy {
     this.sessions = opts.sessions;
   }
 
+   /**
+   * Authenticates a request using the configured JWT header.
+   *
+   * Returns `null` when the token is missing, malformed, invalid,
+   * references a revoked or expired session, or its associated
+   * user cannot be authenticated.
+   */
   async authenticate(req: HttpRequest): Promise<AuthenticationResult | null> {
     const raw = req.headers?.[this.header];
     if (!raw) return null;

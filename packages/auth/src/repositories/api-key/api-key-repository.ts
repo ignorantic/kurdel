@@ -1,31 +1,44 @@
+/**
+ * ## ApiKeyCredential
+ *
+ * Metadata describing an API key after successful lookup.
+ *
+ * The credential contains only the information required for
+ * authentication. User identity, roles, and permissions are resolved
+ * separately through {@link AuthUserRepository}.
+ */
 export interface ApiKeyCredential {
   /** Stable credential identifier, when the backing store exposes one. */
   id?: string;
-  /** Stable identity resolved after credential validation. */
+
+  /** Identifier of the associated application user. */
   userId: string | number;
-  /** Revoked credentials must never authenticate. */
+
+  /** Indicates whether the credential has been revoked. */
   revoked?: boolean;
-  /** Optional absolute expiry time. */
+
+  /** Optional absolute expiration time. */
   expiresAt?: Date;
 }
 
 /**
  * ## ApiKeyRepository
  *
- * Abstraction for retrieving credential metadata by API key.
+ * Resolves API-key credentials from presented secrets.
  *
- * A repository implementation may:
- * - load records from an in-memory map
- * - query a database
- * - read from Redis or any other KV store
- * - call an external authentication service
+ * Implementations may retrieve credentials from any backing store,
+ * including databases, in-memory collections, key-value stores, or
+ * external authentication services.
  *
- * Strategies depend only on this interface, not on the storage details.
+ * The returned credential contains only authentication metadata.
+ * Authorization data is resolved separately through
+ * {@link AuthUserRepository}.
  */
 export interface ApiKeyRepository {
   /**
-   * Returns credential metadata associated with the given API key.
-   * If the key is unknown, must return `null`.
+   * Resolves the credential associated with an API key.
+   *
+   * Returns `null` when the key is unknown or cannot be authenticated.
    */
   findByKey(key: string): Promise<ApiKeyCredential | null> | ApiKeyCredential | null;
 }

@@ -2,7 +2,8 @@ import crypto from 'node:crypto';
 
 /**
  * ## JwtHeader
- * Standard JWT header metadata.
+ *
+ * Standard JWT header used by {@link JwtService}.
  */
 interface JwtHeader {
   alg: 'HS256';
@@ -11,41 +12,90 @@ interface JwtHeader {
 
 /**
  * ## JwtPayload
- * Standard JWT claims plus application-level fields.
+ *
+ * Standard JWT claims together with application-defined claims.
+ *
+ * The payload is intentionally extensible to support application-specific
+ * authentication metadata.
  */
 export interface JwtPayload {
+  /** Subject (`sub`) identifying the authenticated principal. */
   sub: string | number;
+
+  /** Roles embedded into the signed token. */
   roles: string[];
+
+  /** Issued-at time (`iat`), expressed as Unix time in seconds. */
   iat?: number;
+
+  /** Expiration time (`exp`), expressed as Unix time in seconds. */
   exp?: number;
+
+  /** Not-before time (`nbf`), expressed as Unix time in seconds. */
   nbf?: number;
+
+  /** Expected token issuer (`iss`). */
   iss?: string;
+
+  /** Intended token audience (`aud`). */
   aud?: string;
+
+  /** Additional application-defined claims. */
   [key: string]: unknown;
 }
 
 /**
  * ## JwtServiceOptions
- * The minimal configuration required to sign and verify JWT tokens.
+ *
+ * Configures JWT signing and verification.
  */
 export interface JwtServiceOptions {
+  /** Secret used for HS256 signing. */
   secret: string;
+
+  /** Expected issuer claim. */
   issuer?: string;
+
+  /** Expected audience claim. */
   audience?: string;
-  expiresIn?: number; // seconds
+
+  /**
+   * Default token lifetime in seconds.
+   *
+   * When omitted, generated tokens do not receive an `exp` claim.
+   */
+  expiresIn?: number;
 }
 
 /**
  * ## JwtService
  *
- * Lightweight JWT (HS256) implementation with zero dependencies.
- * Provides signing, decoding and verification.
+ * Signs and verifies JSON Web Tokens using the HS256 algorithm.
+ *
+ * Responsibilities:
+ * - create signed JWT tokens
+ * - verify token integrity and registered claims
+ * - decode JWT payloads without verification when explicitly requested
+ *
+ * Guarantees:
+ * - every generated token is signed with the configured secret
+ * - verification validates the signature before returning claims
+ * - configured issuer, audience, and lifetime constraints are enforced
+ *
+ * Non-responsibilities:
+ * - user authentication
+ * - authorization
+ * - session persistence
+ * - key rotation
  */
 export class JwtService {
   constructor(private readonly opts: JwtServiceOptions) {}
 
   /**
-   * Signs a new JWT token with the configured HS256 secret.
+   * Creates and signs a JWT.
+   *
+   * Standard claims (`iat`, `exp`, `iss`, `aud`) are populated
+   * automatically from the configured options.
    */
   sign(payload: Omit<JwtPayload, 'iat' | 'exp'>): string {
     const header: JwtHeader = { alg: 'HS256', typ: 'JWT' };
@@ -69,9 +119,11 @@ export class JwtService {
     return `${encodedHeader}.${encodedPayload}.${signature}`;
   }
 
-  /**
-   * Decodes the payload **without validating the signature**.
-   * Useful for debugging or optional preview.
+   /**
+   * Decodes a JWT payload without verifying its signature.
+   *
+   * The returned payload must be treated as untrusted until
+   * {@link verify} succeeds.
    */
   decode(token: string): JwtPayload | null {
     const parts = token.split('.');
@@ -84,8 +136,18 @@ export class JwtService {
   }
 
   /**
-   * Verifies signature + exp/nbf/iss/aud constraints.
-   * Returns the decoded payload or throws an Error.
+   * Verifies a JWT and returns its decoded payload.
+   *
+   * Validation includes:
+   * - signature
+   * - expiration (`exp`)
+   * - not-before (`nbf`)
+   * - issuer (`iss`) when configured
+   * - audience (`aud`) when configured
+   *
+   * @throws Error
+   * If the token is malformed, has an invalid signature,
+   * or violates any configured validation constraint.
    */
   verify(token: string): JwtPayload {
     const parts = token.split('.');
@@ -118,8 +180,6 @@ export class JwtService {
 
     return payload;
   }
-
-  // ─────────────────────────────────────────────
 
   private b64(str: string): string {
     return Buffer.from(str).toString('base64url');

@@ -2,15 +2,51 @@ import crypto from 'node:crypto';
 
 import type { PasswordHasher } from './password-hasher.js';
 
+/**
+ * ## ScryptPasswordHasherOptions
+ *
+ * Configures password hashing parameters.
+ *
+ * The defaults follow conservative values suitable for general-purpose
+ * password authentication.
+ */
 export interface ScryptPasswordHasherOptions {
+  /** CPU/memory cost parameter (`N`). */
   cost?: number;
+
+  /** Block size parameter (`r`). */
   blockSize?: number;
+
+  /** Parallelization parameter (`p`). */
   parallelization?: number;
+
+  /** Derived key length in bytes. */
   keyLength?: number;
+
+  /** Random salt length in bytes. */
   saltLength?: number;
 }
 
-/** Password hasher with a self-describing format that supports future rehashing. */
+/**
+ * ## ScryptPasswordHasher
+ *
+ * Password hasher based on the scrypt key derivation function.
+ *
+ * Responsibilities:
+ * - derive password hashes using scrypt
+ * - verify passwords against persisted hashes
+ * - embed hashing parameters into the stored hash format
+ *
+ * Guarantees:
+ * - every generated hash uses a cryptographically secure random salt
+ * - password verification uses constant-time comparison
+ * - malformed or unsupported hashes never authenticate
+ *
+ * Non-responsibilities:
+ * - password persistence
+ * - password policy enforcement
+ * - credential management
+ */
 export class ScryptPasswordHasher implements PasswordHasher {
   private readonly cost: number;
   private readonly blockSize: number;
@@ -26,6 +62,13 @@ export class ScryptPasswordHasher implements PasswordHasher {
     this.saltLength = options.saltLength ?? 16;
   }
 
+  /**
+   * Derives a self-describing password hash.
+   *
+   * The resulting hash embeds the algorithm, parameters, salt,
+   * and derived key, allowing future verification without
+   * additional metadata.
+   */
   async hash(password: string): Promise<string> {
     const salt = crypto.randomBytes(this.saltLength);
     const derived = await this.derive(
@@ -46,6 +89,12 @@ export class ScryptPasswordHasher implements PasswordHasher {
     ].join('$');
   }
 
+  /**
+   * Verifies a password against a previously generated hash.
+   *
+   * Returns `false` for malformed hashes, unsupported parameters,
+   * or verification failures.
+   */
   async verify(password: string, encodedHash: string): Promise<boolean> {
     const parts = encodedHash.split('$');
     if (parts.length !== 6 || parts[0] !== 'scrypt') return false;
