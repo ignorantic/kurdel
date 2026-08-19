@@ -1,301 +1,521 @@
 # kurdel Architecture
 
-Kurdel is a **modular, strongly-typed** TypeScript framework built on **explicit composition** and **contract-driven design**, emphasizing deterministic runtime behavior and strict type safety across the entire request lifecycle.
+Kurdel is a modular, strongly typed TypeScript framework built around explicit composition, contract-driven design, and deterministic runtime behavior.
+
+The framework favors simple, composable building blocks over implicit behavior. Every dependency is explicit, every layer has a single responsibility, and every package owns a clearly defined part of the architecture.
 
 ---
 
-## 🧩 Package Map
+## Architecture Layers
+
+Kurdel is organized as a collection of independent packages.
+
+| Package | Responsibility |
+|---------|----------------|
+| **@kurdel/common** | Shared primitives and low-level types |
+| **@kurdel/core** | Public contracts, tokens, and framework interfaces |
+| **@kurdel/runtime** | Routing, middleware pipeline, orchestration |
+| **@kurdel/runtime-node** | Native Node.js adapter |
+| **@kurdel/runtime-express** | Express adapter |
+| **@kurdel/template-ejs** | EJS server-side rendering |
+| **@kurdel/template-react** | React server-side rendering |
+| **@kurdel/auth** | Authentication and authorization infrastructure |
+| **@kurdel/auth-db** | Database-backed authentication adapters |
+| **@kurdel/db** | Database abstraction |
+| **@kurdel/migrations** | Schema evolution |
+| **@kurdel/ioc** | Dependency injection container |
+| **@kurdel/facade** | Public application bootstrap |
+| **@kurdel/pirx** | CLI and developer tooling |
+
+---
+
+## Dependency Direction
+
+Dependencies always point toward lower architectural layers.
 
 ```
-@kurdel/common          → Shared primitives and base HTTP types
-@kurdel/core            → Contracts / tokens / interfaces
-@kurdel/runtime         → Core runtime (routing, middleware, orchestration)
-@kurdel/runtime-node    → Native Node.js HTTP adapter
-@kurdel/runtime-express → Express adapter
-@kurdel/template-ejs    → EJS template engine integration (SSR)
-@kurdel/template-react  → React template engine integration (SSR + JSX rendering)
-@kurdel/facade          → Public entry points (`createNodeApplication`, etc.)
-@kurdel/ioc             → Standalone IoC container
-@kurdel/db              → Database abstraction layer
-@kurdel/migrations      → Migration engine and tools
-@kurdel/pirx            → Developer CLI and utilities
+Application
+        │
+        ▼
+Facade
+        │
+        ▼
+Runtime
+        │
+        ▼
+Core
+        │
+        ▼
+Common
 ```
 
----
-
-## 🧠 Core Principles
-
-* **Separation of What vs How**
-
-  * `@kurdel/core` defines **what** — contracts, tokens, and interfaces
-  * `@kurdel/runtime` defines **how** — actual orchestration and execution
-
-* **SOLID architecture** — every package has a single, isolated responsibility
-
-* **Explicit DI** — no reflection, no decorators, no magic
-
-* **Scoped IoC** — each HTTP request gets its own dependency scope
-
-* **Fully typed pipeline** — from `req` → `context` → `ActionResult` → `response`
-
-* **No hidden coupling** — every dependency is declared and testable
-
----
-
-## ⚙️ Layer Overview
-
-| Layer                 | Package                                           | Example                                       | Description                     |
-| --------------------- | ------------------------------------------------- | --------------------------------------------- | ------------------------------- |
-| **Common primitives** | `@kurdel/common`                                  | `HttpRequest`, `HttpResponse`                 | Shared low-level types          |
-| **Contracts / API**   | `@kurdel/core`                                    | `Controller`, `MiddlewareRegistry`, `TOKENS`  | Framework interfaces            |
-| **Runtime**           | `@kurdel/runtime`                                 | `RuntimeRouter`, `RuntimeRequestOrchestrator` | HTTP orchestration layer        |
-| **Platform Adapters** | `@kurdel/runtime-node`, `@kurdel/runtime-express` | `NativeHttpServerAdapter`                     | Server bindings                 |
-| **Templates**         | `@kurdel/template-ejs`                            | `EjsTemplateModule`                           | Server-side rendering           |
-| **Facade**            | `@kurdel/facade`                                  | `createNodeApplication()`                     | Entry point for app bootstrap   |
-| **IoC**               | `@kurdel/ioc`                                     | `createContainer()`                           | Dependency injection container  |
-| **Database**          | `@kurdel/db`                                      | `Model`, `DbConnector`                        | Data access abstraction         |
-| **Migrations**        | `@kurdel/migrations`                              | `MigrationRunner`                             | Schema migration management     |
-| **CLI**               | `@kurdel/pirx`                                    | `pirx db:migrate`                             | Developer utilities and scripts |
-
----
-
-## 🔗 Dependency Graph
+Additional subsystems follow the same principle.
 
 ```
-@kurdel/facade ─┬─► @kurdel/runtime-node / @kurdel/runtime-express
-│               ├─► @kurdel/runtime
-│               ├─► @kurdel/core
-│               ├─► @kurdel/template-ejs
-│               └─► @kurdel/ioc
-│
-@kurdel/runtime ─┬─► @kurdel/core
-│                ├─► @kurdel/common
-│                └─► @kurdel/ioc
-│
-@kurdel/core ────────► @kurdel/common
-@kurdel/db ──────────► @kurdel/common
-@kurdel/migrations ──► @kurdel/db
-@kurdel/pirx ────────► @kurdel/migrations
+Auth
+        │
+        ▼
+Core
+        │
+        ▼
+Common
 ```
 
-> `@kurdel/facade` orchestrates dependencies, but contains no runtime logic.
-> `@kurdel/common` remains dependency-free.
+```
+Auth DB
+        │
+        ▼
+DB
+        │
+        ▼
+Common
+```
+
+```
+Migrations
+        │
+        ▼
+DB
+        │
+        ▼
+Common
+```
+
+Lower layers must never depend on higher layers.
+
+Packages communicate through public contracts rather than implementation details.
 
 ---
 
-## 🚦 Runtime Flow
+## Core Principles
 
-```
-Request
-├─► ServerAdapter.on(req, res)
-├─► RuntimeRequestOrchestrator.execute()
-├─► RuntimeRouter.resolve() → RouteMatch
-├─► RuntimeHttpContextFactory.create()
-│     ├─ req / res
-│     ├─ url / query / params / body
-│     ├─ route / schema
-│     └─ result (mutable)
-├─► MiddlewarePipes (pre → controller → post → final)
-└─► ResponseRenderer.render()
-```
+### Explicit composition
+
+No decorators.
+
+No reflection.
+
+No hidden dependency injection.
+
+Applications explicitly compose modules.
 
 ---
 
-### 🔍 **Key Components**
+### Contract-driven design
 
-| Component                      | Responsibility                                                 |
-| ------------------------------ | -------------------------------------------------------------- |
-| **RuntimeRouter**              | Resolves `RouteMatch` from `method` + `path`                   |
-| **RuntimeHttpContextFactory**  | Creates `HttpContext` per request (with route, result, schema) |
-| **RuntimeMiddlewareRegistry**  | Stores global and scoped middleware by zone                    |
-| **RuntimeMiddlewarePipe**      | Sequentially executes middlewares with correct priority        |
-| **RuntimeControllerPipe**      | Executes controller middlewares and actions                    |
-| **RuntimeRequestOrchestrator** | Coordinates full lifecycle and error handling                  |
-| **ResponseRenderer**           | Converts `ActionResult` → HTTP output                          |
+`@kurdel/core` defines what exists.
+
+Runtime packages define how those contracts are executed.
+
+Applications provide implementations where appropriate.
 
 ---
 
-## 🧱 **Extended HttpContext**
+### Single ownership
 
-The context now includes:
+Each package owns a single architectural concern.
+
+Examples:
+
+- runtime owns HTTP execution
+- auth owns authentication
+- auth-db owns authentication persistence
+- db owns database abstraction
+- migrations own schema evolution
+
+Responsibilities should not overlap.
+
+---
+
+### Transport independence
+
+Business services do not know about HTTP.
+
+They never:
+
+- receive `HttpContext`
+- return `ActionResult`
+- access routes
+- manipulate HTTP responses
+
+Transport concerns remain inside the runtime.
+
+---
+
+### Explicit dependencies
+
+Every dependency is visible in constructors or module configuration.
+
+No hidden global state.
+
+No implicit service location.
+
+---
+
+### Deterministic execution
+
+A request always follows the same execution pipeline.
+
+The runtime does not perform hidden work.
+
+---
+
+## Data Ownership
+
+Every architectural layer owns its own data.
+
+| Data | Owner |
+|------|-------|
+| HTTP request | Runtime |
+| HttpContext | Runtime |
+| Route metadata | Runtime |
+| Authentication state | Auth |
+| Authorization policies | Auth |
+| Database persistence | DB adapters |
+| Database schema | Application |
+| Business entities | Application |
+
+Data should not leak across architectural boundaries.
+
+---
+
+## Runtime Pipeline
+
+Every request follows the same high-level pipeline.
+
+```
+resolve
+    ↓
+validate
+    ↓
+pre
+    ↓
+controller
+    ↓
+render
+    ↓
+post
+    ↓
+error
+    ↓
+final
+```
+
+Responsibilities:
+
+| Stage | Responsibility |
+|--------|----------------|
+| resolve | Match route |
+| validate | Validate request schemas |
+| pre | Cross-cutting middleware |
+| controller | Execute action |
+| render | Produce response |
+| post | Post-processing |
+| error | Handle failures |
+| final | Cleanup |
+
+---
+
+## Package Responsibilities
+
+### Common
+
+Contains only reusable primitives.
+
+Never depends on other Kurdel packages.
+
+---
+
+### Core
+
+Defines framework contracts.
+
+Contains:
+
+- interfaces
+- tokens
+- application contracts
+
+Contains no runtime logic.
+
+---
+
+### Runtime
+
+Executes HTTP requests.
+
+Responsible for:
+
+- routing
+- middleware
+- orchestration
+- rendering
+- context creation
+
+Not responsible for:
+
+- authentication
+- persistence
+- business logic
+
+---
+
+### Auth
+
+Provides authentication and authorization infrastructure.
+
+Responsible for:
+
+- strategies
+- policies
+- authentication middleware
+- authentication events
+
+Not responsible for:
+
+- persistence
+- user management
+
+---
+
+### Auth DB
+
+Provides database-backed implementations for Auth contracts.
+
+Responsible for:
+
+- repositories
+- management services
+- transactional persistence
+
+Not responsible for:
+
+- authentication algorithms
+- authorization decisions
+
+---
+
+### Database
+
+Provides a transport-independent database abstraction.
+
+Responsible for:
+
+- connections
+- queries
+- transactions
+
+Not responsible for:
+
+- application models
+- migrations
+
+---
+
+### Migrations
+
+Owns schema evolution.
+
+Responsible for:
+
+- migrations
+- schema updates
+
+Not responsible for:
+
+- runtime persistence
+
+---
+
+## Architectural Building Blocks
+
+### Module
+
+Modules compose the application.
+
+Responsibilities:
+
+- register providers
+- register middleware
+- configure runtime
+
+Modules contain no business logic.
+
+---
+
+### Registry
+
+Registries store named runtime components.
+
+Examples:
+
+- strategies
+- policies
+- middleware
+
+Registries never execute business logic.
+
+---
+
+### Repository
+
+Repositories expose persisted state.
+
+Responsibilities:
+
+- load data
+- persist data
+
+Repositories do not coordinate workflows.
+
+---
+
+### Service
+
+Services coordinate application workflows.
+
+Responsibilities may include:
+
+- transactions
+- validation
+- coordination of multiple repositories
+
+Services remain transport-independent.
+
+---
+
+## Documentation Conventions
+
+Public APIs should describe architecture rather than implementation.
+
+### Public classes
+
+Every exported class begins with:
 
 ```ts
-interface HttpContext<TBody, TParams, TReadable> {
-  readonly req: HttpRequest;
-  readonly res: HttpResponse;
-  readonly url: URL;
-  readonly query: Query;
-  readonly params: TParams;
-  readonly body?: TBody;
-
-  /** The matched route metadata */
-  readonly route?: RouteMatch;
-
-  /** The latest computed ActionResult (populated at runtime) */
-  result?: ActionResult<TReadable>;
-
-  json(status: number, body: JsonValue): ActionResult<TReadable>;
-  text(status: number, body: string): ActionResult<TReadable>;
-  redirect(status: number, location: string): ActionResult<TReadable>;
-  noContent(): ActionResult<TReadable>;
-}
+/**
+ * ## ClassName
+ *
+ * Responsibilities
+ *
+ * Guarantees
+ *
+ * Non-responsibilities
+ */
 ```
+
+Focus on architectural intent.
 
 ---
 
-## 🧩 **Schemas and Validation**
+### Public methods
 
-Kurdel v3 introduces **route-level schemas** that describe request structure and enable automatic validation:
+Document:
+
+- purpose
+- observable behavior
+- invariants
+
+Avoid documenting obvious implementation details.
+
+---
+
+### Large classes
+
+Organize methods by responsibility.
+
+Typical sections:
 
 ```ts
-readonly routes = {
-  create: route({
-    method: 'POST',
-    path: '/',
-    schema: {
-      body: zodAdapter(z.object({
-        name: z.string().min(2),
-        role: z.string().min(2),
-      })),
-    },
-  })(this.create),
-};
+// ---------------------------------------------------------------------
+// User management
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Validation
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Persistence
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Mapping
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Error translation
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------
 ```
 
-### Schema validation middleware
-
-```ts
-export const schemaValidator: Middleware = async (ctx, next) => {
-  const schema = ctx.route?.schema;
-  if (!schema) return next();
-
-  try {
-    if (schema.params) (ctx as any).params = await schema.params.validate(ctx.params);
-    if (schema.query) (ctx as any).query = await schema.query.validate(ctx.query);
-    if (schema.body) (ctx as any).body = await schema.body.validate(ctx.body);
-  } catch (err) {
-    if (err instanceof ValidationError) {
-      return ctx.json(400, {
-        error: 'Bad Request',
-        message: err.message,
-        field: err.field,
-        details: err.details,
-      });
-    }
-    throw err;
-  }
-
-  return next();
-};
-```
+Responsibility grouping is preferred over visibility grouping.
 
 ---
 
-## 🧩 Validator Adapters
+## TypeScript Conventions
 
-Adapters allow different validation libraries to integrate seamlessly.
-
-### Example — Zod Adapter
-
-```ts
-import { ZodError, type ZodSchema } from 'zod';
-import { createValidator } from '@kurdel/runtime/middlewares';
-import { ValidationError } from '@kurdel/core/http';
-
-export function zodAdapter<T>(schema: ZodSchema<T>) {
-  return createValidator(
-    data => schema.parse(data),
-    err => {
-      if (err instanceof ZodError) {
-        const first = err.issues[0];
-        const details = err.issues.map(i => ({
-          path: i.path.join('.'),
-          message: i.message,
-          code: i.code,
-        }));
-        return new ValidationError(first?.message ?? 'Invalid input', first?.path?.[0]?.toString(), details);
-      }
-      return null;
-    },
-  );
-}
-```
-
-### Generic `createValidator`
-
-```ts
-export function createValidator<T>(
-  parse: (data: unknown) => T | Promise<T>,
-  mapError: (err: unknown) => ValidationError | null,
-): SchemaValidator<T> {
-  return {
-    async validate(value: unknown): Promise<T> {
-      try {
-        return await parse(value);
-      } catch (err) {
-        const mapped = mapError(err);
-        if (mapped) throw mapped;
-        throw err;
-      }
-    },
-  };
-}
-```
+- ESM only
+- named exports only
+- no default exports
+- `import type` for type-only imports
+- explicit `.js` extensions for local imports
+- explicit public return types
+- prefer `unknown` over `any`
 
 ---
 
-## ⚙️ Module Priorities
+## Naming Conventions
 
-| Priority | Enum         | Module                                        | Purpose                         |
-| -------- | ------------ | --------------------------------------------- | ------------------------------- |
-| `10`     | `Lifecycle`  | `LifecycleModule`                             | Start/stop hooks                |
-| `20`     | `Database`   | `DatabaseModule`                              | DB setup                        |
-| `30`     | `User`       | Application modules                           | User logic                      |
-| `40`     | `Model`      | `ModelModule`                                 | Model registration              |
-| `50`     | `Middleware` | `MiddlewareModule`                            | Global middlewares              |
-| `60`     | `Controller` | `ControllerModule`                            | Controller bindings             |
-| `65`     | `Platform`   | `NodePlatformModule`, `ExpressPlatformModule` | Adapter + renderer              |
-| `70`     | `Server`     | `ServerModule`                                | Connects adapter + orchestrator |
-
----
-
-## 🧭 Runtime Layout
-
-```
-src/
-  app/
-    runtime-application.ts
-  http/
-    runtime-router.ts
-    runtime-request-orchestrator.ts
-    runtime-controller-pipe.ts
-    runtime-middleware-pipe.ts
-    runtime-http-context-factory.ts
-  modules/
-    server-module.ts
-    controller-module.ts
-    lifecycle-module.ts
-    middleware-module.ts
-```
+| Kind | Example |
+|------|---------|
+| Runtime implementation | `RuntimeRouter` |
+| Module | `AuthModule` |
+| Registry | `AuthStrategyRegistry` |
+| Repository | `DatabaseAuthUserRepository` |
+| Service | `DatabaseUserService` |
+| Middleware | `schemaValidator` |
+| Validator adapter | `zodAdapter` |
+| Template module | `ReactTemplateModule` |
 
 ---
 
-## ✅ Summary of the Refactor
+## Testing Principles
 
-* **Router** — pure route resolution only
-* **Orchestrator** — central lifecycle control
-* **MiddlewareRegistry** — unified global and scoped zones
-* **HttpContext** — now holds `route`, `result`, and helpers
-* **Schema validation** — fully pluggable via adapters
-* **Tests** — cover full request orchestration
-* **Runtime** — deterministic, platform-agnostic, testable
+Tests should be:
+
+- deterministic
+- isolated
+- in-process
+- transport-independent
+
+Prefer:
+
+- fake adapters
+- in-memory implementations
+- reusable test utilities
+
+Avoid external infrastructure whenever possible.
 
 ---
 
-> **Result:**
-> Kurdel’s runtime layer is now deterministic, composable, and validation-aware —
-> enabling type-safe middleware, schema-based validation, and clean orchestration.
+## Summary
+
+Kurdel is built around a small set of architectural invariants:
+
+- explicit composition
+- contract-driven design
+- deterministic execution
+- transport-independent services
+- single ownership of responsibilities
+- dependency direction toward lower layers
+- package communication through public contracts only
+
+These principles take precedence over individual implementation details and guide the evolution of every package in the framework.
 
 ---
 
-© 2025 Andrii Sorokin · MIT License
+© 2025–2026 Andrii Sorokin · MIT License

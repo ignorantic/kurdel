@@ -28,6 +28,26 @@ Kurdel is a **monorepo** of cohesive, self-contained workspaces:
 > `@kurdel/facade` contains **no runtime logic** — it only orchestrates composition.
 > `@kurdel/common` sits at the base and has **zero dependencies**.
 
+### Dependency direction
+
+Dependencies always point toward lower architectural layers.
+
+```
+common
+   ↓
+core
+   ↓
+runtime
+   ↓
+runtime-node / runtime-express
+   ↓
+facade
+```
+
+Lower layers must never depend on higher layers.
+
+Packages communicate through public contracts rather than implementation details.
+
 ---
 
 ## 🧩 Architectural Rules
@@ -37,6 +57,7 @@ Kurdel is a **monorepo** of cohesive, self-contained workspaces:
 * **Scoped IoC:** each HTTP request gets its own container scope.
 * **Zero Hidden Coupling:** all runtime dependencies are declared.
 * **Extensible Runtime:** adapters and modules can be swapped freely.
+* **Transport Independence:** business services never depend on HTTP-specific abstractions.
 
 ---
 
@@ -54,28 +75,99 @@ All packages use **TypeScript ≥ 5.0** and **ES Modules**:
 }
 ```
 
-### Typical Layout
+**TypeScript conventions:**
 
-```
-src/
-  app/         # Application bootstrap and module composition
-  http/        # Runtime orchestration (router, orchestrator, middleware)
-  modules/     # Built-in IoC modules (server, lifecycle, controller, db)
-  middlewares/ # Built-in validation or platform middlewares
-index.ts       # Public API entry
-```
+* Use named exports only.
+* Avoid default exports.
+* Use `import type` for type-only imports.
+* Use explicit `.js` extensions for local imports.
+* Public APIs should declare explicit return types.
+* Prefer `unknown` over `any`.
+* Prefer interfaces for public contracts.
 
 **Naming conventions:**
 
 | Category                | Example                                           | Notes                               |
 | ----------------------- | ------------------------------------------------- | ----------------------------------- |
 | Contract implementation | `RuntimeRouter`, `RuntimeRequestOrchestrator`     | Implements `@kurdel/core` contracts |
-| Platform adapter        | `NativeHttpServerAdapter`, `ExpressServerAdapter` | Binds runtime to platform           |
 | Framework module        | `ServerModule`, `LifecycleModule`                 | IoC-level composition               |
 | Template engine         | `EjsTemplateModule`                               | SSR via `TemplateEngine`            |
 | CLI                     | `pirx migrate run`                                | Developer tooling                   |
 | Validation adapter      | `zodAdapter`, `createValidator`                   | Schema-level validation             |
 | Middleware              | `schemaValidator`, `loggingMiddleware`            | Executed by middleware pipe         |
+| Repository              | `DatabaseAuthUserRepository`                      |                                     |
+| Service                 | `DatabaseUserService`                             |                                     |
+| Registry                | `AuthStrategyRegistry`                            |                                     |
+| Schema adapter          | `zodAdapter`, `yupAdapter`                        | Validation library integration      |
+
+---
+
+## 📖 Documentation
+
+Public APIs should be self-documenting through consistent JSDoc.
+
+### Public classes
+
+Every exported class begins with a short architectural description.
+
+```ts
+/**
+ * ## DatabaseUserService
+ *
+ * ...
+ */
+export class DatabaseUserService {}
+```
+
+The documentation should describe:
+
+- responsibilities
+- guarantees
+- non-responsibilities (when useful)
+
+Focus on architectural intent rather than implementation details.
+
+Documentation should explain why a component exists before describing how it works.
+
+### Public methods
+
+Document:
+
+- purpose
+- parameters when clarification is useful
+- observable behavior
+- invariants
+
+Avoid documenting obvious implementation details.
+
+### Internal organization
+
+Large classes may group methods by responsibility using section separators:
+
+```ts
+// ---------------------------------------------------------------------
+// User management
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Validation
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Persistence
+// ---------------------------------------------------------------------
+```
+
+Large public classes should organize methods by responsibility rather than by visibility.
+
+Typical sections include:
+
+- User management
+- Validation
+- Persistence
+- Mapping
+- Error translation
+- Utilities
 
 ---
 
@@ -101,6 +193,18 @@ Example:
 ```bash
 npm run test -w @kurdel/runtime
 ```
+
+### Test structure
+
+Prefer one observable behavior per test.
+
+Use descriptive names.
+
+Avoid multi-stage "kitchen sink" tests.
+
+Reusable fakes belong under `tests/utils`.
+
+Prefer deterministic in-memory tests over external services whenever possible.
 
 ---
 
@@ -188,6 +292,11 @@ Before submitting:
 * Keep the runtime **platform-agnostic** — adapters live in `@kurdel/runtime-node` or `@kurdel/runtime-express`.
 * **Adapters** and **validators** must be optional peer dependencies.
 * **Database** access is abstracted via `Database` token.
+* Prefer composition over inheritance.
+* Keep classes focused on a single responsibility.
+* Do not import implementation details from sibling packages.
+* Avoid hidden runtime behavior.
+* Keep services transport-agnostic.
 
 ---
 
