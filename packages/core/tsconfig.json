@@ -5,8 +5,6 @@
     "moduleResolution": "nodenext",
     "strict": true,
     "sourceMap": true,
-    "baseUrl": ".",
-    "paths": {},
     "types": ["vitest/globals"],
     "noEmit": true
   },
