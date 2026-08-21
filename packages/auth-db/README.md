@@ -2,7 +2,7 @@
 
 Database-backed infrastructure for `@kurdel/auth`.
 
-The package provides production-ready implementations of the repositories and
+The package provides reusable implementations of the repositories and
 application services defined by `@kurdel/auth` on top of Kurdel's `Database`
 abstraction. Authentication strategies remain storage-agnostic while
 applications own their database schema and migrations.
@@ -86,7 +86,7 @@ assigned roles into `AuthUser.permissions`.
 It supports:
 
 - issuing new keys
-- listing active keys
+- listing key metadata and status history
 - revoking keys
 - expiration
 - usage tracking

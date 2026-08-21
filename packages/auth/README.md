@@ -26,6 +26,13 @@ const auth = new AuthModule({
 });
 ```
 
+This example assumes the application container already provides `JwtService`,
+the user and credential repositories, `JwtSessionRepository`, and
+`ApiKeyUsageRecorder`. `AuthDatabaseModule` supplies the repository-backed
+dependencies; applications using `@kurdel/auth` alone must register their own
+implementations. Omit `sessions` or `usage` when those optional services are
+not needed.
+
 `AuthModule` registers the authentication middleware automatically. Strategy
 names are referenced by route metadata. `apiKeyStrategy()` uses `x-api-key` by
 default; `usage: true` resolves the registered usage recorder. `jwtStrategy()`
@@ -220,18 +227,17 @@ the repository credential ID when one exists. The JWT strategy exposes
 `credential.type` as `jwt`, uses the `jti` claim as its optional ID, and places
 the verified payload in `claims`.
 
-To make JWTs revocable before their cryptographic expiration, configure a
-`JwtSessionRepository` on the strategy. Session-backed JWTs must contain a
-`jti`; authentication then verifies that the referenced session exists, belongs
-to the token subject, has not been revoked, and has not expired:
+To make JWTs revocable before their cryptographic expiration, enable a
+registered `JwtSessionRepository`. Session-backed JWTs must contain a `jti`;
+authentication then verifies that the referenced session exists, belongs to
+the token subject, has not been revoked, and has not expired:
 
 ```ts
-new JwtStrategy(jwtService, users, {
-  sessions: jwtSessions,
-});
+jwtStrategy({ sessions: true });
 ```
 
-Without `sessions`, JWT verification remains stateless and backward compatible.
+An explicit repository instance may be supplied instead of `true`. Without
+`sessions`, JWT verification remains stateless and backward compatible.
 Database-backed applications can pair short-lived access JWTs with rotating
 opaque refresh tokens through `DatabaseJwtSessionService` from
 `@kurdel/auth-db`. Refresh tokens are not JWTs and should never be placed in

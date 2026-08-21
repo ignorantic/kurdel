@@ -17,7 +17,7 @@ export interface JwtStrategyOptions {
    */
   header?: string;
 
-   /**
+  /**
    * Authentication scheme expected in the header.
    *
    * @default "Bearer"
@@ -64,14 +64,14 @@ export class JwtStrategy implements AuthStrategy {
   constructor(
     private readonly service: JwtService,
     private readonly users: AuthUserRepository,
-    opts: JwtStrategyOptions = {},
+    opts: JwtStrategyOptions = {}
   ) {
     this.header = (opts.header ?? 'authorization').toLowerCase();
     this.prefix = (opts.prefix ?? 'Bearer').toLowerCase();
     this.sessions = opts.sessions;
   }
 
-   /**
+  /**
    * Authenticates a request using the configured JWT header.
    *
    * Returns `null` when the token is missing, malformed, invalid,

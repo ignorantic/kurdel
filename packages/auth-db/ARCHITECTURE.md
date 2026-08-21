@@ -138,7 +138,9 @@ Runtime stores the resulting `AuthUser` inside the request context.
 
 ## JWT sessions
 
-JWT access tokens remain stateless.
+JWT access tokens remain cryptographically self-contained. When session
+validation is enabled, authentication is stateful because every request also
+checks the persisted session.
 
 Server-side state is represented by a persisted session referenced by
 the JWT `jti` claim.

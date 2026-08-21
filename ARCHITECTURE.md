@@ -63,12 +63,13 @@ Common
 
 ```
 Auth DB
-        │
-        ▼
-DB
-        │
-        ▼
-Common
+   ├────────► Auth
+   │            │
+   │            ▼
+   │          Core
+   │            │
+   ▼            ▼
+  DB ───────► Common
 ```
 
 ```

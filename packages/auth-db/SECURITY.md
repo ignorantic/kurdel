@@ -49,7 +49,9 @@ Lost keys cannot be recovered.
 
 ## JWT sessions
 
-JWT access tokens remain stateless.
+JWT access tokens remain cryptographically self-contained. Session-backed JWT
+authentication is stateful because each request checks persisted revocation
+and expiration state.
 
 Server-side revocation is implemented through persisted JWT sessions.
 
@@ -69,6 +71,11 @@ Only SHA-256 hashes are stored.
 Every successful refresh rotates the token.
 
 A previously used refresh token immediately becomes invalid.
+
+Rotation prevents reuse only after one request has successfully replaced the
+stored token. If a stolen token is presented before the legitimate client uses
+it, the attacker may win that rotation race. The package does not currently
+detect reuse of an older token or revoke an entire token family automatically.
 
 ---
 
@@ -129,7 +136,7 @@ The package protects against:
 
 - plaintext password disclosure
 - plaintext API key disclosure
-- refresh token replay after successful rotation
+- reuse of a refresh token after successful rotation
 - use of revoked JWT sessions
 - use of revoked API keys
 

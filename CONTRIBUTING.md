@@ -175,11 +175,15 @@ Typical sections include:
 
 Tests use **Vitest**, run **in-process**, and cover unit → integration → E2E.
 
-| Type            | Location               | Focus                          |
-| --------------- | ---------------------- | ------------------------------ |
-| **Unit**        | `tests/unit/**`        | Core logic, IoC, and pipes     |
-| **Integration** | `tests/integration/**` | Router + orchestrator flow     |
-| **E2E**         | `tests/e2e/**`         | Real adapters (Node / Express) |
+| Type            | Common location                    | Focus                          |
+| --------------- | ---------------------------------- | ------------------------------ |
+| **Unit**        | `tests/*.spec.ts`, `tests/unit/**` | Core logic, IoC, and pipes     |
+| **Integration** | `tests/integration/**`             | Coordinated package behavior   |
+| **E2E**         | `e2e/**`, `tests/e2e/**`           | Application and adapter flows  |
+
+Individual workspaces may use a flatter layout when the suite is small. Test
+type is determined by behavior and dependencies rather than directory name
+alone.
 
 Guidelines:
 
@@ -288,7 +292,7 @@ Before submitting:
 * Register **all providers** via `AppModule.providers`.
 * Global middlewares belong to `ServerModule`, not `Router`.
 * Validation runs automatically via route schemas (`RouteSchema`).
-* Middleware zones: `pre`, `controller`, `post`, `final`.
+* Middleware zones: `auth`, `pre`, `post`, `error`, `final`.
 * Keep the runtime **platform-agnostic** — adapters live in `@kurdel/runtime-node` or `@kurdel/runtime-express`.
 * **Adapters** and **validators** must be optional peer dependencies.
 * **Database** access is abstracted via `Database` token.
@@ -358,7 +362,8 @@ npm run dev -w @kurdel/sample-sqlite
 
 * Kurdel prioritizes **explicit composition**, **predictability**, and **type safety**.
 * Each feature is an isolated **IoC module**, not global state.
-* Runtime logic is **pure** and **deterministic** — no side effects.
+* Runtime execution is **deterministic** and keeps side effects behind explicit
+  adapters and services.
 * `RuntimeRequestOrchestrator` coordinates routing, middleware, and controller execution.
 * `RuntimeRouter` now resolves routes only.
 * Validation is handled via pluggable schema adapters.

@@ -54,7 +54,7 @@ export interface ApiKeyStrategyOptions {
 export class ApiKeyStrategy implements AuthStrategy {
   constructor(private readonly options: ApiKeyStrategyOptions) {}
 
-   /**
+  /**
    * Authenticates a request using the configured API-key header.
    *
    * Returns `null` when the credential is missing, invalid, revoked,
