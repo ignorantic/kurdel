@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/runtime",
-  "version": "0.1.0-beta.5",
+  "version": "0.1.0-beta.6",
   "description": "Runtime composition and request orchestration for Kurdel",
   "type": "module",
   "exports": {
@@ -57,8 +57,8 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
-    "@kurdel/common": "0.1.0-beta.5",
-    "@kurdel/core": "0.1.0-beta.5",
-    "@kurdel/ioc": "0.1.0-beta.5"
+    "@kurdel/common": "0.1.0-beta.6",
+    "@kurdel/core": "0.1.0-beta.6",
+    "@kurdel/ioc": "0.1.0-beta.6"
   }
 }

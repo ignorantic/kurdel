@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/template-ejs",
-  "version": "0.1.0-beta.5",
+  "version": "0.1.0-beta.6",
   "description": "EJS server-side rendering template engine for Kurdel",
   "type": "module",
   "exports": {
@@ -56,6 +56,6 @@
     "tsc-alias": "^1.8.16"
   },
   "dependencies": {
-    "@kurdel/core": "0.1.0-beta.5"
+    "@kurdel/core": "0.1.0-beta.6"
   }
 }

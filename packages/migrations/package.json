@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/migrations",
-  "version": "0.1.0-beta.5",
+  "version": "0.1.0-beta.6",
   "description": "Database schema migration tools for Kurdel",
   "exports": {
     ".": "./lib/index.js"
@@ -47,6 +47,6 @@
     "@types/node": "^20.9.0"
   },
   "dependencies": {
-    "@kurdel/db": "0.1.0-beta.5"
+    "@kurdel/db": "0.1.0-beta.6"
   }
 }

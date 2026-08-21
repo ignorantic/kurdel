@@ -6,6 +6,27 @@ All notable changes to Kurdel are documented in this file. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-beta.6] - 2026-08-22
+
+### Added
+
+- add persistent refresh-token sessions with hashed storage and rotation
+- add session listing, individual revocation, global revocation, and logout workflows
+- add declarative `jwtStrategy()` and `apiKeyStrategy()` provider helpers
+- add `databaseAuthEventSink()` for database audit integration without internal DI tokens
+
+### Changed
+
+- simplify built-in authentication configuration across JWT and auth database samples
+- remove deprecated TypeScript `baseUrl` and empty `paths` settings
+- expand package, security, runtime, and repository architecture documentation
+
+### Security
+
+- rotate opaque refresh tokens atomically and invalidate previously used values
+- document the current refresh-token replay model and token-family limitations
+- distinguish self-contained JWTs from stateful server-side session validation
+
 ## [0.1.0-beta.5] - 2026-08-16
 
 ### Fixed
@@ -87,7 +108,8 @@ All notable changes to Kurdel are documented in this file. The format follows
 - packages require Node.js 20.19+, 22.12+, or 24+
 - prerelease packages are published under the npm `beta` dist-tag
 
-[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.5...HEAD
+[Unreleased]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.6...HEAD
+[0.1.0-beta.6]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.5...v0.1.0-beta.6
 [0.1.0-beta.5]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.4...v0.1.0-beta.5
 [0.1.0-beta.4]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.3...v0.1.0-beta.4
 [0.1.0-beta.3]: https://github.com/ignorantic/kurdel/compare/v0.1.0-beta.2...v0.1.0-beta.3

@@ -1,6 +1,6 @@
 {
   "name": "@kurdel/auth-db",
-  "version": "0.1.0-beta.5",
+  "version": "0.1.0-beta.6",
   "description": "Database-backed authentication adapters for @kurdel/auth",
   "type": "module",
   "exports": {
@@ -45,10 +45,10 @@
     "tag": "beta"
   },
   "dependencies": {
-    "@kurdel/auth": "0.1.0-beta.5",
-    "@kurdel/common": "0.1.0-beta.5",
-    "@kurdel/core": "0.1.0-beta.5",
-    "@kurdel/db": "0.1.0-beta.5"
+    "@kurdel/auth": "0.1.0-beta.6",
+    "@kurdel/common": "0.1.0-beta.6",
+    "@kurdel/core": "0.1.0-beta.6",
+    "@kurdel/db": "0.1.0-beta.6"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",
