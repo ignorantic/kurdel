@@ -15,30 +15,24 @@ npm install @kurdel/auth
 
 ## Configure authentication
 
-Register one or more named strategies with `AuthModule`. A strategy instance
-can be supplied directly or created from the application container:
+Register one or more named strategies with `AuthModule`. Built-in provider
+helpers resolve their framework dependencies from the application container:
 
 ```ts
-import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
+import { apiKeyStrategy, AuthModule, jwtStrategy } from '@kurdel/auth';
 
 const auth = new AuthModule({
-  strategies: [
-    {
-      name: 'api-key',
-      useFactory: ioc =>
-        new ApiKeyStrategy({
-          header: 'x-api-key',
-          credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
-          users: ioc.get(AUTH_TOKENS.UserRepository),
-          usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
-        }),
-    },
-  ],
+  strategies: [apiKeyStrategy({ usage: true }), jwtStrategy({ sessions: true })],
 });
 ```
 
 `AuthModule` registers the authentication middleware automatically. Strategy
-names are application-defined and are referenced by route metadata.
+names are referenced by route metadata. `apiKeyStrategy()` uses `x-api-key` by
+default; `usage: true` resolves the registered usage recorder. `jwtStrategy()`
+uses the standard Bearer header; `sessions: true` resolves the registered JWT
+session repository. Both options also accept explicit repository instances for
+custom integrations. Applications can still register custom names and manual
+strategy instances or factories through `AuthStrategyProvider`.
 
 ## Protect routes
 

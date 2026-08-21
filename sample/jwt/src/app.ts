@@ -1,5 +1,5 @@
 import { createNodeApplication } from '@kurdel/facade';
-import { AUTH_TOKENS, AuthModule, JwtStrategy } from '@kurdel/auth';
+import { AuthModule, jwtStrategy } from '@kurdel/auth';
 
 import { JwtAuthModule } from './jwt-auth-module.js';
 import { JwtAuthProvidersModule } from './jwt-auth-providers-module.js';
@@ -9,16 +9,7 @@ const app = await createNodeApplication({
   modules: [
     new JwtAuthProvidersModule(),
     new AuthModule({
-      strategies: [
-        {
-          name: 'jwt',
-          useFactory: (c) =>
-            new JwtStrategy(
-              c.get(AUTH_TOKENS.JwtService),
-              c.get(AUTH_TOKENS.UserRepository),
-            ),
-        },
-      ],
+      strategies: [jwtStrategy()],
     }),
     new JwtAuthModule(),
   ],

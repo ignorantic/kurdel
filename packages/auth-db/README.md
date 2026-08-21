@@ -44,28 +44,21 @@ When audit persistence is enabled, the module also registers:
 ## Usage
 
 ```ts
-import { ApiKeyStrategy, AUTH_TOKENS, AuthModule } from '@kurdel/auth';
-import { AuthDatabaseModule } from '@kurdel/auth-db';
+import { apiKeyStrategy, AuthModule, jwtStrategy } from '@kurdel/auth';
+import { AuthDatabaseModule, databaseAuthEventSink } from '@kurdel/auth-db';
 
 const modules = [
-  new AuthDatabaseModule(),
+  new AuthDatabaseModule({ audit: true }),
 
   new AuthModule({
-    strategies: [
-      {
-        name: 'api-key',
-        useFactory: ioc =>
-          new ApiKeyStrategy({
-            header: 'x-api-key',
-            credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
-            users: ioc.get(AUTH_TOKENS.UserRepository),
-            usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
-          }),
-      },
-    ],
+    events: databaseAuthEventSink(),
+    strategies: [apiKeyStrategy({ usage: true }), jwtStrategy({ sessions: true })],
   }),
 ];
 ```
+
+`databaseAuthEventSink()` connects `AuthModule` to the event store registered by
+`AuthDatabaseModule({ audit: true })` without exposing its internal DI token.
 
 ## User management
 

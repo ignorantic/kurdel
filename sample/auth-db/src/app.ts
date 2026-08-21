@@ -1,8 +1,8 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ApiKeyStrategy, AUTH_TOKENS, AuthModule, JwtStrategy } from '@kurdel/auth';
-import { AUTH_DB_TOKENS, AuthDatabaseModule } from '@kurdel/auth-db';
+import { apiKeyStrategy, AuthModule, jwtStrategy } from '@kurdel/auth';
+import { AuthDatabaseModule, databaseAuthEventSink } from '@kurdel/auth-db';
 import { createNodeApplication } from '@kurdel/facade';
 import { StaticFilesModule } from '@kurdel/runtime-node/modules';
 import { ReactTemplateModule } from '@kurdel/template-react';
@@ -19,27 +19,10 @@ const app = await createNodeApplication({
     new StaticFilesModule(resolve(currentDir, './public')),
     new AuthDatabaseModule({ audit: true }),
     new AuthModule({
-      events: {
-        useFactory: ioc => ioc.get(AUTH_DB_TOKENS.EventStore),
-      },
+      events: databaseAuthEventSink(),
       strategies: [
-        {
-          name: 'api-key',
-          useFactory: ioc =>
-            new ApiKeyStrategy({
-              header: 'x-api-key',
-              credentials: ioc.get(AUTH_TOKENS.ApiKeyRepository),
-              users: ioc.get(AUTH_TOKENS.UserRepository),
-              usage: ioc.get(AUTH_TOKENS.ApiKeyUsageRecorder),
-            }),
-        },
-        {
-          name: 'jwt',
-          useFactory: ioc =>
-            new JwtStrategy(ioc.get(AUTH_TOKENS.JwtService), ioc.get(AUTH_TOKENS.UserRepository), {
-              sessions: ioc.get(AUTH_TOKENS.JwtSessionRepository),
-            }),
-        },
+        apiKeyStrategy({ usage: true }),
+        jwtStrategy({ sessions: true }),
       ],
       policies: [
         {
