@@ -76,7 +76,7 @@ jobs:
         run: npm ci
 
       - name: Build database packages
-        run: npm run build --workspace=@kurdel/db && npm run build --workspace=@kurdel/migrations && npm run build --workspace=@kurdel/auth-db
+        run: npx lerna run build --scope=@kurdel/auth-db --include-dependencies --stream
 
       - name: Verify PostgreSQL auth integration
         run: npm test --workspace=@kurdel/sample-auth-db -- postgres-auth.spec.ts
