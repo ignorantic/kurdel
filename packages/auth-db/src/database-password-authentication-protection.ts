@@ -18,14 +18,16 @@ const DEFAULT_OPTIONS = { maxFailures: 5, windowMs: 15 * 60_000, lockMs: 15 * 60
 
 /** Database-backed, process-safe protection against password brute-force attempts. */
 export class DatabasePasswordAuthenticationProtection implements PasswordAuthenticationProtection {
+  private readonly db: Database;
   private readonly tables: AuthDatabaseTables;
   private readonly options: typeof DEFAULT_OPTIONS;
 
-  constructor(
-    private readonly db: Database,
-    tables: Partial<AuthDatabaseTables> = {},
-    options: PasswordAuthenticationProtectionOptions = {}
-  ) {
+  constructor({ db, tables = {}, options = {} }: {
+    db: Database;
+    tables?: Partial<AuthDatabaseTables>;
+    options?: PasswordAuthenticationProtectionOptions;
+  }) {
+    this.db = db;
     this.tables = resolveAuthDatabaseTables(tables);
     this.options = { ...DEFAULT_OPTIONS, ...options };
     for (const [name, value] of Object.entries(this.options)) {

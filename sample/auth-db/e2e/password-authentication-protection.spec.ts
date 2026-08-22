@@ -18,11 +18,11 @@ describe('password authentication protection', () => {
   afterAll(async () => db.close());
 
   it('atomically locks a normalized login at the configured threshold', async () => {
-    const protection = new DatabasePasswordAuthenticationProtection(db, {}, {
+    const protection = new DatabasePasswordAuthenticationProtection({ db, options: {
       maxFailures: 2,
       windowMs: 60_000,
       lockMs: 60_000,
-    });
+    } });
 
     await protection.recordFailure(' User@Example.Test ');
     await expect(protection.recordFailure('user@example.test')).rejects.toBeInstanceOf(

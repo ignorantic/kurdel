@@ -26,12 +26,22 @@ import type { PasswordAuthenticationProtection } from './password-authentication
  * - user management
  */
 export class PasswordAuthenticationService {
-  constructor(
-    private readonly credentials: PasswordCredentialRepository,
-    private readonly users: AuthUserRepository,
-    private readonly hasher: PasswordHasher,
-    private readonly protection?: PasswordAuthenticationProtection
-  ) {}
+  private readonly credentials: PasswordCredentialRepository;
+  private readonly users: AuthUserRepository;
+  private readonly hasher: PasswordHasher;
+  private readonly protection?: PasswordAuthenticationProtection;
+
+  constructor({ credentials, users, hasher, protection }: {
+    credentials: PasswordCredentialRepository;
+    users: AuthUserRepository;
+    hasher: PasswordHasher;
+    protection?: PasswordAuthenticationProtection;
+  }) {
+    this.credentials = credentials;
+    this.users = users;
+    this.hasher = hasher;
+    this.protection = protection;
+  }
 
   /**
    * Authenticates a user using a login identifier and password.

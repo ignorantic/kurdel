@@ -75,6 +75,9 @@ export class InvalidRefreshTokenError extends Error {
  * - HTTP request handling
  */
 export class DatabaseJwtSessionService {
+  private readonly db: Database;
+  private readonly events?: TransactionalAuthEventSink;
+  private readonly now: () => Date;
   private readonly tables: AuthDatabaseTables;
 
   /**
@@ -85,12 +88,15 @@ export class DatabaseJwtSessionService {
    * @param events Optional transactional audit event sink.
    * @param now Time provider used for expiration checks and timestamps.
    */
-  constructor(
-    private readonly db: Database,
-    tables: Partial<AuthDatabaseTables> = {},
-    private readonly events?: TransactionalAuthEventSink,
-    private readonly now: () => Date = () => new Date(),
-  ) {
+  constructor({ db, tables = {}, events, now = () => new Date() }: {
+    db: Database;
+    tables?: Partial<AuthDatabaseTables>;
+    events?: TransactionalAuthEventSink;
+    now?: () => Date;
+  }) {
+    this.db = db;
+    this.events = events;
+    this.now = now;
     this.tables = resolveAuthDatabaseTables(tables);
   }
 

@@ -57,6 +57,10 @@ type TransactionalAuthEventSink = AuthEventSink & {
  * - HTTP request handling
  */
 export class DatabasePasswordService {
+  private readonly db: Database;
+  private readonly hasher: PasswordHasher;
+  private readonly events?: TransactionalAuthEventSink;
+  private readonly now: () => Date;
   private readonly tables: AuthDatabaseTables;
 
   /**
@@ -66,13 +70,17 @@ export class DatabasePasswordService {
    * @param hasher Password hasher used to derive secure password hashes.
    * @param tables Optional table name overrides.
    */
-  constructor(
-    private readonly db: Database,
-    private readonly hasher: PasswordHasher,
-    tables: Partial<AuthDatabaseTables> = {},
-    private readonly events?: TransactionalAuthEventSink,
-    private readonly now: () => Date = () => new Date()
-  ) {
+  constructor({ db, hasher, tables = {}, events, now = () => new Date() }: {
+    db: Database;
+    hasher: PasswordHasher;
+    tables?: Partial<AuthDatabaseTables>;
+    events?: TransactionalAuthEventSink;
+    now?: () => Date;
+  }) {
+    this.db = db;
+    this.hasher = hasher;
+    this.events = events;
+    this.now = now;
     this.tables = resolveAuthDatabaseTables(tables);
   }
 

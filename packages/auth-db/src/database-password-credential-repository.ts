@@ -27,6 +27,7 @@ type CredentialRecord = { user_id: string | number; password_hash: string };
  * - authentication workflows
  */
 export class DatabasePasswordCredentialRepository implements PasswordCredentialRepository {
+  private readonly db: Database;
   private readonly tables: AuthDatabaseTables;
 
   /**
@@ -35,10 +36,8 @@ export class DatabasePasswordCredentialRepository implements PasswordCredentialR
    * @param db Database abstraction used for persistence.
    * @param tables Optional table name overrides.
    */
-  constructor(
-    private readonly db: Database,
-    tables: Partial<AuthDatabaseTables> = {}
-  ) {
+  constructor({ db, tables = {} }: { db: Database; tables?: Partial<AuthDatabaseTables> }) {
+    this.db = db;
     this.tables = resolveAuthDatabaseTables(tables);
   }
 

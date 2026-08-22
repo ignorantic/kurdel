@@ -32,6 +32,7 @@ type JwtSessionRecord = {
  * - HTTP request handling
  */
 export class DatabaseJwtSessionRepository implements JwtSessionRepository {
+  private readonly db: Database;
   private readonly tables: AuthDatabaseTables;
 
   /**
@@ -40,10 +41,8 @@ export class DatabaseJwtSessionRepository implements JwtSessionRepository {
    * @param db Database abstraction used for persistence.
    * @param tables Optional table name overrides.
    */
-  constructor(
-    private readonly db: Database,
-    tables: Partial<AuthDatabaseTables> = {},
-  ) {
+  constructor({ db, tables = {} }: { db: Database; tables?: Partial<AuthDatabaseTables> }) {
+    this.db = db;
     this.tables = resolveAuthDatabaseTables(tables);
   }
 

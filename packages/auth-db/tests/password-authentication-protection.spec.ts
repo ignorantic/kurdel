@@ -9,7 +9,7 @@ describe('DatabasePasswordAuthenticationProtection', () => {
       get: vi.fn(async () => undefined),
       run: vi.fn(async () => undefined),
     } as unknown as Database;
-    const protection = new DatabasePasswordAuthenticationProtection(db);
+    const protection = new DatabasePasswordAuthenticationProtection({ db });
 
     await protection.assertAllowed(' Admin@Example.Test ');
     await protection.recordSuccess(' Admin@Example.Test ');
@@ -23,7 +23,7 @@ describe('DatabasePasswordAuthenticationProtection', () => {
     const db = {
       get: vi.fn(async () => ({ locked_until: retryAt })),
     } as unknown as Database;
-    const protection = new DatabasePasswordAuthenticationProtection(db, {}, { maxFailures: 3 });
+    const protection = new DatabasePasswordAuthenticationProtection({ db, options: { maxFailures: 3 } });
 
     await expect(protection.recordFailure('user@example.test')).rejects.toEqual(
       expect.objectContaining({ retryAt: new Date(retryAt) })
@@ -37,7 +37,7 @@ describe('DatabasePasswordAuthenticationProtection', () => {
   it('rejects attempts while a lock is active', async () => {
     const retryAt = new Date(Date.now() + 60_000).toISOString();
     const db = { get: vi.fn(async () => ({ locked_until: retryAt })) } as unknown as Database;
-    const protection = new DatabasePasswordAuthenticationProtection(db);
+    const protection = new DatabasePasswordAuthenticationProtection({ db });
 
     await expect(protection.assertAllowed('user@example.test')).rejects.toBeInstanceOf(
       PasswordAuthenticationBlockedError

@@ -7,6 +7,15 @@ application services defined by `@kurdel/auth` on top of Kurdel's `Database`
 abstraction. Authentication strategies remain storage-agnostic while
 applications own their database schema and migrations.
 
+Database-backed repositories and services accept named dependency objects.
+They can therefore be constructed directly or registered through `useClass`
+and `deps` without internal adapter providers:
+
+```ts
+const users = new DatabaseAuthUserRepository({ db });
+const apiKeys = new DatabaseApiKeyService({ db, hasher, events });
+```
+
 ## Features
 
 - Database-backed authentication repositories

@@ -23,6 +23,7 @@ import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-datab
  * - HTTP request handling
  */
 export class DatabaseApiKeyUsageRecorder implements ApiKeyUsageRecorder {
+  private readonly db: Database;
   private readonly tables: AuthDatabaseTables;
 
   /**
@@ -31,10 +32,8 @@ export class DatabaseApiKeyUsageRecorder implements ApiKeyUsageRecorder {
    * @param db Database abstraction used for persistence.
    * @param tables Optional table name overrides.
    */
-  constructor(
-    private readonly db: Database,
-    tables: Partial<AuthDatabaseTables> = {}
-  ) {
+  constructor({ db, tables = {} }: { db: Database; tables?: Partial<AuthDatabaseTables> }) {
+    this.db = db;
     this.tables = resolveAuthDatabaseTables(tables);
   }
 

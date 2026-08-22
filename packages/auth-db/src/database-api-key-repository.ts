@@ -34,6 +34,8 @@ type ApiKeyRecord = {
  * - HTTP request handling
  */
 export class DatabaseApiKeyRepository implements ApiKeyRepository {
+  private readonly db: Database;
+  private readonly hasher: ApiKeyHasher;
   private readonly tables: AuthDatabaseTables;
 
   /**
@@ -43,11 +45,13 @@ export class DatabaseApiKeyRepository implements ApiKeyRepository {
    * @param hasher Hashing strategy used to derive lookup hashes.
    * @param tables Optional table name overrides.
    */
-  constructor(
-    private readonly db: Database,
-    private readonly hasher: ApiKeyHasher,
-    tables: Partial<AuthDatabaseTables> = {}
-  ) {
+  constructor({ db, hasher, tables = {} }: {
+    db: Database;
+    hasher: ApiKeyHasher;
+    tables?: Partial<AuthDatabaseTables>;
+  }) {
+    this.db = db;
+    this.hasher = hasher;
     this.tables = resolveAuthDatabaseTables(tables);
   }
 

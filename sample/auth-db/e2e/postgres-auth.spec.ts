@@ -56,7 +56,7 @@ describePostgres('PostgreSQL auth database integration', () => {
   });
 
   it('runs user and revocable session workflows on PostgreSQL', async () => {
-    const users = new DatabaseUserService(db);
+    const users = new DatabaseUserService({ db });
     const user = await users.create({
       name: 'Postgres User',
       email: 'postgres@example.test',
@@ -88,22 +88,23 @@ describePostgres('PostgreSQL auth database integration', () => {
       failedAuthenticationsLast24Hours: 1,
     });
 
-    const passwords = new DatabasePasswordService(db, {
-      hash: async password => `hashed:${password}`,
-      verify: async (password, encoded) => encoded === `hashed:${password}`,
+    const passwords = new DatabasePasswordService({ db, hasher: {
+        hash: async password => `hashed:${password}`,
+        verify: async (password, encoded) => encoded === `hashed:${password}`,
+      },
     });
     await passwords.set(user.id, 'postgres-password');
     await expect(
-      new DatabasePasswordCredentialRepository(db).findByLogin('POSTGRES@example.test')
+      new DatabasePasswordCredentialRepository({ db }).findByLogin('POSTGRES@example.test')
     ).resolves.toEqual({ userId: user.id, passwordHash: 'hashed:postgres-password' });
     await passwords.change(user.id, 'postgres-password', 'changed-password');
     await expect(
-      new DatabasePasswordCredentialRepository(db).findByLogin('POSTGRES@example.test')
+      new DatabasePasswordCredentialRepository({ db }).findByLogin('POSTGRES@example.test')
     ).resolves.toEqual({ userId: user.id, passwordHash: 'hashed:changed-password' });
 
-    const sessions = new DatabaseJwtSessionService(db);
+    const sessions = new DatabaseJwtSessionService({ db });
     const created = await sessions.create(user.id, new Date(Date.now() + 60_000));
-    const repository = new DatabaseJwtSessionRepository(db);
+    const repository = new DatabaseJwtSessionRepository({ db });
     await expect(repository.findById(created.id)).resolves.toEqual({
       id: created.id,
       userId: user.id,
@@ -131,7 +132,7 @@ describePostgres('PostgreSQL auth database integration', () => {
       'Password reset token is invalid or expired',
     );
     await expect(
-      new DatabasePasswordCredentialRepository(db).findByLogin('POSTGRES@example.test')
+      new DatabasePasswordCredentialRepository({ db }).findByLogin('POSTGRES@example.test')
     ).resolves.toEqual({ userId: user.id, passwordHash: 'hashed:reset-password' });
     await expect(sessions.refresh(refreshed.refreshToken)).rejects.toThrow(
       'Refresh token is invalid or expired',

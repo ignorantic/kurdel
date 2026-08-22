@@ -85,9 +85,9 @@ describe('database auth repositories', () => {
       ],
     });
 
-    users = new DatabaseAuthUserRepository(db);
-    apiKeys = new DatabaseApiKeyRepository(db, hasher);
-    usage = new DatabaseApiKeyUsageRecorder(db);
+    users = new DatabaseAuthUserRepository({ db });
+    apiKeys = new DatabaseApiKeyRepository({ db, hasher });
+    usage = new DatabaseApiKeyUsageRecorder({ db });
   });
 
   afterAll(async () => {

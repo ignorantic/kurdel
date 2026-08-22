@@ -5,7 +5,7 @@ import { DatabaseAuthEventStore } from '../src/index.js';
 describe('DatabaseAuthEventStore', () => {
   it('persists only the sanitized event fields', async () => {
     const db = { run: vi.fn(async () => undefined) } as unknown as Database;
-    const store = new DatabaseAuthEventStore(db);
+    const store = new DatabaseAuthEventStore({ db });
     const occurredAt = new Date('2026-08-15T12:00:00.000Z');
 
     await store.report({
@@ -48,7 +48,7 @@ describe('DatabaseAuthEventStore', () => {
       ]),
       get: vi.fn(async () => ({ count: 1 })),
     } as unknown as Database;
-    const store = new DatabaseAuthEventStore(db, { authEvents: 'security_events' });
+    const store = new DatabaseAuthEventStore({ db, tables: { authEvents: 'security_events' } });
 
     await expect(
       store.list({

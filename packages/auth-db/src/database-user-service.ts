@@ -160,6 +160,7 @@ export class RoleInUseError extends Error {
  * - HTTP request handling
  */
 export class DatabaseUserService {
+  private readonly db: Database;
   private readonly tables: AuthDatabaseTables;
 
   /**
@@ -168,10 +169,8 @@ export class DatabaseUserService {
    * @param db Database abstraction used for all persistence operations.
    * @param tables Optional table name overrides.
    */
-  constructor(
-    private readonly db: Database,
-    tables: Partial<AuthDatabaseTables> = {}
-  ) {
+  constructor({ db, tables = {} }: { db: Database; tables?: Partial<AuthDatabaseTables> }) {
+    this.db = db;
     this.tables = resolveAuthDatabaseTables(tables);
   }
 

@@ -14,7 +14,7 @@ describe('database auth management services', () => {
     const db = {
       all: vi.fn(async () => [{ name: 'admin' }, { name: 'user' }]),
     } as unknown as Database;
-    const service = new DatabaseUserService(db, { roles: 'application_roles' });
+    const service = new DatabaseUserService({ db, tables: { roles: 'application_roles' } });
 
     await expect(service.listRoles()).resolves.toEqual(['admin', 'user']);
     expect(db.all).toHaveBeenCalledWith({
@@ -29,9 +29,9 @@ describe('database auth management services', () => {
       all: vi.fn(async () => []),
     } as unknown as Database;
     const hasher: ApiKeyHasher = { hash: key => key };
-    const service = new DatabaseApiKeyService(db, hasher, {
-      users: 'application_users',
-      apiKeys: 'application_api_keys',
+    const service = new DatabaseApiKeyService({ db, hasher, tables: {
+      users: 'application_users', apiKeys: 'application_api_keys',
+    },
     });
 
     await expect(service.list(7)).resolves.toEqual([]);
@@ -50,10 +50,10 @@ describe('database auth management services', () => {
     const db = {} as Database;
     const hasher: ApiKeyHasher = { hash: key => key };
 
-    expect(() => new DatabaseUserService(db, { users: 'users; DROP TABLE users' })).toThrow(
+    expect(() => new DatabaseUserService({ db, tables: { users: 'users; DROP TABLE users' } })).toThrow(
       'Invalid auth database table name'
     );
-    expect(() => new DatabaseApiKeyService(db, hasher, { apiKeys: 'api keys' })).toThrow(
+    expect(() => new DatabaseApiKeyService({ db, hasher, tables: { apiKeys: 'api keys' } })).toThrow(
       'Invalid auth database table name'
     );
   });
@@ -62,7 +62,7 @@ describe('database auth management services', () => {
     const db = {
       get: vi.fn(async () => ({ user_id: 7, password_hash: 'encoded' })),
     } as unknown as Database;
-    const repository = new DatabasePasswordCredentialRepository(db);
+    const repository = new DatabasePasswordCredentialRepository({ db });
 
     await expect(repository.findByLogin(' Admin@Example.Test ')).resolves.toEqual({
       userId: 7,
@@ -84,10 +84,10 @@ describe('database auth management services', () => {
     const db = {
       transaction: vi.fn(async callback => callback(transaction)),
     } as unknown as Database;
-    const service = new DatabasePasswordService(db, {
+    const service = new DatabasePasswordService({ db, hasher: {
       hash: vi.fn(async () => 'encoded'),
       verify: vi.fn(async () => true),
-    });
+    } });
 
     await service.set(7, 'demo-password');
     expect(transaction.run).toHaveBeenCalledWith(
@@ -103,10 +103,10 @@ describe('database auth management services', () => {
     const db = {
       transaction: vi.fn(async callback => callback(transaction)),
     } as unknown as Database;
-    const service = new DatabasePasswordService(db, {
+    const service = new DatabasePasswordService({ db, hasher: {
       hash: vi.fn(async () => 'encoded'),
       verify: vi.fn(async () => true),
-    });
+    } });
 
     await expect(service.set(404, 'demo-password')).rejects.toBeInstanceOf(
       PasswordUserNotFoundError

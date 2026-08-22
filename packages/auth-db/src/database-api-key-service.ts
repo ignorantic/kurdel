@@ -92,6 +92,10 @@ export class ApiKeyNotFoundError extends Error {
  * - HTTP request handling
  */
 export class DatabaseApiKeyService {
+  private readonly db: Database;
+  private readonly hasher: ApiKeyHasher;
+  private readonly events?: TransactionalAuthEventSink;
+  private readonly now: () => Date;
   private readonly tables: AuthDatabaseTables;
 
   /**
@@ -103,13 +107,17 @@ export class DatabaseApiKeyService {
    * @param events Optional authentication audit event sink.
    * @param now Clock provider used for timestamps and testing.
    */
-  constructor(
-    private readonly db: Database,
-    private readonly hasher: ApiKeyHasher,
-    tables: Partial<AuthDatabaseTables> = {},
-    private readonly events?: TransactionalAuthEventSink,
-    private readonly now: () => Date = () => new Date()
-  ) {
+  constructor({ db, hasher, tables = {}, events, now = () => new Date() }: {
+    db: Database;
+    hasher: ApiKeyHasher;
+    tables?: Partial<AuthDatabaseTables>;
+    events?: TransactionalAuthEventSink;
+    now?: () => Date;
+  }) {
+    this.db = db;
+    this.hasher = hasher;
+    this.events = events;
+    this.now = now;
     this.tables = resolveAuthDatabaseTables(tables);
   }
 

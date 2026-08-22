@@ -1,5 +1,6 @@
 import {
   AUTH_TOKENS,
+  PasswordAuthenticationService,
   ScryptPasswordHasher,
   type PasswordHasher,
 } from '@kurdel/auth';
@@ -8,22 +9,21 @@ import { Database } from '@kurdel/db';
 
 import { Sha256ApiKeyHasher, type ApiKeyHasher } from './api-key-hasher.js';
 import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
-import {
-  ApiKeyRepositoryProvider,
-  ApiKeyServiceProvider,
-  ApiKeyUsageRecorderProvider,
-  AuthEventStoreProvider,
-  AuthUserRepositoryProvider,
-  JwtSessionRepositoryProvider,
-  JwtSessionServiceProvider,
-  PasswordAuthenticationServiceProvider,
-  PasswordAuthenticationProtectionProvider,
-  PasswordCredentialRepositoryProvider,
-  PasswordServiceProvider,
-  UserServiceProvider,
-} from './auth-database-providers.js';
+import { DatabaseApiKeyRepository } from './database-api-key-repository.js';
+import { DatabaseApiKeyService } from './database-api-key-service.js';
+import { DatabaseApiKeyUsageRecorder } from './database-api-key-usage-recorder.js';
+import { DatabaseAuthEventStore } from './database-auth-event-store.js';
+import { DatabaseAuthUserRepository } from './database-auth-user-repository.js';
+import { DatabaseJwtSessionRepository } from './database-jwt-session-repository.js';
+import { DatabaseJwtSessionService } from './database-jwt-session-service.js';
+import { DatabasePasswordCredentialRepository } from './database-password-credential-repository.js';
+import { DatabasePasswordService } from './database-password-service.js';
+import { DatabaseUserService } from './database-user-service.js';
 import { AUTH_DB_TOKENS } from './tokens.js';
-import type { PasswordAuthenticationProtectionOptions } from './database-password-authentication-protection.js';
+import {
+  DatabasePasswordAuthenticationProtection,
+  type PasswordAuthenticationProtectionOptions,
+} from './database-password-authentication-protection.js';
 
 const AUTH_DB_TABLES = Symbol('AuthDbTables');
 
@@ -112,7 +112,7 @@ export class AuthDatabaseModule implements AppModule {
         },
         {
           provide: AUTH_TOKENS.PasswordAuthenticationProtection,
-          useClass: PasswordAuthenticationProtectionProvider,
+          useClass: DatabasePasswordAuthenticationProtection,
           deps: {
             db: Database,
             tables: AUTH_DB_TABLES,
@@ -123,37 +123,37 @@ export class AuthDatabaseModule implements AppModule {
       ] : []),
       {
         provide: AUTH_TOKENS.UserRepository,
-        useClass: AuthUserRepositoryProvider,
+        useClass: DatabaseAuthUserRepository,
         deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.ApiKeyRepository,
-        useClass: ApiKeyRepositoryProvider,
+        useClass: DatabaseApiKeyRepository,
         deps: { db: Database, hasher: AUTH_DB_TOKENS.ApiKeyHasher, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.ApiKeyUsageRecorder,
-        useClass: ApiKeyUsageRecorderProvider,
+        useClass: DatabaseApiKeyUsageRecorder,
         deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.JwtSessionRepository,
-        useClass: JwtSessionRepositoryProvider,
+        useClass: DatabaseJwtSessionRepository,
         deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.PasswordCredentialRepository,
-        useClass: PasswordCredentialRepositoryProvider,
+        useClass: DatabasePasswordCredentialRepository,
         deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.PasswordAuthenticationService,
-        useClass: PasswordAuthenticationServiceProvider,
+        useClass: PasswordAuthenticationService,
         deps: {
           credentials: AUTH_TOKENS.PasswordCredentialRepository,
           users: AUTH_TOKENS.UserRepository,
@@ -164,7 +164,7 @@ export class AuthDatabaseModule implements AppModule {
       },
       {
         provide: AUTH_DB_TOKENS.UserService,
-        useClass: UserServiceProvider,
+        useClass: DatabaseUserService,
         deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
@@ -172,7 +172,7 @@ export class AuthDatabaseModule implements AppModule {
         ? [
             {
               provide: AUTH_DB_TOKENS.EventStore,
-              useClass: AuthEventStoreProvider,
+              useClass: DatabaseAuthEventStore,
               deps: { db: Database, tables: AUTH_DB_TABLES },
               singleton: true,
             },
@@ -180,7 +180,7 @@ export class AuthDatabaseModule implements AppModule {
         : []),
       {
         provide: AUTH_DB_TOKENS.ApiKeyService,
-        useClass: ApiKeyServiceProvider,
+        useClass: DatabaseApiKeyService,
         deps: {
           db: Database,
           hasher: AUTH_DB_TOKENS.ApiKeyHasher,
@@ -191,7 +191,7 @@ export class AuthDatabaseModule implements AppModule {
       },
       {
         provide: AUTH_DB_TOKENS.JwtSessionService,
-        useClass: JwtSessionServiceProvider,
+        useClass: DatabaseJwtSessionService,
         deps: {
           db: Database,
           tables: AUTH_DB_TABLES,
@@ -201,7 +201,7 @@ export class AuthDatabaseModule implements AppModule {
       },
       {
         provide: AUTH_DB_TOKENS.PasswordService,
-        useClass: PasswordServiceProvider,
+        useClass: DatabasePasswordService,
         deps: {
           db: Database,
           hasher: AUTH_DB_TOKENS.PasswordHasher,

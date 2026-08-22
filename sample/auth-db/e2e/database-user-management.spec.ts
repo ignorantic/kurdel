@@ -53,14 +53,18 @@ describe('database user management', () => {
       sql: 'INSERT INTO permissions (id, name) VALUES (?, ?), (?, ?);',
       params: [1, 'users.view', 2, 'users.manage'],
     });
-    users = new DatabaseUserService(db);
-    events = new DatabaseAuthEventStore(db);
-    apiKeys = new DatabaseApiKeyService(db, hasher, {}, events);
-    jwtSessions = new DatabaseJwtSessionService(db, {}, events);
-    passwords = new DatabasePasswordService(db, {
-      hash: async password => `encoded:${password}`,
-      verify: async (password, encodedHash) => encodedHash === `encoded:${password}`,
-    }, {}, events);
+    users = new DatabaseUserService({ db });
+    events = new DatabaseAuthEventStore({ db });
+    apiKeys = new DatabaseApiKeyService({ db, hasher, events });
+    jwtSessions = new DatabaseJwtSessionService({ db, events });
+    passwords = new DatabasePasswordService({
+      db,
+      hasher: {
+        hash: async password => `encoded:${password}`,
+        verify: async (password, encodedHash) => encodedHash === `encoded:${password}`,
+      },
+      events,
+    });
   });
 
   afterAll(async () => {
@@ -104,7 +108,7 @@ describe('database user management', () => {
     });
     const expiresAt = new Date(Date.now() + 60_000);
     const created = await jwtSessions.create(user.id, expiresAt);
-    const repository = new DatabaseJwtSessionRepository(db);
+    const repository = new DatabaseJwtSessionRepository({ db });
 
     await expect(repository.findById(created.id)).resolves.toEqual({
       id: created.id,
@@ -352,7 +356,7 @@ describe('database user management', () => {
         throw new Error('Audit persistence failed');
       },
     };
-    const failingService = new DatabaseApiKeyService(db, hasher, {}, auditFailure);
+    const failingService = new DatabaseApiKeyService({ db, hasher, events: auditFailure });
 
     await expect(
       failingService.create({ userId: user.id, name: 'Rolled back key' })

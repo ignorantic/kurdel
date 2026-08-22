@@ -16,7 +16,7 @@ describe('database auth repositories', () => {
         .mockResolvedValueOnce([{ name: 'admin' }, { name: 'editor' }])
         .mockResolvedValueOnce([{ name: 'users.manage' }]),
     } as unknown as Database;
-    const repository = new DatabaseAuthUserRepository(db);
+    const repository = new DatabaseAuthUserRepository({ db });
 
     await expect(repository.findById(7)).resolves.toEqual({
       id: 7,
@@ -35,7 +35,7 @@ describe('database auth repositories', () => {
       all: vi.fn(),
     } as unknown as Database;
 
-    await expect(new DatabaseAuthUserRepository(db).findById(7)).resolves.toBeNull();
+    await expect(new DatabaseAuthUserRepository({ db }).findById(7)).resolves.toBeNull();
     expect(db.all).not.toHaveBeenCalled();
   });
 
@@ -49,7 +49,7 @@ describe('database auth repositories', () => {
       })),
     } as unknown as Database;
     const hasher: ApiKeyHasher = { hash: vi.fn(() => 'digest') };
-    const repository = new DatabaseApiKeyRepository(db, hasher);
+    const repository = new DatabaseApiKeyRepository({ db, hasher });
 
     await expect(repository.findByKey('raw-key')).resolves.toEqual({
       id: 'credential-1',
@@ -70,7 +70,7 @@ describe('database auth repositories', () => {
         expires_at: '2030-01-01T00:00:00.000Z',
       })),
     } as unknown as Database;
-    const repository = new DatabaseJwtSessionRepository(db);
+    const repository = new DatabaseJwtSessionRepository({ db });
 
     await expect(repository.findById('session-1')).resolves.toEqual({
       id: 'session-1',
@@ -89,8 +89,8 @@ describe('database auth repositories', () => {
       get: vi.fn(async () => undefined),
     } as unknown as Database;
     const hasher: ApiKeyHasher = { hash: () => 'digest' };
-    const repository = new DatabaseApiKeyRepository(db, hasher, {
-      apiKeys: 'application_api_keys',
+    const repository = new DatabaseApiKeyRepository({
+      db, hasher, tables: { apiKeys: 'application_api_keys' },
     });
 
     await repository.findByKey('key');
@@ -100,15 +100,15 @@ describe('database auth repositories', () => {
         sql: expect.stringContaining('FROM application_api_keys'),
       })
     );
-    expect(() => new DatabaseAuthUserRepository(db, { users: 'users; DROP TABLE users' })).toThrow(
+    expect(() => new DatabaseAuthUserRepository({ db, tables: { users: 'users; DROP TABLE users' } })).toThrow(
       'Invalid auth database table name'
     );
   });
 
   it('records successful API key usage by stable credential ID', async () => {
     const db = { run: vi.fn(async () => undefined) } as unknown as Database;
-    const recorder = new DatabaseApiKeyUsageRecorder(db, {
-      apiKeys: 'application_api_keys',
+    const recorder = new DatabaseApiKeyUsageRecorder({
+      db, tables: { apiKeys: 'application_api_keys' },
     });
     const usedAt = new Date('2026-08-15T12:00:00.000Z');
 
