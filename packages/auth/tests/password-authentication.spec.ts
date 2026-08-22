@@ -1,5 +1,10 @@
 import type { AuthUserRepository, PasswordCredentialRepository } from '../src/index.js';
-import { PasswordAuthenticationService, ScryptPasswordHasher } from '../src/index.js';
+import {
+  PasswordAuthenticationBlockedError,
+  PasswordAuthenticationService,
+  ScryptPasswordHasher,
+  type PasswordAuthenticationProtection,
+} from '../src/index.js';
 
 describe('password authentication', () => {
   it('hashes passwords with a random salt and verifies them', async () => {
@@ -45,5 +50,48 @@ describe('password authentication', () => {
     await expect(service.authenticate('missing@example.test', 'password')).resolves.toBeNull();
     expect(hasher.hash).toHaveBeenCalledWith('password');
     expect(hasher.verify).not.toHaveBeenCalled();
+  });
+
+  it('records failures without revealing whether a login exists and clears them on success', async () => {
+    const hasher = new ScryptPasswordHasher({ cost: 1024 });
+    const passwordHash = await hasher.hash('demo-password');
+    const protection: PasswordAuthenticationProtection = {
+      assertAllowed: vi.fn(),
+      recordFailure: vi.fn(),
+      recordSuccess: vi.fn(),
+    };
+    const service = new PasswordAuthenticationService(
+      { findByLogin: async login => login === 'known' ? { userId: 1, passwordHash } : null },
+      { findById: async id => ({ id, roles: [] }) },
+      hasher,
+      protection
+    );
+
+    await service.authenticate('missing', 'wrong');
+    await service.authenticate('known', 'wrong');
+    await service.authenticate('known', 'demo-password');
+
+    expect(protection.assertAllowed).toHaveBeenCalledTimes(3);
+    expect(protection.recordFailure).toHaveBeenCalledWith('missing');
+    expect(protection.recordFailure).toHaveBeenCalledWith('known');
+    expect(protection.recordSuccess).toHaveBeenCalledWith('known');
+  });
+
+  it('stops before credential lookup when a login is blocked', async () => {
+    const retryAt = new Date(Date.now() + 60_000);
+    const credentials = { findByLogin: vi.fn() };
+    const service = new PasswordAuthenticationService(
+      credentials,
+      { findById: vi.fn() },
+      { hash: vi.fn(), verify: vi.fn() },
+      {
+        assertAllowed: () => { throw new PasswordAuthenticationBlockedError(retryAt); },
+        recordFailure: vi.fn(),
+        recordSuccess: vi.fn(),
+      }
+    );
+
+    await expect(service.authenticate('blocked', 'password')).rejects.toMatchObject({ retryAt });
+    expect(credentials.findByLogin).not.toHaveBeenCalled();
   });
 });

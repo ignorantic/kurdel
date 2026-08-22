@@ -3,6 +3,7 @@ import {
   type AuthEventSink,
   type AuthUserRepository,
   type PasswordCredentialRepository,
+  type PasswordAuthenticationProtection,
   type PasswordHasher,
 } from '@kurdel/auth';
 import type { Database } from '@kurdel/db';
@@ -17,6 +18,10 @@ import { DatabaseAuthUserRepository } from './database-auth-user-repository.js';
 import { DatabaseJwtSessionRepository } from './database-jwt-session-repository.js';
 import { DatabaseJwtSessionService } from './database-jwt-session-service.js';
 import { DatabasePasswordCredentialRepository } from './database-password-credential-repository.js';
+import {
+  DatabasePasswordAuthenticationProtection,
+  type PasswordAuthenticationProtectionOptions,
+} from './database-password-authentication-protection.js';
 import { DatabasePasswordService } from './database-password-service.js';
 import { DatabaseUserService } from './database-user-service.js';
 
@@ -55,13 +60,20 @@ export class PasswordCredentialRepositoryProvider extends DatabasePasswordCreden
   }
 }
 
+export class PasswordAuthenticationProtectionProvider extends DatabasePasswordAuthenticationProtection {
+  constructor({ db, tables, options }: DatabaseDeps & { options: PasswordAuthenticationProtectionOptions }) {
+    super(db, tables, options);
+  }
+}
+
 export class PasswordAuthenticationServiceProvider extends PasswordAuthenticationService {
-  constructor({ credentials, users, hasher }: {
+  constructor({ credentials, users, hasher, protection }: {
     credentials: PasswordCredentialRepository;
     users: AuthUserRepository;
     hasher: PasswordHasher;
+    protection?: PasswordAuthenticationProtection;
   }) {
-    super(credentials, users, hasher);
+    super(credentials, users, hasher, protection);
   }
 }
 

@@ -57,6 +57,9 @@ export const NotFound = (msg = 'Not Found', details?: JsonValue) =>
 
 export const Conflict = (msg = 'Conflict', details?: JsonValue) => new HttpError(409, msg, details);
 
+export const TooManyRequests = (msg = 'Too Many Requests', details?: JsonValue) =>
+  new HttpError(429, msg, details);
+
 export const InternalServerError = (msg = 'Internal Server Error', details?: JsonValue) =>
   new HttpError(500, msg, details);
 

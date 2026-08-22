@@ -69,6 +69,11 @@ server so the complete flow can be exercised without an email provider. In
 production the endpoint returns only a neutral acknowledgement. Successful
 password changes and resets revoke every active session for the user.
 
+Migration `0009-create-password-authentication-attempts.js` adds shared login
+attempt tracking. Five failed attempts for the same email within 15 minutes
+produce the same neutral error for known and unknown users and temporarily
+return `429 Too Many Requests`. A successful login clears the counter.
+
 The sample uses SQLite by default. To run it against PostgreSQL, copy
 `db.postgres.config.example.json` to `db.config.json`, replace the example
 credentials, and run the same migration, seed, and start commands. The CI suite

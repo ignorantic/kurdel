@@ -10,6 +10,7 @@ export * from './database-auth-event-sink-provider.js';
 export * from './database-jwt-session-repository.js';
 export * from './database-jwt-session-service.js';
 export * from './database-password-credential-repository.js';
+export * from './database-password-authentication-protection.js';
 export * from './database-password-service.js';
 export * from './database-user-service.js';
 export * from './tokens.js';

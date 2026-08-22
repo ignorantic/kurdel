@@ -15,7 +15,7 @@ describe('AuthDatabaseModule', () => {
     const hasher: ApiKeyHasher = { hash: key => `hashed:${key}` };
     const module = new AuthDatabaseModule({ apiKeyHasher: hasher });
 
-    expect(module.providers).toHaveLength(13);
+    expect(module.providers).toHaveLength(15);
     expect(module.providers).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ provide: AUTH_DB_TOKENS.ApiKeyHasher, useInstance: hasher }),
@@ -24,6 +24,7 @@ describe('AuthDatabaseModule', () => {
         expect.objectContaining({ provide: AUTH_TOKENS.ApiKeyUsageRecorder, singleton: true }),
         expect.objectContaining({ provide: AUTH_TOKENS.JwtSessionRepository, singleton: true }),
         expect.objectContaining({ provide: AUTH_DB_TOKENS.PasswordHasher }),
+        expect.objectContaining({ provide: AUTH_TOKENS.PasswordAuthenticationProtection }),
         expect.objectContaining({
           provide: AUTH_TOKENS.PasswordCredentialRepository,
           singleton: true,
@@ -45,6 +46,7 @@ describe('AuthDatabaseModule', () => {
       jwtSessionRepository: AUTH_TOKENS.JwtSessionRepository,
       passwordCredentialRepository: AUTH_TOKENS.PasswordCredentialRepository,
       passwordAuthenticationService: AUTH_TOKENS.PasswordAuthenticationService,
+      passwordAuthenticationProtection: AUTH_TOKENS.PasswordAuthenticationProtection,
       apiKeyHasher: AUTH_DB_TOKENS.ApiKeyHasher,
       userService: AUTH_DB_TOKENS.UserService,
       apiKeyService: AUTH_DB_TOKENS.ApiKeyService,
@@ -57,10 +59,10 @@ describe('AuthDatabaseModule', () => {
     const disabled = new AuthDatabaseModule();
     const enabled = new AuthDatabaseModule({ audit: true });
 
-    expect(disabled.providers).toHaveLength(13);
+    expect(disabled.providers).toHaveLength(15);
     expect(disabled.providers.every(provider => !('useFactory' in provider))).toBe(true);
     expect(disabled.exports).not.toHaveProperty('eventStore');
-    expect(enabled.providers).toHaveLength(14);
+    expect(enabled.providers).toHaveLength(16);
     expect(enabled.providers.every(provider => !('useFactory' in provider))).toBe(true);
     expect(enabled.providers).toEqual(
       expect.arrayContaining([
@@ -68,6 +70,16 @@ describe('AuthDatabaseModule', () => {
       ])
     );
     expect(enabled.exports).toHaveProperty('eventStore', AUTH_DB_TOKENS.EventStore);
+  });
+
+  it('allows password authentication protection to be disabled explicitly', () => {
+    const module = new AuthDatabaseModule({ passwordProtection: false });
+
+    expect(module.providers).toHaveLength(13);
+    expect(module.exports).not.toHaveProperty('passwordAuthenticationProtection');
+    expect(module.providers).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ provide: AUTH_TOKENS.PasswordAuthenticationProtection }),
+    ]));
   });
 
   it('resolves class providers from their declared dependency graph', () => {

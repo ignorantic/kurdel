@@ -33,6 +33,11 @@ export type AuthEvent =
       reason: 'invalid-credential';
     })
   | (AuthEventBase & {
+      type: 'authentication.rate-limited';
+      strategy: string;
+      retryAt: Date;
+    })
+  | (AuthEventBase & {
       type: 'authorization.denied';
       strategy?: string;
       reason: 'missing-role' | 'missing-authentication' | 'policy-rejected';

@@ -129,6 +129,7 @@ The package provides:
 - `DatabasePasswordCredentialRepository`
 - `DatabasePasswordService`
 - `PasswordAuthenticationService`
+- `DatabasePasswordAuthenticationProtection`
 
 `DatabasePasswordService` hashes and stores passwords using
 `ScryptPasswordHasher` by default.
@@ -151,6 +152,24 @@ await passwords.reset(reset.token, nextPassword);
 Reset tokens are returned only when created, persisted as SHA-256 hashes, and
 can be used once. Changing or resetting a password revokes all active JWT
 sessions belonging to the user.
+
+Password login is protected by default. Five failed attempts for the same
+normalized login within 15 minutes block further attempts for 15 minutes. The
+counter is stored in the database, so it is shared by every application
+instance and does not reveal whether the login exists. Applications can tune
+or explicitly disable the protection:
+
+```ts
+new AuthDatabaseModule({
+  passwordProtection: {
+    maxFailures: 8,
+    windowMs: 10 * 60_000,
+    lockMs: 30 * 60_000,
+  },
+});
+
+new AuthDatabaseModule({ passwordProtection: false });
+```
 
 Applications may replace the hasher:
 
@@ -211,6 +230,7 @@ By default the package expects the following tables:
 - `jwt_refresh_tokens`
 - `password_credentials`
 - `password_reset_tokens`
+- `password_authentication_attempts`
 - `auth_events`
 
 Applications own the schema and migrations.

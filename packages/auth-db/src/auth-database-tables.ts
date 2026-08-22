@@ -17,6 +17,7 @@ export interface AuthDatabaseTables {
   jwtRefreshTokens: string;
   passwordCredentials: string;
   passwordResetTokens: string;
+  passwordAuthenticationAttempts: string;
   authEvents: string;
 }
 
@@ -34,6 +35,7 @@ export const DEFAULT_AUTH_DATABASE_TABLES: Readonly<AuthDatabaseTables> = {
   jwtRefreshTokens: 'jwt_refresh_tokens',
   passwordCredentials: 'password_credentials',
   passwordResetTokens: 'password_reset_tokens',
+  passwordAuthenticationAttempts: 'password_authentication_attempts',
   authEvents: 'auth_events',
 };
 

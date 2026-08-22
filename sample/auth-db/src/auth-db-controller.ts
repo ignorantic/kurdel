@@ -6,15 +6,17 @@ import {
   NoContent,
   NotFound,
   Ok,
+  TooManyRequests,
   Unauthorized,
   route,
   type HttpContext,
   type RouteParams,
 } from '@kurdel/core/http';
-import type {
-  JwtService,
-  PasswordAuthenticationService,
-  PasswordCredentialRepository,
+import {
+  PasswordAuthenticationBlockedError,
+  type JwtService,
+  type PasswordAuthenticationService,
+  type PasswordCredentialRepository,
 } from '@kurdel/auth';
 import { z } from 'zod';
 
@@ -344,10 +346,22 @@ export class AuthDbController extends Controller<Deps> {
   }
 
   async login(ctx: HttpContext<LoginBody>) {
-    const user = await this.deps.passwordAuthentication.authenticate(
-      ctx.body!.email,
-      ctx.body!.password
-    );
+    let user;
+    try {
+      user = await this.deps.passwordAuthentication.authenticate(
+        ctx.body!.email,
+        ctx.body!.password
+      );
+    } catch (error) {
+      if (!(error instanceof PasswordAuthenticationBlockedError)) throw error;
+      await this.deps.events.report({
+        type: 'authentication.rate-limited',
+        occurredAt: new Date(),
+        strategy: 'password',
+        retryAt: error.retryAt,
+      });
+      throw TooManyRequests('Too many sign-in attempts. Try again later.');
+    }
     if (!user) {
       await this.deps.events.report({
         type: 'authentication.failed',

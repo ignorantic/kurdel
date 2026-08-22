@@ -272,6 +272,12 @@ self-describing encoded value. The service returns the current `AuthUser` only
 after both the password and user state have been verified; unknown logins and
 invalid passwords both return `null`.
 
+An optional `PasswordAuthenticationProtection` guards the authentication
+workflow without coupling it to a storage backend. It is consulted before
+credential lookup, records failures for both known and unknown logins, and is
+cleared only after successful authentication. Implementations signal a
+temporary lock with `PasswordAuthenticationBlockedError`.
+
 For database-backed implementations, use `@kurdel/auth-db`. Applications may
 also implement these interfaces for another database, an external identity
 service, or an in-memory test setup.
