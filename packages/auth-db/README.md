@@ -133,6 +133,25 @@ The package provides:
 `DatabasePasswordService` hashes and stores passwords using
 `ScryptPasswordHasher` by default.
 
+It also implements the password lifecycle:
+
+```ts
+const passwords = app.ioc.get(AUTH_DB_TOKENS.PasswordService);
+
+await passwords.change(userId, currentPassword, nextPassword);
+
+const reset = await passwords.createReset(
+  userId,
+  new Date(Date.now() + 15 * 60_000),
+);
+// Deliver reset.token through an application-owned channel.
+await passwords.reset(reset.token, nextPassword);
+```
+
+Reset tokens are returned only when created, persisted as SHA-256 hashes, and
+can be used once. Changing or resetting a password revokes all active JWT
+sessions belonging to the user.
+
 Applications may replace the hasher:
 
 ```ts
@@ -191,6 +210,7 @@ By default the package expects the following tables:
 - `jwt_sessions`
 - `jwt_refresh_tokens`
 - `password_credentials`
+- `password_reset_tokens`
 - `auth_events`
 
 Applications own the schema and migrations.

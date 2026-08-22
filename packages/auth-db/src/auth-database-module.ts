@@ -172,7 +172,8 @@ export class AuthDatabaseModule implements AppModule {
           new DatabasePasswordService(
             ioc.get(Database),
             ioc.get(AUTH_DB_TOKENS.PasswordHasher),
-            tables
+            tables,
+            config.audit ? ioc.get(AUTH_DB_TOKENS.EventStore) : undefined
           ),
         singleton: true,
       },

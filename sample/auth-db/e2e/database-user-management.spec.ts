@@ -6,6 +6,7 @@ import {
   DatabaseAuthEventStore,
   DatabaseJwtSessionRepository,
   DatabaseJwtSessionService,
+  DatabasePasswordService,
   DatabaseUserService,
   Sha256ApiKeyHasher,
   UserNotFoundError,
@@ -17,7 +18,9 @@ import AddUserProfile from '../migrations/0002-add-user-profile.js';
 import CreateAuthEvents from '../migrations/0003-create-auth-events.js';
 import CreateRolePermissions from '../migrations/0004-create-role-permissions.js';
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
+import CreatePasswordCredentials from '../migrations/0006-create-password-credentials.js';
 import CreateJwtRefreshTokens from '../migrations/0007-create-jwt-refresh-tokens.js';
+import CreatePasswordResetTokens from '../migrations/0008-create-password-reset-tokens.js';
 
 describe('database user management', () => {
   let db: Database;
@@ -25,6 +28,7 @@ describe('database user management', () => {
   let apiKeys: DatabaseApiKeyService;
   let events: DatabaseAuthEventStore;
   let jwtSessions: DatabaseJwtSessionService;
+  let passwords: DatabasePasswordService;
   const hasher = new Sha256ApiKeyHasher();
 
   beforeAll(async () => {
@@ -38,7 +42,9 @@ describe('database user management', () => {
     await new CreateAuthEvents(db).up();
     await new CreateRolePermissions(db).up();
     await new CreateJwtSessions(db).up();
+    await new CreatePasswordCredentials(db).up();
     await new CreateJwtRefreshTokens(db).up();
+    await new CreatePasswordResetTokens(db).up();
     await db.run({
       sql: 'INSERT INTO roles (id, name) VALUES (?, ?), (?, ?);',
       params: [1, 'admin', 2, 'user'],
@@ -51,6 +57,10 @@ describe('database user management', () => {
     events = new DatabaseAuthEventStore(db);
     apiKeys = new DatabaseApiKeyService(db, hasher, {}, events);
     jwtSessions = new DatabaseJwtSessionService(db, {}, events);
+    passwords = new DatabasePasswordService(db, {
+      hash: async password => `encoded:${password}`,
+      verify: async (password, encodedHash) => encodedHash === `encoded:${password}`,
+    }, {}, events);
   });
 
   afterAll(async () => {
@@ -151,6 +161,68 @@ describe('database user management', () => {
     await expect(jwtSessions.list(user.id)).resolves.toEqual([
       expect.objectContaining({ id: first.id, status: 'revoked' }),
     ]);
+  });
+
+  it('changes passwords and revokes active sessions', async () => {
+    const user = await users.create({
+      name: 'Password User',
+      email: 'password@example.test',
+      roles: ['user'],
+    });
+    await passwords.set(user.id, 'old-password');
+    const session = await jwtSessions.create(user.id, new Date(Date.now() + 60_000));
+
+    await expect(passwords.change(user.id, 'wrong-password', 'new-password')).rejects.toThrow(
+      'Current password is invalid'
+    );
+    await passwords.change(user.id, 'old-password', 'new-password');
+
+    await expect(db.get({
+      sql: 'SELECT password_hash FROM password_credentials WHERE user_id = ?;',
+      params: [user.id],
+    })).resolves.toEqual({ password_hash: 'encoded:new-password' });
+    await expect(jwtSessions.list(user.id)).resolves.toEqual([
+      expect.objectContaining({ id: session.id, status: 'revoked' }),
+    ]);
+    await expect(events.list({ userId: user.id })).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: 'password.changed' })])
+    );
+  });
+
+  it('resets passwords with hashed single-use tokens', async () => {
+    const user = await users.create({
+      name: 'Reset User',
+      email: 'reset@example.test',
+      roles: ['user'],
+    });
+    await passwords.set(user.id, 'old-password');
+    const session = await jwtSessions.create(user.id, new Date(Date.now() + 60_000));
+    const reset = await passwords.createReset(user.id, new Date(Date.now() + 60_000));
+
+    expect(reset.token).toMatch(/^kdl_pr_[A-Za-z0-9_-]{43}$/);
+    const stored = await db.get({
+      sql: 'SELECT token_hash FROM password_reset_tokens WHERE user_id = ?;',
+      params: [user.id],
+    });
+    expect(stored.token_hash).not.toBe(reset.token);
+
+    await passwords.reset(reset.token, 'reset-password');
+    await expect(passwords.reset(reset.token, 'another-password')).rejects.toThrow(
+      'Password reset token is invalid or expired'
+    );
+    await expect(db.get({
+      sql: 'SELECT password_hash FROM password_credentials WHERE user_id = ?;',
+      params: [user.id],
+    })).resolves.toEqual({ password_hash: 'encoded:reset-password' });
+    await expect(jwtSessions.list(user.id)).resolves.toEqual([
+      expect.objectContaining({ id: session.id, status: 'revoked' }),
+    ]);
+    await expect(events.list({ userId: user.id })).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'password-reset.requested' }),
+        expect.objectContaining({ type: 'password-reset.completed' }),
+      ])
+    );
   });
 
   it('lists available roles in a stable order', async () => {

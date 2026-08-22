@@ -15,6 +15,7 @@ import CreateRolePermissions from '../migrations/0004-create-role-permissions.js
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
 import CreatePasswordCredentials from '../migrations/0006-create-password-credentials.js';
 import CreateJwtRefreshTokens from '../migrations/0007-create-jwt-refresh-tokens.js';
+import CreatePasswordResetTokens from '../migrations/0008-create-password-reset-tokens.js';
 
 const connectionString = process.env.POSTGRES_TEST_URL;
 const describePostgres = connectionString ? describe : describe.skip;
@@ -33,6 +34,7 @@ describePostgres('PostgreSQL auth database integration', () => {
     await new CreateJwtSessions(db).up();
     await new CreateJwtRefreshTokens(db).up();
     await new CreatePasswordCredentials(db).up();
+    await new CreatePasswordResetTokens(db).up();
     await db.run({
       sql: 'INSERT INTO roles (name) VALUES (?), (?);',
       params: ['admin', 'user'],
@@ -41,6 +43,7 @@ describePostgres('PostgreSQL auth database integration', () => {
 
   afterAll(async () => {
     if (!db) return;
+    await new CreatePasswordResetTokens(db).down();
     await new CreatePasswordCredentials(db).down();
     await new CreateJwtRefreshTokens(db).down();
     await new CreateJwtSessions(db).down();
@@ -93,6 +96,10 @@ describePostgres('PostgreSQL auth database integration', () => {
     await expect(
       new DatabasePasswordCredentialRepository(db).findByLogin('POSTGRES@example.test')
     ).resolves.toEqual({ userId: user.id, passwordHash: 'hashed:postgres-password' });
+    await passwords.change(user.id, 'postgres-password', 'changed-password');
+    await expect(
+      new DatabasePasswordCredentialRepository(db).findByLogin('POSTGRES@example.test')
+    ).resolves.toEqual({ userId: user.id, passwordHash: 'hashed:changed-password' });
 
     const sessions = new DatabaseJwtSessionService(db);
     const created = await sessions.create(user.id, new Date(Date.now() + 60_000));
@@ -115,6 +122,18 @@ describePostgres('PostgreSQL auth database integration', () => {
     const refreshed = await sessions.refresh(renewable.refreshToken);
     expect(refreshed).toMatchObject({ id: renewable.id, userId: user.id });
     await expect(sessions.refresh(renewable.refreshToken)).rejects.toThrow(
+      'Refresh token is invalid or expired',
+    );
+
+    const reset = await passwords.createReset(user.id, new Date(Date.now() + 60_000));
+    await passwords.reset(reset.token, 'reset-password');
+    await expect(passwords.reset(reset.token, 'reused-password')).rejects.toThrow(
+      'Password reset token is invalid or expired',
+    );
+    await expect(
+      new DatabasePasswordCredentialRepository(db).findByLogin('POSTGRES@example.test')
+    ).resolves.toEqual({ userId: user.id, passwordHash: 'hashed:reset-password' });
+    await expect(sessions.refresh(refreshed.refreshToken)).rejects.toThrow(
       'Refresh token is invalid or expired',
     );
   });

@@ -76,6 +76,7 @@ Services own business operations such as:
 - revoking JWT sessions
 - rotating refresh tokens
 - changing passwords
+- issuing and consuming password reset tokens
 
 Multi-step operations execute inside database transactions.
 
@@ -194,6 +195,11 @@ users
     ▼
 password_credentials
 ```
+
+Password reset credentials are kept separately in `password_reset_tokens`.
+Only token hashes are persisted. `DatabasePasswordService` owns password
+changes, reset-token issuance and consumption, and revokes active JWT sessions
+after successful credential replacement.
 
 By default the package uses `ScryptPasswordHasher`.
 

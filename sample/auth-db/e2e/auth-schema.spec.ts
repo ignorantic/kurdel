@@ -7,6 +7,7 @@ import CreateRolePermissions from '../migrations/0004-create-role-permissions.js
 import CreateJwtSessions from '../migrations/0005-create-jwt-sessions.js';
 import CreatePasswordCredentials from '../migrations/0006-create-password-credentials.js';
 import CreateJwtRefreshTokens from '../migrations/0007-create-jwt-refresh-tokens.js';
+import CreatePasswordResetTokens from '../migrations/0008-create-password-reset-tokens.js';
 
 describe('auth database schema', () => {
   let db: Database;
@@ -32,6 +33,7 @@ describe('auth database schema', () => {
     await new CreateJwtSessions(db).up();
     await new CreateJwtRefreshTokens(db).up();
     await new CreatePasswordCredentials(db).up();
+    await new CreatePasswordResetTokens(db).up();
 
     const tables = await db.all({
       sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name;",
@@ -43,6 +45,7 @@ describe('auth database schema', () => {
       'jwt_refresh_tokens',
       'jwt_sessions',
       'password_credentials',
+      'password_reset_tokens',
       'permissions',
       'role_permissions',
       'roles',
@@ -111,6 +114,7 @@ describe('auth database schema', () => {
 
   it('rolls the auth schema back in dependency order', async () => {
     const migration = new CreateAuthSchema(db);
+    await new CreatePasswordResetTokens(db).down();
     await new CreatePasswordCredentials(db).down();
     await new CreateJwtRefreshTokens(db).down();
     await new CreateJwtSessions(db).down();

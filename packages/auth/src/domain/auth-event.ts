@@ -44,6 +44,9 @@ export type AuthEvent =
     })
   | (AuthEventBase & {
       type: 'jwt-session.created' | 'jwt-session.refreshed' | 'jwt-session.revoked';
+    })
+  | (AuthEventBase & {
+      type: 'password.changed' | 'password-reset.requested' | 'password-reset.completed';
     });
 
 /**

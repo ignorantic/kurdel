@@ -33,6 +33,15 @@ new AuthDatabaseModule({
 });
 ```
 
+Password reset tokens use cryptographically secure random bytes and are stored
+only as SHA-256 hashes. A reset token is single-use and has an application-set
+expiration time. Issuing a new token invalidates any previous reset token for
+that user.
+
+Successful password changes and resets revoke all active JWT sessions. The
+application remains responsible for authenticating password-change requests
+and delivering reset tokens over a trusted channel.
+
 ---
 
 ## API keys
@@ -110,6 +119,8 @@ Examples:
 - create JWT session
 - revoke JWT session
 - rotate refresh token
+- change password
+- consume a password reset token
 
 When audit persistence is enabled, audit events participate in the same
 transaction.
@@ -136,6 +147,8 @@ The package protects against:
 
 - plaintext password disclosure
 - plaintext API key disclosure
+- plaintext password reset token disclosure through the database
+- reuse of a consumed password reset token
 - reuse of a refresh token after successful rotation
 - use of revoked JWT sessions
 - use of revoked API keys
