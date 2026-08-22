@@ -1,26 +1,29 @@
 import {
   AUTH_TOKENS,
-  PasswordAuthenticationService,
   ScryptPasswordHasher,
   type PasswordHasher,
 } from '@kurdel/auth';
 import { ModulePriority, type AppModule, type ProviderConfig } from '@kurdel/core/app';
 import { Database } from '@kurdel/db';
-import type { Container } from '@kurdel/ioc';
 
 import { Sha256ApiKeyHasher, type ApiKeyHasher } from './api-key-hasher.js';
-import type { AuthDatabaseTables } from './auth-database-tables.js';
-import { DatabaseApiKeyRepository } from './database-api-key-repository.js';
-import { DatabaseApiKeyService } from './database-api-key-service.js';
-import { DatabaseApiKeyUsageRecorder } from './database-api-key-usage-recorder.js';
-import { DatabaseAuthUserRepository } from './database-auth-user-repository.js';
-import { DatabaseAuthEventStore } from './database-auth-event-store.js';
-import { DatabaseJwtSessionRepository } from './database-jwt-session-repository.js';
-import { DatabaseJwtSessionService } from './database-jwt-session-service.js';
-import { DatabasePasswordCredentialRepository } from './database-password-credential-repository.js';
-import { DatabasePasswordService } from './database-password-service.js';
-import { DatabaseUserService } from './database-user-service.js';
+import { resolveAuthDatabaseTables, type AuthDatabaseTables } from './auth-database-tables.js';
+import {
+  ApiKeyRepositoryProvider,
+  ApiKeyServiceProvider,
+  ApiKeyUsageRecorderProvider,
+  AuthEventStoreProvider,
+  AuthUserRepositoryProvider,
+  JwtSessionRepositoryProvider,
+  JwtSessionServiceProvider,
+  PasswordAuthenticationServiceProvider,
+  PasswordCredentialRepositoryProvider,
+  PasswordServiceProvider,
+  UserServiceProvider,
+} from './auth-database-providers.js';
 import { AUTH_DB_TOKENS } from './tokens.js';
+
+const AUTH_DB_TABLES = Symbol('AuthDbTables');
 
 /**
  * ## AuthDatabaseModuleConfig
@@ -66,6 +69,7 @@ export class AuthDatabaseModule implements AppModule {
 
   constructor(config: AuthDatabaseModuleConfig = {}) {
     const tables = config.tables ?? {};
+    const resolvedTables = resolveAuthDatabaseTables(tables);
     const hasher = config.apiKeyHasher ?? new Sha256ApiKeyHasher();
     const passwordHasher = config.passwordHasher ?? new ScryptPasswordHasher();
     this.exports = {
@@ -92,89 +96,95 @@ export class AuthDatabaseModule implements AppModule {
         useInstance: passwordHasher,
       },
       {
+        provide: AUTH_DB_TABLES,
+        useInstance: resolvedTables,
+      },
+      {
         provide: AUTH_TOKENS.UserRepository,
-        useFactory: ioc => new DatabaseAuthUserRepository(ioc.get(Database), tables),
+        useClass: AuthUserRepositoryProvider,
+        deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.ApiKeyRepository,
-        useFactory: ioc =>
-          new DatabaseApiKeyRepository(
-            ioc.get(Database),
-            ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
-            tables
-          ),
+        useClass: ApiKeyRepositoryProvider,
+        deps: { db: Database, hasher: AUTH_DB_TOKENS.ApiKeyHasher, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.ApiKeyUsageRecorder,
-        useFactory: ioc => new DatabaseApiKeyUsageRecorder(ioc.get(Database), tables),
+        useClass: ApiKeyUsageRecorderProvider,
+        deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.JwtSessionRepository,
-        useFactory: ioc => new DatabaseJwtSessionRepository(ioc.get(Database), tables),
+        useClass: JwtSessionRepositoryProvider,
+        deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.PasswordCredentialRepository,
-        useFactory: ioc => new DatabasePasswordCredentialRepository(ioc.get(Database), tables),
+        useClass: PasswordCredentialRepositoryProvider,
+        deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       {
         provide: AUTH_TOKENS.PasswordAuthenticationService,
-        useFactory: ioc =>
-          new PasswordAuthenticationService(
-            ioc.get(AUTH_TOKENS.PasswordCredentialRepository),
-            ioc.get(AUTH_TOKENS.UserRepository),
-            ioc.get(AUTH_DB_TOKENS.PasswordHasher)
-          ),
+        useClass: PasswordAuthenticationServiceProvider,
+        deps: {
+          credentials: AUTH_TOKENS.PasswordCredentialRepository,
+          users: AUTH_TOKENS.UserRepository,
+          hasher: AUTH_DB_TOKENS.PasswordHasher,
+        },
         singleton: true,
       },
       {
         provide: AUTH_DB_TOKENS.UserService,
-        useFactory: ioc => new DatabaseUserService(ioc.get(Database), tables),
+        useClass: UserServiceProvider,
+        deps: { db: Database, tables: AUTH_DB_TABLES },
         singleton: true,
       },
       ...(config.audit
         ? [
             {
               provide: AUTH_DB_TOKENS.EventStore,
-              useFactory: (ioc: Container) => new DatabaseAuthEventStore(ioc.get(Database), tables),
+              useClass: AuthEventStoreProvider,
+              deps: { db: Database, tables: AUTH_DB_TABLES },
               singleton: true,
             },
           ]
         : []),
       {
         provide: AUTH_DB_TOKENS.ApiKeyService,
-        useFactory: ioc =>
-          new DatabaseApiKeyService(
-            ioc.get(Database),
-            ioc.get(AUTH_DB_TOKENS.ApiKeyHasher),
-            tables,
-            config.audit ? ioc.get(AUTH_DB_TOKENS.EventStore) : undefined
-          ),
+        useClass: ApiKeyServiceProvider,
+        deps: {
+          db: Database,
+          hasher: AUTH_DB_TOKENS.ApiKeyHasher,
+          tables: AUTH_DB_TABLES,
+          ...(config.audit ? { events: AUTH_DB_TOKENS.EventStore } : {}),
+        },
         singleton: true,
       },
       {
         provide: AUTH_DB_TOKENS.JwtSessionService,
-        useFactory: ioc =>
-          new DatabaseJwtSessionService(
-            ioc.get(Database),
-            tables,
-            config.audit ? ioc.get(AUTH_DB_TOKENS.EventStore) : undefined
-          ),
+        useClass: JwtSessionServiceProvider,
+        deps: {
+          db: Database,
+          tables: AUTH_DB_TABLES,
+          ...(config.audit ? { events: AUTH_DB_TOKENS.EventStore } : {}),
+        },
         singleton: true,
       },
       {
         provide: AUTH_DB_TOKENS.PasswordService,
-        useFactory: ioc =>
-          new DatabasePasswordService(
-            ioc.get(Database),
-            ioc.get(AUTH_DB_TOKENS.PasswordHasher),
-            tables,
-            config.audit ? ioc.get(AUTH_DB_TOKENS.EventStore) : undefined
-          ),
+        useClass: PasswordServiceProvider,
+        deps: {
+          db: Database,
+          hasher: AUTH_DB_TOKENS.PasswordHasher,
+          tables: AUTH_DB_TABLES,
+          ...(config.audit ? { events: AUTH_DB_TOKENS.EventStore } : {}),
+        },
         singleton: true,
       },
     ];

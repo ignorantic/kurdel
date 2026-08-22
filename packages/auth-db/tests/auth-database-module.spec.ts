@@ -1,13 +1,21 @@
 import { AUTH_TOKENS } from '@kurdel/auth';
+import { Database, type Database as DatabaseContract } from '@kurdel/db';
+import { IoCContainer } from '@kurdel/ioc';
 
-import { AUTH_DB_TOKENS, AuthDatabaseModule, type ApiKeyHasher } from '../src/index.js';
+import {
+  AUTH_DB_TOKENS,
+  AuthDatabaseModule,
+  DatabaseAuthEventStore,
+  DatabasePasswordService,
+  type ApiKeyHasher,
+} from '../src/index.js';
 
 describe('AuthDatabaseModule', () => {
   it('exports authentication repositories and management services', () => {
     const hasher: ApiKeyHasher = { hash: key => `hashed:${key}` };
     const module = new AuthDatabaseModule({ apiKeyHasher: hasher });
 
-    expect(module.providers).toHaveLength(12);
+    expect(module.providers).toHaveLength(13);
     expect(module.providers).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ provide: AUTH_DB_TOKENS.ApiKeyHasher, useInstance: hasher }),
@@ -49,14 +57,41 @@ describe('AuthDatabaseModule', () => {
     const disabled = new AuthDatabaseModule();
     const enabled = new AuthDatabaseModule({ audit: true });
 
-    expect(disabled.providers).toHaveLength(12);
+    expect(disabled.providers).toHaveLength(13);
+    expect(disabled.providers.every(provider => !('useFactory' in provider))).toBe(true);
     expect(disabled.exports).not.toHaveProperty('eventStore');
-    expect(enabled.providers).toHaveLength(13);
+    expect(enabled.providers).toHaveLength(14);
+    expect(enabled.providers.every(provider => !('useFactory' in provider))).toBe(true);
     expect(enabled.providers).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ provide: AUTH_DB_TOKENS.EventStore, singleton: true }),
       ])
     );
     expect(enabled.exports).toHaveProperty('eventStore', AUTH_DB_TOKENS.EventStore);
+  });
+
+  it('resolves class providers from their declared dependency graph', () => {
+    const ioc = new IoCContainer();
+    const database = {} as DatabaseContract;
+    const module = new AuthDatabaseModule({ audit: true });
+    ioc.bind(Database).toInstance(database);
+
+    for (const provider of module.providers) {
+      if ('useInstance' in provider) {
+        ioc.bind(provider.provide).toInstance(provider.useInstance);
+      } else if ('useClass' in provider) {
+        const binding = ioc.bind(provider.provide).to(provider.useClass);
+        if (provider.deps) binding.with(provider.deps);
+        if (provider.singleton) binding.inSingletonScope();
+      } else {
+        throw new Error('AuthDatabaseModule should not contain factory providers');
+      }
+    }
+
+    expect(ioc.get(AUTH_DB_TOKENS.PasswordService)).toBeInstanceOf(DatabasePasswordService);
+    expect(ioc.get(AUTH_DB_TOKENS.EventStore)).toBeInstanceOf(DatabaseAuthEventStore);
+    expect(ioc.get(AUTH_DB_TOKENS.PasswordService)).toBe(
+      ioc.get(AUTH_DB_TOKENS.PasswordService)
+    );
   });
 });
