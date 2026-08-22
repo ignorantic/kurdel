@@ -8,14 +8,12 @@ import type { User, UserStatus } from './types.js';
 
 export function ManageUserDialog({
   userId,
-  apiKey,
   onUpdated,
   onDeleted,
   onClose,
   onUnauthorized,
 }: {
   userId: number;
-  apiKey: string;
   onUpdated: (user: User) => void;
   onDeleted: (name: string) => void;
   onClose: () => void;
@@ -35,8 +33,8 @@ export function ManageUserDialog({
 
   useEffect(() => {
     Promise.all([
-      request<User>(`/users/${userId}`, apiKey),
-      request<{ roles: string[] }>('/roles', apiKey),
+      request<User>(`/users/${userId}`),
+      request<{ roles: string[] }>('/roles'),
     ])
       .then(([loadedUser, loadedRoles]) => {
         setUser(loadedUser);
@@ -58,7 +56,7 @@ export function ManageUserDialog({
         );
       })
       .finally(() => setLoading(false));
-  }, [apiKey, onUnauthorized, userId]);
+  }, [onUnauthorized, userId]);
 
   function toggleRole(role: string) {
     setSelectedRoles(current =>
@@ -85,7 +83,7 @@ export function ManageUserDialog({
     setSubmitting(true);
     setError('');
     try {
-      const updated = await request<User>(`/users/${userId}`, apiKey, {
+      const updated = await request<User>(`/users/${userId}`, {
         method: 'PATCH',
         body: JSON.stringify({
           name: name.trim(),
@@ -113,7 +111,7 @@ export function ManageUserDialog({
     setSubmitting(true);
     setError('');
     try {
-      await request<void>(`/users/${userId}`, apiKey, { method: 'DELETE' });
+      await request<void>(`/users/${userId}`, { method: 'DELETE' });
       onDeleted(user.name);
     } catch (reason) {
       handleMutationError(reason, setError, onUnauthorized, 'Could not delete the user.');
@@ -195,12 +193,10 @@ export function ManageUserDialog({
             <ApiKeyManager
               userId={user.id}
               userStatus={user.status}
-              apiKey={apiKey}
               onUnauthorized={onUnauthorized}
             />
             <AuthEventList
               userId={user.id}
-              apiKey={apiKey}
               onUnauthorized={onUnauthorized}
             />
             {error && (

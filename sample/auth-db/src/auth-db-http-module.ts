@@ -24,6 +24,7 @@ export class AuthDbHttpModule implements HttpModule {
         apiKeys: AUTH_DB_TOKENS.ApiKeyService,
         passwords: AUTH_DB_TOKENS.PasswordService,
         passwordAuthentication: AUTH_TOKENS.PasswordAuthenticationService,
+        passwordCredentials: AUTH_TOKENS.PasswordCredentialRepository,
         jwtSessions: AUTH_DB_TOKENS.JwtSessionService,
         jwt: AUTH_TOKENS.JwtService,
         events: AUTH_DB_TOKENS.EventStore,

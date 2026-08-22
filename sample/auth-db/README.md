@@ -24,9 +24,10 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) and sign in with
-`admin-demo-key`. The React dashboard keeps the credential in
-`sessionStorage`, verifies the admin role, and loads the user list from the
-same-origin API. It supports user creation, profile inspection and editing,
+`admin@example.test / admin-demo-password`. The React dashboard keeps the JWT
+session in `sessionStorage`, rotates its refresh token automatically, verifies
+the admin role, and loads the user list from the same-origin API. It supports
+user creation, profile inspection and editing, password change and reset,
 status filters, pagination, refresh, and logout. Available roles are loaded
 from the database, and validation conflicts are reported without leaving the
 page. User deletion requires confirmation, removes associated roles and API
@@ -62,6 +63,12 @@ returns a 15-minute access token and a 30-day refresh token; `POST
 /auth/refresh` rotates the refresh token, while the session endpoints list and
 revoke active sessions.
 
+Migration `0008-create-password-reset-tokens.js` adds hashed, single-use reset
+tokens. In development the reset screen displays the token returned by the
+server so the complete flow can be exercised without an email provider. In
+production the endpoint returns only a neutral acknowledgement. Successful
+password changes and resets revoke every active session for the user.
+
 The sample uses SQLite by default. To run it against PostgreSQL, copy
 `db.postgres.config.example.json` to `db.config.json`, replace the example
 credentials, and run the same migration, seed, and start commands. The CI suite
@@ -92,8 +99,6 @@ Running it again preserves users and API keys created through the HTTP API.
 ```bash
 curl.exe http://localhost:3000/public
 curl.exe -H "x-api-key: user-demo-key" http://localhost:3000/profile
-curl.exe -H "x-api-key: admin-demo-key" http://localhost:3000/admin
-curl.exe -H "x-api-key: user-demo-key" http://localhost:3000/admin
 ```
 
 Password login from PowerShell:
@@ -122,20 +127,20 @@ $session = Invoke-RestMethod `
   -Body $refreshBody
 
 $headers = @{ Authorization = "Bearer $($session.accessToken)" }
+Invoke-RestMethod -Uri "http://localhost:3000/admin" -Headers $headers
 Invoke-RestMethod -Uri "http://localhost:3000/auth/sessions" -Headers $headers
-Invoke-RestMethod -Method Post -Uri "http://localhost:3000/auth/logout" -Headers $headers
 ```
 
-The final request returns `403` because the user key does not have the `admin`
-role. Raw API keys are never stored in the database; the seed script stores
-their SHA-256 hashes.
+The API-key profile route remains available to demonstrate API-key
+authentication. Administration routes use JWT authentication. Raw API keys
+are never stored in the database; the seed script stores their SHA-256 hashes.
 
 ## Create a user and API key
 
-Create an active user with the `user` role using the admin credential:
+Create an active user with the `user` role using the administrator JWT:
 
 ```powershell
-$headers = @{ "x-api-key" = "admin-demo-key" }
+$headers = @{ Authorization = "Bearer $($session.accessToken)" }
 $body = @{
   name = "Ada Lovelace"
   email = "ada@example.test"
@@ -171,8 +176,8 @@ its SHA-256 hash is stored in SQLite.
 ## Manage users
 
 User-management mutations and collection routes use the sample's
-`manage-users` authorization policy. It requires an API-key credential
-belonging to a user with the `admin` role. List the first page, optionally
+`manage-users` authorization policy. It requires a JWT session belonging to a
+user with the `admin` role. List the first page, optionally
 filtering by `active` or `disabled` status:
 
 ```powershell
@@ -194,7 +199,12 @@ may view any user, while a regular user may only request their own ID. For
 example, the seeded user with ID `2` can load their own record:
 
 ```powershell
-$userHeaders = @{ "x-api-key" = "user-demo-key" }
+$userLogin = @{
+  email = "user@example.test"
+  password = "user-demo-password"
+} | ConvertTo-Json
+$userSession = Invoke-RestMethod -Method Post -Uri "http://localhost:3000/auth/login" -ContentType "application/json" -Body $userLogin
+$userHeaders = @{ Authorization = "Bearer $($userSession.accessToken)" }
 
 Invoke-RestMethod `
   -Uri "http://localhost:3000/users/2" `

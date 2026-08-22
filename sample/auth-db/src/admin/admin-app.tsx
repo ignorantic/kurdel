@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { ApiError, request } from './api-client.js';
-import { credentialStorageKey, LoadingScreen, Login, TableSkeleton } from './auth-screen.js';
+import { ApiError, clearSession, logout, request, restoreSession } from './api-client.js';
+import { ChangePasswordDialog, LoadingScreen, Login, TableSkeleton } from './auth-screen.js';
 import { CreateUserDialog } from './create-user-dialog.js';
 import { ManageUserDialog } from './manage-user-dialog.js';
 import type { User, UserPage, UserStatus } from './types.js';
@@ -10,39 +10,38 @@ import { UserTable } from './user-table.js';
 const pageSize = 10;
 
 export default function Admin() {
-  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [authenticated, setAuthenticated] = useState(false);
   const [restoring, setRestoring] = useState(true);
 
   useEffect(() => {
-    const saved = sessionStorage.getItem(credentialStorageKey);
-    if (!saved) {
-      setRestoring(false);
-      return;
-    }
-    request('/admin', saved)
-      .then(() => setApiKey(saved))
-      .catch(() => sessionStorage.removeItem(credentialStorageKey))
+    restoreSession()
+      .then(restored => restored ? request('/admin') : Promise.reject())
+      .then(() => setAuthenticated(true))
+      .catch(clearSession)
       .finally(() => setRestoring(false));
   }, []);
 
-  function logOut() {
-    sessionStorage.removeItem(credentialStorageKey);
-    setApiKey(null);
+  async function logOut() {
+    await logout();
+    setAuthenticated(false);
+  }
+
+  function sessionEnded() {
+    clearSession();
+    setAuthenticated(false);
   }
 
   if (restoring) return <LoadingScreen />;
-  if (!apiKey) return <Login onAuthenticated={setApiKey} />;
-  return <Dashboard apiKey={apiKey} onUnauthorized={logOut} onLogOut={logOut} />;
+  if (!authenticated) return <Login onAuthenticated={() => setAuthenticated(true)} />;
+  return <Dashboard onUnauthorized={sessionEnded} onLogOut={logOut} />;
 }
 
 function Dashboard({
-  apiKey,
   onUnauthorized,
   onLogOut,
 }: {
-  apiKey: string;
   onUnauthorized: () => void;
-  onLogOut: () => void;
+  onLogOut: () => Promise<void>;
 }) {
   const [status, setStatus] = useState<'' | UserStatus>('');
   const [offset, setOffset] = useState(0);
@@ -53,13 +52,14 @@ function Dashboard({
   const [creating, setCreating] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [notice, setNotice] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams({ limit: String(pageSize), offset: String(offset) });
     if (status) params.set('status', status);
     setLoading(true);
     setError('');
-    request<UserPage>(`/users?${params}`, apiKey)
+    request<UserPage>(`/users?${params}`)
       .then(setPage)
       .catch(reason => {
         if (reason instanceof ApiError && (reason.status === 401 || reason.status === 403)) {
@@ -69,7 +69,7 @@ function Dashboard({
         setError('Could not load users. Check the server and try again.');
       })
       .finally(() => setLoading(false));
-  }, [apiKey, offset, onUnauthorized, reload, status]);
+  }, [offset, onUnauthorized, reload, status]);
 
   const shownFrom = page && page.total > 0 ? page.offset + 1 : 0;
   const shownTo = page ? Math.min(page.offset + page.users.length, page.total) : 0;
@@ -106,9 +106,10 @@ function Dashboard({
             <span>Users</span>
           </span>
         </nav>
-        <button className="logout-button" onClick={onLogOut}>
-          Log out
-        </button>
+        <div className="sidebar-actions">
+          <button className="logout-button" onClick={() => setChangingPassword(true)}>Change password</button>
+          <button className="logout-button" onClick={() => void onLogOut()}>Log out</button>
+        </div>
       </aside>
       <main className="content">
         <header className="page-header">
@@ -190,7 +191,6 @@ function Dashboard({
         )}
         {creating && (
           <CreateUserDialog
-            apiKey={apiKey}
             onCreated={userCreated}
             onClose={() => setCreating(false)}
             onUnauthorized={onUnauthorized}
@@ -199,11 +199,16 @@ function Dashboard({
         {selectedUserId !== null && (
           <ManageUserDialog
             userId={selectedUserId}
-            apiKey={apiKey}
             onUpdated={userUpdated}
             onDeleted={userDeleted}
             onClose={() => setSelectedUserId(null)}
             onUnauthorized={onUnauthorized}
+          />
+        )}
+        {changingPassword && (
+          <ChangePasswordDialog
+            onClose={() => setChangingPassword(false)}
+            onChanged={onUnauthorized}
           />
         )}
       </main>

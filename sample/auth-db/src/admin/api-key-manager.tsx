@@ -7,12 +7,10 @@ import type { ApiKeyMetadata, CreatedApiKey, UserStatus } from './types.js';
 export function ApiKeyManager({
   userId,
   userStatus,
-  apiKey,
   onUnauthorized,
 }: {
   userId: number;
   userStatus: UserStatus;
-  apiKey: string;
   onUnauthorized: () => void;
 }) {
   const [apiKeys, setApiKeys] = useState<ApiKeyMetadata[] | null>(null);
@@ -26,7 +24,7 @@ export function ApiKeyManager({
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
-    request<{ apiKeys: ApiKeyMetadata[] }>(`/users/${userId}/api-keys`, apiKey)
+    request<{ apiKeys: ApiKeyMetadata[] }>(`/users/${userId}/api-keys`)
       .then(result => setApiKeys(result.apiKeys))
       .catch(reason => {
         if (reason instanceof ApiError && (reason.status === 401 || reason.status === 403)) {
@@ -35,14 +33,14 @@ export function ApiKeyManager({
         }
         setError('Could not load API keys.');
       });
-  }, [apiKey, onUnauthorized, reload, userId]);
+  }, [onUnauthorized, reload, userId]);
 
   async function issue(event: FormEvent) {
     event.preventDefault();
     setSubmitting(true);
     setError('');
     try {
-      const credential = await request<CreatedApiKey>(`/users/${userId}/api-keys`, apiKey, {
+      const credential = await request<CreatedApiKey>(`/users/${userId}/api-keys`, {
         method: 'POST',
         body: JSON.stringify({
           name: name.trim(),
@@ -65,7 +63,7 @@ export function ApiKeyManager({
     setSubmitting(true);
     setError('');
     try {
-      await request<void>(`/users/${userId}/api-keys/${apiKeyId}`, apiKey, { method: 'DELETE' });
+      await request<void>(`/users/${userId}/api-keys/${apiKeyId}`, { method: 'DELETE' });
       setRevoking(null);
       setReload(value => value + 1);
     } catch (reason) {

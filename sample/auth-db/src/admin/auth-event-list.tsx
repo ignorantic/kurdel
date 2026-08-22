@@ -15,11 +15,9 @@ const eventTypes: Array<{ value: AuthEventType | ''; label: string }> = [
 
 export function AuthEventList({
   userId,
-  apiKey,
   onUnauthorized,
 }: {
   userId: number;
-  apiKey: string;
   onUnauthorized: () => void;
 }) {
   const [events, setEvents] = useState<AuthEvent[] | null>(null);
@@ -31,7 +29,7 @@ export function AuthEventList({
     const query = new URLSearchParams({ limit: '50' });
     if (type) query.set('type', type);
     setError('');
-    request<{ events: AuthEvent[] }>(`/users/${userId}/auth-events?${query}`, apiKey)
+    request<{ events: AuthEvent[] }>(`/users/${userId}/auth-events?${query}`)
       .then(result => setEvents(result.events))
       .catch(reason => {
         if (reason instanceof ApiError && (reason.status === 401 || reason.status === 403)) {
@@ -40,7 +38,7 @@ export function AuthEventList({
         }
         setError('Could not load authentication events.');
       });
-  }, [apiKey, onUnauthorized, reload, type, userId]);
+  }, [onUnauthorized, reload, type, userId]);
 
   return (
     <section className="audit-section">

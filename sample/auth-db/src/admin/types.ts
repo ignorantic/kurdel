@@ -41,7 +41,10 @@ export type AuthEventType =
   | 'api-key.revoked'
   | 'jwt-session.created'
   | 'jwt-session.refreshed'
-  | 'jwt-session.revoked';
+  | 'jwt-session.revoked'
+  | 'password.changed'
+  | 'password-reset.requested'
+  | 'password-reset.completed';
 
 export type AuthEvent = {
   id: number;

@@ -4,12 +4,10 @@ import { ApiError, request } from './api-client.js';
 import type { User } from './types.js';
 
 export function CreateUserDialog({
-  apiKey,
   onCreated,
   onClose,
   onUnauthorized,
 }: {
-  apiKey: string;
   onCreated: (user: User) => void;
   onClose: () => void;
   onUnauthorized: () => void;
@@ -23,7 +21,7 @@ export function CreateUserDialog({
   const [error, setError] = useState('');
 
   useEffect(() => {
-    request<{ roles: string[] }>('/roles', apiKey)
+    request<{ roles: string[] }>('/roles')
       .then(result => {
         setRoles(result.roles);
         setSelectedRoles(result.roles.includes('user') ? ['user'] : result.roles.slice(0, 1));
@@ -36,7 +34,7 @@ export function CreateUserDialog({
         setError('Could not load available roles.');
       })
       .finally(() => setLoadingRoles(false));
-  }, [apiKey, onUnauthorized]);
+  }, [onUnauthorized]);
 
   function toggleRole(role: string) {
     setSelectedRoles(current =>
@@ -53,7 +51,7 @@ export function CreateUserDialog({
     setSubmitting(true);
     setError('');
     try {
-      const user = await request<User>('/users', apiKey, {
+      const user = await request<User>('/users', {
         method: 'POST',
         body: JSON.stringify({ name: name.trim(), email: email.trim(), roles: selectedRoles }),
       });

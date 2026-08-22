@@ -41,6 +41,6 @@ const app = await createNodeApplication({
 
 app.listen(environment.PORT, () => {
   console.log(`Auth DB sample: http://localhost:${environment.PORT}`);
-  console.log('Admin key: admin-demo-key');
-  console.log('User key: user-demo-key');
+  console.log('Admin login: admin@example.test / admin-demo-password');
+  console.log('User login: user@example.test / user-demo-password');
 });

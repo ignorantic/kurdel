@@ -11,7 +11,11 @@ import {
   type HttpContext,
   type RouteParams,
 } from '@kurdel/core/http';
-import type { JwtService, PasswordAuthenticationService } from '@kurdel/auth';
+import type {
+  JwtService,
+  PasswordAuthenticationService,
+  PasswordCredentialRepository,
+} from '@kurdel/auth';
 import { z } from 'zod';
 
 import {
@@ -20,6 +24,8 @@ import {
   ApiKeyUserNotFoundError,
   DuplicateUserEmailError,
   PasswordUserNotFoundError,
+  InvalidCurrentPasswordError,
+  InvalidPasswordResetTokenError,
   InvalidRefreshTokenError,
   JwtSessionNotFoundError,
   UnknownRolesError,
@@ -35,6 +41,7 @@ import {
   type UpdateUserInput,
 } from '@kurdel/auth-db';
 import { zodAdapter } from './zod-adapter.js';
+import { environment } from './environment.js';
 
 type Deps = {
   users: DatabaseUserService;
@@ -42,12 +49,16 @@ type Deps = {
   events: DatabaseAuthEventStore;
   passwords: DatabasePasswordService;
   passwordAuthentication: PasswordAuthenticationService;
+  passwordCredentials: PasswordCredentialRepository;
   jwtSessions: DatabaseJwtSessionService;
   jwt: JwtService;
 };
 
 type LoginBody = { email: string; password: string };
 type RefreshBody = { refreshToken: string };
+type ChangePasswordBody = { currentPassword: string; password: string };
+type RequestPasswordResetBody = { email: string };
+type CompletePasswordResetBody = { token: string; password: string };
 
 type CreateApiKeyBody = {
   name: string;
@@ -69,6 +80,18 @@ const sessionIdSchema = z.object({
 
 const setPasswordSchema = z.object({
   password: z.string().min(8).max(1024),
+});
+
+const changePasswordSchema = setPasswordSchema.extend({
+  currentPassword: z.string().min(8).max(1024),
+});
+
+const requestPasswordResetSchema = z.object({
+  email: z.string().trim().email().max(254),
+});
+
+const completePasswordResetSchema = setPasswordSchema.extend({
+  token: z.string().startsWith('kdl_pr_').max(128),
 });
 
 const createUserSchema = z.object({
@@ -113,6 +136,9 @@ const authEventTypes = [
   'jwt-session.created',
   'jwt-session.refreshed',
   'jwt-session.revoked',
+  'password.changed',
+  'password-reset.requested',
+  'password-reset.completed',
 ] as const;
 
 const listAuthEventsSchema = z.object({
@@ -192,33 +218,51 @@ export class AuthDbController extends Controller<Deps> {
       path: '/auth/sessions',
       auth: { strategy: 'jwt' },
     })(this.revokeAllSessions),
+    changePassword: route({
+      method: 'POST',
+      path: '/auth/password/change',
+      auth: { strategy: 'jwt' },
+      schema: { body: zodAdapter(changePasswordSchema) },
+    })(this.changePassword),
+    requestPasswordReset: route({
+      method: 'POST',
+      path: '/auth/password-reset/request',
+      auth: { public: true },
+      schema: { body: zodAdapter(requestPasswordResetSchema) },
+    })(this.requestPasswordReset),
+    completePasswordReset: route({
+      method: 'POST',
+      path: '/auth/password-reset/complete',
+      auth: { public: true },
+      schema: { body: zodAdapter(completePasswordResetSchema) },
+    })(this.completePasswordReset),
     sessionProfile: route({
       method: 'GET',
       path: '/session/profile',
       auth: { strategy: 'jwt' },
-    })(this.profile),
+    })(this.sessionProfile),
     profile: route({ method: 'GET', path: '/profile', auth: { strategy: 'api-key' } })(
       this.profile
     ),
     admin: route({
       method: 'GET',
       path: '/admin',
-      auth: { strategy: 'api-key', roles: ['admin'] },
+      auth: { strategy: 'jwt', roles: ['admin'] },
     })(this.admin),
     listRoles: route({
       method: 'GET',
       path: '/roles',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
     })(this.listRoles),
     listPermissions: route({
       method: 'GET',
       path: '/permissions',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
     })(this.listPermissions),
     setRolePermissions: route({
       method: 'PUT',
       path: '/roles/:id/permissions',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: {
         body: zodAdapter(rolePermissionsSchema),
         params: zodAdapter(roleIdSchema),
@@ -227,25 +271,25 @@ export class AuthDbController extends Controller<Deps> {
     createUser: route({
       method: 'POST',
       path: '/users',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: { body: zodAdapter(createUserSchema) },
     })(this.createUser),
     listUsers: route({
       method: 'GET',
       path: '/users',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: { query: zodAdapter(listUsersSchema) },
     })(this.listUsers),
     getUser: route({
       method: 'GET',
       path: '/users/:id',
-      auth: { strategy: 'api-key', policies: ['view-user'] },
+      auth: { strategy: 'jwt', policies: ['view-user'] },
       schema: { params: zodAdapter(userIdSchema) },
     })(this.getUser),
     listAuthEvents: route({
       method: 'GET',
       path: '/users/:id/auth-events',
-      auth: { strategy: 'api-key', policies: ['view-user'] },
+      auth: { strategy: 'jwt', policies: ['view-user'] },
       schema: {
         params: zodAdapter(userIdSchema),
         query: zodAdapter(listAuthEventsSchema),
@@ -254,7 +298,7 @@ export class AuthDbController extends Controller<Deps> {
     updateUser: route({
       method: 'PATCH',
       path: '/users/:id',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: {
         body: zodAdapter(updateUserSchema),
         params: zodAdapter(userIdSchema),
@@ -263,19 +307,19 @@ export class AuthDbController extends Controller<Deps> {
     setPassword: route({
       method: 'PUT',
       path: '/users/:id/password',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: { body: zodAdapter(setPasswordSchema), params: zodAdapter(userIdSchema) },
     })(this.setPassword),
     deleteUser: route({
       method: 'DELETE',
       path: '/users/:id',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: { params: zodAdapter(userIdSchema) },
     })(this.deleteUser),
     createApiKey: route({
       method: 'POST',
       path: '/users/:id/api-keys',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: {
         body: zodAdapter(createApiKeySchema),
         params: zodAdapter(userIdSchema),
@@ -284,13 +328,13 @@ export class AuthDbController extends Controller<Deps> {
     listApiKeys: route({
       method: 'GET',
       path: '/users/:id/api-keys',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: { params: zodAdapter(userIdSchema) },
     })(this.listApiKeys),
     revokeApiKey: route({
       method: 'DELETE',
       path: '/users/:id/api-keys/:keyId',
-      auth: { strategy: 'api-key', policies: ['manage-users'] },
+      auth: { strategy: 'jwt', policies: ['manage-users'] },
       schema: { params: zodAdapter(apiKeyParamsSchema) },
     })(this.revokeApiKey),
   };
@@ -371,7 +415,56 @@ export class AuthDbController extends Controller<Deps> {
     return NoContent();
   }
 
+  async changePassword(ctx: HttpContext<ChangePasswordBody>) {
+    try {
+      await this.deps.passwords.change(
+        Number(ctx.auth!.user.id),
+        ctx.body!.currentPassword,
+        ctx.body!.password,
+      );
+      return NoContent();
+    } catch (error) {
+      if (error instanceof InvalidCurrentPasswordError) throw BadRequest(error.message);
+      if (error instanceof PasswordUserNotFoundError) throw NotFound(error.message);
+      throw error;
+    }
+  }
+
+  async requestPasswordReset(ctx: HttpContext<RequestPasswordResetBody>) {
+    const credential = await this.deps.passwordCredentials.findByLogin(ctx.body!.email);
+    if (!credential) return Ok({ accepted: true });
+
+    let reset;
+    try {
+      reset = await this.deps.passwords.createReset(
+        Number(credential.userId),
+        new Date(Date.now() + 15 * 60 * 1000),
+      );
+    } catch (error) {
+      if (error instanceof PasswordUserNotFoundError) return Ok({ accepted: true });
+      throw error;
+    }
+    return Ok({
+      accepted: true,
+      ...(environment.NODE_ENV === 'development' ? { resetToken: reset.token } : {}),
+    });
+  }
+
+  async completePasswordReset(ctx: HttpContext<CompletePasswordResetBody>) {
+    try {
+      await this.deps.passwords.reset(ctx.body!.token, ctx.body!.password);
+      return NoContent();
+    } catch (error) {
+      if (error instanceof InvalidPasswordResetTokenError) throw BadRequest(error.message);
+      throw error;
+    }
+  }
+
   async profile(ctx: HttpContext) {
+    return Ok({ user: this.serializeUser(ctx) });
+  }
+
+  async sessionProfile(ctx: HttpContext) {
     return Ok({ user: this.serializeUser(ctx) });
   }
 
